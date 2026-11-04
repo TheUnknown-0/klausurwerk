@@ -448,6 +448,20 @@ class TestsEndpointTests(unittest.TestCase):
         self.assertIn("summe(1, 1) == 3", results[3]["message"])
         self.assertIn("NameError", results[4]["message"])
 
+    def test_python_assert_mit_input_im_hauptteil(self):
+        code = "def fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\nn = int(input('n = '))\nprint(fib(n))\ndef spaeter():\n    return 1\n"
+        results = self.post_tests({
+            "language": "python", "main_file": "m.py", "files": [{"name": "m.py", "content": code}],
+            "tests": [{"name": "fib", "type": "python_assert", "code": "assert fib(10) == 55"},
+                      {"name": "danach definiert", "type": "python_assert", "code": "assert spaeter() == 1"},
+                      {"name": "io", "type": "io", "input": "10\n", "expected_output": "n = 55"}]})
+        self.assertTrue(results[0]["ok"], results[0])
+        self.assertIn("input()", results[0]["message"])
+        self.assertFalse(results[1]["ok"], results[1])
+        self.assertIn("NameError", results[1]["message"])
+        self.assertIn("__main__", results[1]["message"])
+        self.assertTrue(results[2]["ok"], results[2])
+
     def test_python_syntaxfehler_und_input_ende(self):
         results = self.post_tests({
             "language": "python", "main_file": "m.py", "files": [{"name": "m.py", "content": "def f(:\n"}],

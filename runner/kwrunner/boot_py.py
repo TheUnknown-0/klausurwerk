@@ -96,8 +96,15 @@ def mode_assert(args: list) -> int:
         test_code = handle.read()
     _remove_hidden(assert_file)  # nicht mehr als Datei lesbar, bevor Schülercode läuft
     namespace = {"__name__": "schueler_modul", "__file__": main_file, "__builtins__": __builtins__}
+    note = ""
     try:
         exec(compile(student, main_file, "exec"), namespace)
+    except EOFError:
+        # Typisch in Klasse 10: input() steht ohne "if __name__ == '__main__':" im Hauptteil.
+        # Alles, was davor definiert wurde, ist im Namensraum; damit wird weiter geprüft.
+        note = (" Hinweis: Das Hauptprogramm wartet beim Laden auf eine Eingabe (input())."
+                " Geprüft wurde mit allem, was davor definiert ist. Besser steht das Hauptprogramm"
+                " unter if __name__ == \"__main__\":")
     except SystemExit:
         emit(fd, {"ok": False, "phase": "load",
                   "message": "Das Programm beendet sich beim Laden selbst (exit/quit). Die Prüfung kann nicht laufen."})
@@ -123,17 +130,17 @@ def mode_assert(args: list) -> int:
                 message = "Die Prüfung ist fehlgeschlagen: " + lines[line - 1].strip()[:200]
             else:
                 message = "Eine Prüfung (assert) ist fehlgeschlagen."
-        emit(fd, {"ok": False, "phase": "assert", "message": message[:500]})
+        emit(fd, {"ok": False, "phase": "assert", "message": (message[:500] + note).strip()})
         return 1
     except SystemExit:
-        emit(fd, {"ok": False, "phase": "assert", "message": "Das Programm hat die Prüfung vorzeitig beendet."})
+        emit(fd, {"ok": False, "phase": "assert", "message": "Das Programm hat die Prüfung vorzeitig beendet." + note})
         return 1
     except BaseException as exc:  # noqa: BLE001
         print_exception(exc)
         emit(fd, {"ok": False, "phase": "assert",
-                  "message": "Beim Prüfen ist ein Fehler aufgetreten: " + type(exc).__name__ + ": " + str(exc)[:300]})
+                  "message": "Beim Prüfen ist ein Fehler aufgetreten: " + type(exc).__name__ + ": " + str(exc)[:300] + note})
         return 1
-    emit(fd, {"ok": True, "phase": "assert", "message": "Alle Prüfungen bestanden."})
+    emit(fd, {"ok": True, "phase": "assert", "message": "Alle Prüfungen bestanden." + note})
     return 0
 
 

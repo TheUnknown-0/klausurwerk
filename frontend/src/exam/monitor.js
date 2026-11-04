@@ -61,16 +61,7 @@ export class TabGuard {
     }
 
     start() {
-        // 1. localStorage-Herzschlag eines anderen Tabs?
-        try {
-            const hb = JSON.parse(safe.get('localStorage', `${this.name}-hb`) || 'null');
-            if (hb && hb.tab !== this.tab && Date.now() - hb.ts < 5000) {
-                this.flagSecond();
-            }
-        } catch {
-            // kaputter Eintrag: ignorieren
-        }
-        // 2. BroadcastChannel
+        // 1. BroadcastChannel: Ein lebender älterer Tab antwortet auf "hello" mit "present".
         if (typeof BroadcastChannel !== 'undefined') {
             try {
                 this.channel = new BroadcastChannel(this.name);
@@ -80,8 +71,30 @@ export class TabGuard {
                 this.channel = null;
             }
         }
+        // 2. Nur ohne BroadcastChannel: frischer localStorage-Herzschlag eines anderen Tabs.
+        //    Mit Kanal wäre das ein Fehlalarm, wenn der Browser abstürzt und sofort neu startet
+        //    (der alte Herzschlag liegt noch da, aber kein Tab antwortet mehr).
+        if (!this.channel) {
+            try {
+                const hb = JSON.parse(safe.get('localStorage', `${this.name}-hb`) || 'null');
+                if (hb && hb.tab !== this.tab && Date.now() - hb.ts < 5000) {
+                    this.flagSecond();
+                }
+            } catch {
+                // kaputter Eintrag: ignorieren
+            }
+        }
         this.beat();
         this.timer = setInterval(() => this.beat(), 2000);
+        // Beim normalen Schließen den Herzschlag sofort entfernen.
+        this.onPageHide = () => {
+            if (!this.second) {
+                safe.remove('localStorage', `${this.name}-hb`);
+            }
+        };
+        if (typeof window !== 'undefined' && window.addEventListener) {
+            window.addEventListener('pagehide', this.onPageHide);
+        }
     }
 
     onMessage(msg) {
@@ -111,6 +124,9 @@ export class TabGuard {
 
     stop() {
         clearInterval(this.timer);
+        if (this.onPageHide && typeof window !== 'undefined' && window.removeEventListener) {
+            window.removeEventListener('pagehide', this.onPageHide);
+        }
         this.channel?.close();
         if (!this.second) {
             safe.remove('localStorage', `${this.name}-hb`);

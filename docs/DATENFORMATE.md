@@ -155,7 +155,7 @@ Dateien sind nicht enthalten; neue Dateien nur bei `allow_new_files`. Dateinamen
 ```
 - `io`: Programm mit `input` starten, Ausgabe mit `expected_output` vergleichen.
 - `java_main`: zusätzliche Klasse wird mitkompiliert und gestartet; Exit-Code 0 = bestanden.
-- `python_assert`: Code wird nach dem Schülerprogramm im selben Namensraum ausgeführt (`__name__` ist dabei nicht `"__main__"`).
+- `python_assert`: Code wird nach dem Schülerprogramm im selben Namensraum ausgeführt (`__name__` ist dabei nicht `"__main__"`). Bricht das Laden an einem `input()` im Hauptteil ab (keine Eingabe, `EOFError`), wird mit dem bis dahin definierten Namensraum weitergeprüft; die Testmeldung bekommt einen Hinweis.
 - `sql_result`: Ergebnis der Schülerabfrage (letzte Anweisung) wird mit dem Ergebnis von `expected_query` auf frischer Datenbank verglichen.
 
 ### 2.2 `text`
