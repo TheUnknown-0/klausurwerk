@@ -101,9 +101,12 @@ export class TabGuard {
         if (!msg || msg.from === this.instance) {
             return;
         }
+        // Wer auf sein "hello" ein "present" bekommt, ist hinzugekommen, während schon ein Tab lief.
+        // Ohne Zeitvergleich: gleiche Millisekunde oder eine verstellte Uhr dürfen nichts verdecken.
+        // Starten zwei Tabs gleichzeitig, melden sich beide (beide sind dann ja offen).
         if (msg.type === 'hello' && !this.second) {
-            this.channel?.postMessage({ type: 'present', from: this.instance, since: this.since });
-        } else if (msg.type === 'present' && msg.since < this.since) {
+            this.channel?.postMessage({ type: 'present', from: this.instance, to: msg.from });
+        } else if (msg.type === 'present' && msg.to === this.instance) {
             this.flagSecond();
         }
     }

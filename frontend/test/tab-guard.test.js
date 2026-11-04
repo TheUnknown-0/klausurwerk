@@ -49,6 +49,27 @@ test('ein zweiter lebender Tab wird erkannt, der erste bleibt unbehelligt', asyn
     assert.equal(second, 1);
 });
 
+test('gleicher Startzeitpunkt (gleiche Millisekunde) verdeckt den zweiten Tab nicht', async () => {
+    const realNow = Date.now;
+    Date.now = () => 1_700_000_000_000;
+    let first = 0;
+    let second = 0;
+    try {
+        const a = newTab(75, () => { first += 1; });
+        a.start();
+        await wait(20);
+        const b = newTab(75, () => { second += 1; });
+        b.start();
+        await wait(150);
+        a.stop();
+        b.stop();
+    } finally {
+        Date.now = realNow;
+    }
+    assert.equal(first, 0);
+    assert.equal(second, 1);
+});
+
 test('ohne BroadcastChannel greift der frische Herzschlag', async () => {
     const saved = globalThis.BroadcastChannel;
     globalThis.BroadcastChannel = undefined;

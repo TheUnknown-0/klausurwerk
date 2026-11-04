@@ -126,6 +126,11 @@ def isolation_active() -> bool:
 SEAL_PY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal.py")
 
 
+def seal_prefix() -> list[str]:
+    """Startet das folgende Programm über seal.py (seccomp-Filter, siehe dort)."""
+    return [sys.executable, "-I", "-S", SEAL_PY]
+
+
 def seal_active() -> bool:
     """True, wenn Läufe mit seccomp-Filter starten (Linux auf x86_64/aarch64, abschaltbar mit RUNNER_SEAL=0)."""
     if not sys.platform.startswith("linux") or os.environ.get("RUNNER_SEAL", "1") == "0":
@@ -331,7 +336,7 @@ class Proc:
         if argv and argv[0].endswith("/bin/java") and self.env.get("TMPDIR"):
             argv.insert(1, "-Djava.io.tmpdir=" + self.env["TMPDIR"])
         if seal_active():
-            prefix += [sys.executable, "-I", "-S", SEAL_PY]
+            prefix += seal_prefix()
         piped = self.interactive or self.stdin_data is not None
         self.started = time.monotonic()
         try:

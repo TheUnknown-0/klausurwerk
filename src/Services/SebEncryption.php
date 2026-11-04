@@ -59,6 +59,9 @@ final class SebEncryption
         if (strlen($message) < 2 + 8 + 8 + 16 + 16 + 32) {
             throw new RuntimeException('Die SEB-Datei ist beschädigt.');
         }
+        if ($message[0] !== self::VERSION || $message[1] !== self::OPTIONS) {
+            throw new RuntimeException('Unbekanntes Verschlüsselungsformat (erwartet RNCryptor-Version 2).');
+        }
         $body = substr($message, 0, -32);
         $mac = substr($message, -32);
         $macKey = hash_pbkdf2('sha1', $password, substr($message, 10, 8), self::ITERATIONS, 32, true);

@@ -6,7 +6,7 @@ import re
 import subprocess
 
 from .config import Config
-from .sandbox import Limits, RunnerError, chown_tree, clean_env, user_kwargs
+from .sandbox import Limits, RunnerError, chown_tree, clean_env, seal_active, seal_prefix, user_kwargs
 
 ERR_RE = re.compile(r"^(?P<file>[^\s:]+\.java):(?P<line>\d+): (?P<kind>[^:]+): (?P<msg>.*)$")
 PACKAGE_RE = re.compile(r"^\s*package\s+([A-Za-z_][\w.]*)\s*;", re.M)
@@ -101,7 +101,7 @@ def run_compile(cfg: Config, home: str, work: str, tmp: str, sources: list[str],
     argv = [
         "prlimit", f"--cpu={lim.cpu_seconds}:{lim.cpu_seconds + 1}", f"--fsize={lim.fsize}",
         f"--nproc={lim.nproc}", "--nofile=1024", "--core=0",
-    ] + compile_cmd(cfg, home, sources, out_dir, extra_cp)
+    ] + (seal_prefix() if seal_active() else []) + compile_cmd(cfg, home, sources, out_dir, extra_cp)
     env = clean_env(tmp, tmp, {"JAVA_HOME": home})
     try:
         done = subprocess.run(argv, cwd=work, env=env, stdin=subprocess.DEVNULL,

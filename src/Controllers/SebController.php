@@ -54,6 +54,8 @@ final class SebController extends Controller
         }
 
         $built = SebConfig::build($exam, $this->ctx->publicBase(), $password);
+        // Erst die Datei fertig bauen, dann speichern: schlägt die Verschlüsselung fehl, bleibt die Klausur unverändert.
+        $body = $settingsPassword !== '' ? SebEncryption::encrypt($built['xml'], $settingsPassword) : $built['xml'];
         $key = $manualKey !== '' ? $manualKey : $built['config_key'];
         $this->ctx->db->run(
             'UPDATE exams SET seb_config_key = ?, seb_quit_password_hash = ?, seb_browser_exam_key = ? WHERE id = ?',
@@ -63,7 +65,6 @@ final class SebController extends Controller
         $this->ctx->audit->log('seb_datei', 'info', 'SEB-Datei für Klausur #' . $id . ' erzeugt'
             . ($bek !== '' ? ' (mit Browser Exam Key' : ' (ohne Browser Exam Key')
             . ($settingsPassword !== '' ? ', verschlüsselt).' : ').'));
-        $body = $settingsPassword !== '' ? SebEncryption::encrypt($built['xml'], $settingsPassword) : $built['xml'];
 
         $name = 'klausur-' . $id . '.seb';
         header('Content-Type: application/x-seb');
