@@ -187,6 +187,9 @@ export function mountCodeView(container, options) {
         const entry = ensureEditor(file);
         entry.pane.hidden = false;
         entry.editor.view.requestMeasure();
+        // Nach dem Layout und nach dem Laden der Schrift noch einmal messen (sonst gestauchte Zeilennummern).
+        requestAnimationFrame(() => entry.editor.view.requestMeasure());
+        document.fonts?.ready?.then(() => entry.editor.view.requestMeasure());
         renderTabs();
         refreshToolbar();
     }

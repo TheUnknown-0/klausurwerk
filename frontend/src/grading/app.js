@@ -14,7 +14,7 @@ import { mountReplay } from '../replay/player.js';
 import { mountAnswer } from './answer-view.js';
 import { mountComments } from './comments.js';
 import { solutionView } from './solution-view.js';
-import { formatPoints, neighbour, nextOpen, parsePoints, stepAxis, traversal } from './logic.js';
+import { formatPoints, nextOpen, parsePoints, stepAxis, stepOutcome, traversal } from './logic.js';
 
 const SAVE_DELAY_MS = 700;
 
@@ -161,9 +161,15 @@ export function mountGrading(root, boot) {
     }
 
     function goStep(dir) {
-        const next = neighbour(cells(), { pid: state.pid, tid: state.tid }, dir);
-        if (next) go(next);
-        else toast(dir > 0 ? 'Das war die letzte Zelle.' : 'Das ist die erste Zelle.', 'info', 2500);
+        const { next, edge } = stepOutcome(cells(), { pid: state.pid, tid: state.tid }, dir);
+        if (next) {
+            go(next);
+            return;
+        }
+        // Am Rand: trotzdem speichern, damit Enter im Punktefeld nie ins Leere läuft.
+        flush().then((ok) => {
+            if (ok) toast(edge === 'last' ? 'Das war die letzte Zelle. Gespeichert.' : 'Das ist die erste Zelle.', 'info', 2500);
+        });
     }
 
     function goAxis(axis, dir) {
@@ -358,6 +364,12 @@ export function mountGrading(root, boot) {
             placeholder: suggestion !== null ? `(${formatPoints(suggestion)})` : '',
         });
         input.value = cell.own_points !== null ? formatPoints(cell.own_points) : '';
+        // Volle Punktzahl in Grün (Rot bleibt Abzügen und Fehlern vorbehalten).
+        const markFull = () => {
+            const p = parsePoints(input.value, max);
+            input.classList.toggle('is-full', p.ok && p.value !== null && max > 0 && p.value === max);
+        };
+        markFull();
         state.pointsInput = input;
         state.lastSaved = cell.own_points;
         const stateEl = h('span', { id: 'g-points-state', class: 'g-save-state text-sm', role: 'status', 'aria-live': 'polite' });
@@ -367,6 +379,7 @@ export function mountGrading(root, boot) {
         input.addEventListener('input', () => {
             const parsed = parsePoints(input.value, max);
             input.classList.toggle('is-invalid', !parsed.ok);
+            markFull();
             stateEl.textContent = parsed.ok ? 'Änderung ...' : parsed.error;
             stateEl.className = `g-save-state text-sm ${parsed.ok ? '' : 'text-danger'}`;
             if (parsed.ok) autosave();

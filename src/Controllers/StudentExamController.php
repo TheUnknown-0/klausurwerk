@@ -11,7 +11,9 @@ use App\Services\EventLog;
 use App\Services\ExamAccess;
 use App\Services\ExamClock;
 use App\Services\ExamContent;
+use App\Services\ExamSettings;
 use App\Services\LiveServices;
+use App\Services\LiveStore;
 use App\Services\SebGuard;
 use App\Services\Uploads;
 
@@ -28,6 +30,13 @@ final class StudentExamController extends Controller
     /** Ab so vielen Client-Ereignissen pro Minute werden weitere verworfen (Flutschutz). */
     private const MAX_EVENTS_PER_MINUTE = 300;
     private const MAX_UPLOADS_PER_TASK = 10;
+    /** Live-Wand: Grenzen für Code-Ausschnitt, Konsole und Standbild. */
+    private const LIVE_CODE_LINES = 60;
+    private const LIVE_CODE_CHARS = 4000;
+    private const LIVE_CONSOLE_LINES = 20;
+    private const LIVE_CONSOLE_CHARS = 2000;
+    private const SCREEN_MAX_BYTES = 600 * 1024;
+    private const SCREEN_SURFACES = ['monitor', 'window', 'browser', 'unknown'];
 
     private ?LiveServices $services = null;
 
@@ -614,6 +623,118 @@ final class StudentExamController extends Controller
     private const MAX_PREVIEW_BYTES = 2 * 1024 * 1024;
 
     /**
+     * POST /api/klausur/{id}/live: Live-Zustand der Klausurseite für die Live-Wand des Pults
+     * (aktuelle Aufgabe, Code-Ausschnitt, Konsole). Nur im Arbeitsspeicher, nur der letzte Stand.
+     */
+    public function live(array $params): array
+    {
+        $user = $this->requireStudent();
+        $this->requireCsrf();
+        [$exam, $p] = $this->participantContext($params, $user, true);
+        $this->ctx->session->release();
+
+        $gate = $this->liveGate($exam, $p, 'live_view', 'Die Live-Ansicht ist für diese Klausur nicht eingeschaltet.');
+        if ($gate !== null) {
+            return $gate;
+        }
+        $examId = (int) $exam['id'];
+        $pid = (int) $p['id'];
+        $store = new LiveStore();
+        if (!$store->allow($examId, $pid, 'live')) {
+            return $this->jsonError('Zu viele Anfragen.', 429);
+        }
+
+        $in = $this->jsonInput();
+        $taskId = $in['task_id'] ?? null;
+        $view = $in['view'] ?? 'task';
+        $file = $in['file'] ?? null;
+        $cursor = $in['cursor_line'] ?? null;
+        $excerpt = $in['code_excerpt'] ?? '';
+        $console = $in['console_tail'] ?? '';
+        $isInt = static fn (mixed $v): bool => is_int($v) || (is_string($v) && ctype_digit($v));
+        $valid = ($taskId === null || $isInt($taskId))
+            && is_string($view) && preg_match('/^[a-z0-9_-]{1,30}$/', $view) === 1
+            && ($file === null || is_string($file))
+            && ($cursor === null || $isInt($cursor))
+            && is_string($excerpt) && is_string($console);
+        if (!$valid) {
+            return $this->jsonError('Ungültige Live-Daten.', 422);
+        }
+
+        $store->putState($examId, $pid, [
+            'task_id' => $taskId === null ? null : (int) $taskId,
+            'view' => $view,
+            'file' => $file === null ? null : mb_substr($file, 0, 200),
+            'cursor_line' => $cursor === null ? null : max(0, (int) $cursor),
+            'code_excerpt' => self::clipText($excerpt, self::LIVE_CODE_LINES, self::LIVE_CODE_CHARS, false),
+            'excerpt_start_line' => max(0, (int) ($in['excerpt_start_line'] ?? 0)),
+            'console_tail' => self::clipText($console, self::LIVE_CONSOLE_LINES, self::LIVE_CONSOLE_CHARS, true),
+            'client_ms' => max(0, (int) ($in['client_ms'] ?? 0)),
+        ]);
+
+        $this->dropLiveIfClosed($store, $examId);
+
+        return $this->liveReply($store, $examId, $pid);
+    }
+
+    /**
+     * POST /api/klausur/{id}/bildschirm: Standbild des Bildschirms (JPEG als Data-URL) für die
+     * Live-Wand. Nur wenn screen_share an ist; nur das letzte Bild liegt im Arbeitsspeicher.
+     */
+    public function screen(array $params): array
+    {
+        $user = $this->requireStudent();
+        $this->requireCsrf();
+        [$exam, $p] = $this->participantContext($params, $user, true);
+        $this->ctx->session->release();
+
+        $gate = $this->liveGate($exam, $p, 'screen_share', 'Die Bildschirmfreigabe ist für diese Klausur nicht eingeschaltet.');
+        if ($gate !== null) {
+            return $gate;
+        }
+        $examId = (int) $exam['id'];
+        $pid = (int) $p['id'];
+        $store = new LiveStore();
+        if (!$store->allow($examId, $pid, 'screen')) {
+            return $this->jsonError('Zu viele Anfragen.', 429);
+        }
+
+        $in = $this->jsonInput();
+        $data = $in['jpeg'] ?? null;
+        if (!is_string($data)) {
+            return $this->jsonError('Ungültiges Bild.', 422);
+        }
+        // Base64 ist etwa ein Drittel größer als die Rohdaten: erst grob, dann genau prüfen.
+        if (strlen($data) > intdiv(self::SCREEN_MAX_BYTES * 4, 3) + 64) {
+            return $this->jsonError('Das Bild ist zu groß (höchstens 600 KB).', 413);
+        }
+        $prefix = 'data:image/jpeg;base64,';
+        $raw = str_starts_with($data, $prefix) ? base64_decode(substr($data, strlen($prefix)), true) : false;
+        if ($raw === false || $raw === '') {
+            return $this->jsonError('Ungültiges Bild.', 422);
+        }
+        if (strlen($raw) > self::SCREEN_MAX_BYTES) {
+            return $this->jsonError('Das Bild ist zu groß (höchstens 600 KB).', 413);
+        }
+        if (!str_starts_with($raw, "\xFF\xD8\xFF")) {
+            return $this->jsonError('Das Bild ist kein JPEG.', 422);
+        }
+        $width = $in['width'] ?? null;
+        $height = $in['height'] ?? null;
+        $isDim = static fn (mixed $v): bool => (is_int($v) || (is_string($v) && ctype_digit($v))) && (int) $v >= 1 && (int) $v <= 10000;
+        if (!$isDim($width) || !$isDim($height)) {
+            return $this->jsonError('Ungültige Bildgröße.', 422);
+        }
+        $surface = is_string($in['surface'] ?? null) && in_array($in['surface'], self::SCREEN_SURFACES, true) ? $in['surface'] : 'unknown';
+
+        $store->putScreen($examId, $pid, $raw, (int) $width, (int) $height, $surface);
+
+        $this->dropLiveIfClosed($store, $examId);
+
+        return $this->liveReply($store, $examId, $pid);
+    }
+
+    /**
      * POST /api/klausur/{id}/vorschaubild: PNG-Vorschau einer Zeichenaufgabe
      * (Diagramme) für Korrektur und PDF. Getrennt vom Autosave, damit große
      * Bilder die Speicherpakete nicht aufblähen. Nur zu einer bereits
@@ -719,6 +840,62 @@ final class StudentExamController extends Controller
         $this->ctx->session->release();
 
         (new Uploads((string) $this->ctx->config['uploads']['dir']))->stream('answers', (string) $row['stored_name']);
+    }
+
+    /**
+     * Live-Wand: nur für Teilnahmen in active, locked oder paused und solange die Klausur läuft
+     * (auch bei Gesamtpause), und nur, wenn der Schalter der Klausur an ist; sonst 409.
+     *
+     * @param array<string, mixed> $exam
+     * @param array<string, mixed> $p
+     * @return array<string, mixed>|null Fehlerantwort oder null
+     */
+    private function liveGate(array $exam, array $p, string $setting, string $offMessage): ?array
+    {
+        if (!in_array((string) $p['state'], ['active', 'locked', 'paused'], true)
+            || !in_array((string) $exam['status'], ['running', 'paused'], true)) {
+            return $this->jsonError('Die Live-Ansicht ist gerade nicht möglich.', 409);
+        }
+        // normalize: Klausuren aus der Zeit vor der Live-Wand haben die Schlüssel noch nicht (Standardwerte).
+        if (empty(ExamSettings::normalize(ExamAccess::settingsOf($exam), (string) $exam['mode'])[$setting])) {
+            return $this->jsonError($offMessage, 409);
+        }
+
+        return null;
+    }
+
+    /**
+     * Endet die Klausur zwischen Prüfung und Schreiben, wäre das Verzeichnis nach dem Aufräumen
+     * wieder entstanden: dann sofort erneut löschen (nichts bleibt über das Klausurende hinaus liegen).
+     */
+    private function dropLiveIfClosed(LiveStore $store, int $examId): void
+    {
+        $status = $this->ctx->db->fetchValue('SELECT status FROM exams WHERE id = ?', [$examId]);
+        if (!in_array((string) $status, ['running', 'paused'], true)) {
+            $store->clearExam($examId);
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function liveReply(LiveStore $store, int $examId, int $pid): array
+    {
+        return [
+            'ok' => true,
+            'data' => [
+                'focus' => $store->isFocused($examId, $pid),
+                'screen_interval_ms' => $store->screenIntervalMs($examId, $pid),
+            ],
+        ];
+    }
+
+    /** Text auf Zeilen und Zeichen kürzen: $tail behält das Ende (Konsole), sonst den Anfang. */
+    private static function clipText(string $text, int $maxLines, int $maxChars, bool $tail): string
+    {
+        $lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
+        $lines = $tail ? array_slice($lines, -$maxLines) : array_slice($lines, 0, $maxLines);
+        $text = implode("\n", $lines);
+
+        return $tail ? mb_substr($text, -$maxChars) : mb_substr($text, 0, $maxChars);
     }
 
     // ---------- intern ----------

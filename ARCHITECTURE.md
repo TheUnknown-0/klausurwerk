@@ -93,6 +93,32 @@ Zwei Ebenen, nie vermischen:
 
 `Services\SebGuard` prüft bei `require_seb` den Config Key (`X-SafeExamBrowser-ConfigKeyHash`). Der Config Key folgt aus der `.seb`-Datei und schützt daher nur gegen Versehen. Ist zusätzlich der Browser Exam Key hinterlegt (`exams.seb_browser_exam_key`), wird auch `X-SafeExamBrowser-RequestHash` geprüft; das ist der eigentliche Echtheitsnachweis. Optional verschlüsselt `Services\SebEncryption` die Datei mit einem Dateipasswort (Präfix `pswd`, RNCryptor v2 wie SEB für Windows: PBKDF2-HMAC-SHA1 mit 10000 Durchläufen, AES-256-CBC, HMAC-SHA256 über den ganzen Block); das Passwort wird nicht gespeichert.
 
+## Live-Wand
+
+Das Pult zeigt je Teilnahme eine Karte: Live-Ansicht der Klausurseite (`live_view`, Standard an:
+Aufgabe, Code-Ausschnitt um die Cursorzeile, letzte Konsolenzeilen; funktioniert auch im SEB) und,
+wenn `screen_share` an ist, ein Standbild des ganzen Bildschirms (`getDisplayMedia`). Takt: etwa
+alle 5 s ein kleines Bild; im Fokus (Pult setzt `POST /api/pult/{id}/fokus`, gilt 30 s) etwa 1 Bild
+pro Sekunde in groß. Endpunkte: `docs/API.md` Abschnitte 3.7 und 7.
+
+Datenschutz: **nichts wird persistent gespeichert.** `Services\LiveStore` hält Live-Zustand und Bilder
+nur im Arbeitsspeicher (tmpfs `/run/klausurwerk-live`, `LIVE_DIR`, 64 MB, nur `www-data`), je Teilnahme
+nur das jeweils letzte, Einträge älter als 120 s gelten als veraltet. Nichts davon in der Datenbank.
+Beim Übergang der Klausur in `finished` (`PultActions::finish`), beim Löschen und beim Archivieren wird
+das Klausurverzeichnis gelöscht. Dateinamen entstehen nur aus int-IDs. Beendet oder verweigert jemand
+die Freigabe oder gibt nur ein Fenster/Tab frei, entsteht ein Alarm im Pult (`screen_share_*`, siehe
+`EventLog::CLIENT_TYPES`), aber keine Sperre. Der Header `Permissions-Policy: display-capture=(self)`
+(`public/index.php`) erlaubt `getDisplayMedia` auf der eigenen Herkunft.
+Solange der Auswahldialog des Browsers offen ist, ruht die Fokusüberwachung, höchstens aber
+`PICK_GRACE_MS` (30 s, `exam/screenshare.js`); danach und 1,5 s nach dem Schließen prüft
+`Monitor::recheckFocus()` Fokus und Sichtbarkeit nach, weil ein Blur-Ereignis nur einmal kommt.
+
+Schülerseite (`frontend/src/exam/`): `live.js` und `live-collect.js` senden alle 2 s bei Änderung (sonst alle
+10 s) den Live-Zustand, `screenshare.js` fordert die Freigabe an (Schritt im Warteraum, `view-wait.js`),
+prüft `displaySurface` und sendet im Takt aus der Serverantwort JPEGs (480 px, im Fokus 1280 px); die reine
+Logik steht in `live-logic.js`. Ob die Freigabe verlangt wird, steht schon vor dem Start im Startblock
+(`boot.live`, `ExamContent::boot`). Übung, Vorschau und Safe Exam Browser senden bzw. verlangen nichts.
+
 ## Zustände einer Teilnahme
 
 Einzige Stelle für Übergänge: `Services\ParticipationState::transition($participation, $to, $reason, $actorId)`.

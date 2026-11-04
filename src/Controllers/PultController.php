@@ -8,7 +8,9 @@ use App\Core\HttpException;
 use App\Services\ExamAccess;
 use App\Services\ExamClock;
 use App\Services\ExamContent;
+use App\Services\ExamSettings;
 use App\Services\LiveServices;
+use App\Services\LiveStore;
 
 /**
  * Lehrer-Pult: Seite und APIs (docs/API.md Abschnitt 3). Alles braucht die Fähigkeit "monitor";
@@ -47,6 +49,7 @@ final class PultController extends Controller
             'urls' => [
                 'exam' => $base . '/klausuren/' . (int) $exam['id'],
                 'preview' => $base . '/klausuren/' . (int) $exam['id'] . '/vorschau',
+                'grading' => $base . '/klausuren/' . (int) $exam['id'] . '/korrektur',
                 'answer_file' => $base . '/klausur/' . (int) $exam['id'] . '/antwortdatei/',
             ],
             'can' => $this->ctx->exams->capabilities((int) $exam['id']),
@@ -252,6 +255,86 @@ final class PultController extends Controller
             'participation' => ['id' => (int) $p['id'], 'name' => display_name($p), 'state' => (string) $p['state']],
             'events' => $this->svc()->events()->forParticipation((int) $exam['id'], (int) $p['id']),
         ];
+    }
+
+    /** GET /api/pult/{id}/live: Live-Zustand und Bildschirm-Metadaten aller Teilnahmen (Live-Wand). */
+    public function live(array $params): array
+    {
+        $exam = $this->monitorExam($params);
+        $this->ctx->session->release();
+
+        $examId = (int) $exam['id'];
+        $settings = ExamSettings::normalize(ExamAccess::settingsOf($exam), (string) $exam['mode']);
+        $store = new LiveStore();
+        $now = ExamClock::nowMs();
+        $rows = $this->ctx->db->fetchAll('SELECT id FROM participations WHERE exam_id = ? ORDER BY id', [$examId]);
+
+        $participants = [];
+        foreach ($rows as $row) {
+            $pid = (int) $row['id'];
+            $live = $store->getState($examId, $pid, $now);
+            $screen = $store->getScreenMeta($examId, $pid, $now);
+            $participants[] = [
+                'participation_id' => $pid,
+                'live' => $live,
+                'live_age_ms' => $live !== null ? max(0, $now - (int) $live['received_ms']) : null,
+                'screen' => $screen,
+                'screen_age_ms' => $screen !== null ? max(0, $now - $screen['ts_ms']) : null,
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'data' => [
+                'participants' => $participants,
+                'settings' => ['live_view' => !empty($settings['live_view']), 'screen_share' => !empty($settings['screen_share'])],
+            ],
+        ];
+    }
+
+    /** GET /api/pult/{id}/bildschirm/{participationId}: letztes Standbild als JPEG (404 ohne). */
+    public function screenImage(array $params): string
+    {
+        $exam = $this->monitorExam($params);
+        $this->ctx->session->release();
+        $p = $this->participation($exam, (int) $params['participationId']);
+
+        $jpeg = (new LiveStore())->getScreenImage((int) $exam['id'], (int) $p['id']);
+        if ($jpeg === null) {
+            throw new HttpException(404, 'Kein Bildschirmbild vorhanden.');
+        }
+        header('Content-Type: image/jpeg');
+        header('Cache-Control: no-store');
+        header('Content-Length: ' . strlen($jpeg));
+
+        return $jpeg;
+    }
+
+    /** POST /api/pult/{id}/fokus: Großansicht einer Person für 30 s (null hebt auf). */
+    public function focus(array $params): array
+    {
+        $this->requireStaff();
+        $this->requireCsrf();
+        $exam = $this->ctx->exams->require((int) $params['id'], ExamAccess::CAP_MONITOR);
+        $this->ctx->session->release();
+
+        $raw = $this->jsonInput()['participation_id'] ?? null;
+        $store = new LiveStore();
+        if ($raw === null) {
+            $store->setFocus((int) $exam['id'], null);
+
+            return ['ok' => true, 'data' => ['participation_id' => null]];
+        }
+        if (!is_int($raw) && !(is_string($raw) && ctype_digit($raw))) {
+            return $this->jsonError('Ungültige Teilnahme.', 400);
+        }
+        $p = $this->participation($exam, (int) $raw);
+        if (!in_array((string) $exam['status'], ['running', 'paused'], true)) {
+            return $this->jsonError('Die Klausur läuft nicht, der Fokus ist nicht möglich.', 409);
+        }
+        $store->setFocus((int) $exam['id'], (int) $p['id']);
+
+        return ['ok' => true, 'data' => ['participation_id' => (int) $p['id']]];
     }
 
     // ---------- intern ----------

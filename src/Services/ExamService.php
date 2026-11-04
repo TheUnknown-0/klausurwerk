@@ -244,6 +244,7 @@ final class ExamService
         }
         $id = (int) $exam['id'];
         $this->materials->deleteFilesOfExam($id);
+        (new LiveStore())->clearExam($id);
         $this->db->run('DELETE FROM exams WHERE id = ?', [$id]);
     }
 

@@ -49,9 +49,15 @@
       <tr><td><b>Nur mit Safe Exam Browser</b></td><td>Der Beitritt gelingt nur mit einer passenden SEB-Datei (Prüfung des Config Keys bei jeder Anfrage). Die Datei erzeugen Sie unter „SEB-Datei“ (4.10).</td></tr>
       <tr><td><b>Klausurcode verlangen</b></td><td>Zum Beitritt wird ein 6-stelliger Code benötigt, den Sie im Raum nennen oder anschreiben. Verhindert, dass jemand von zu Hause einen Platz belegt. Den Code sehen Sie im Pult und können ihn neu erzeugen.</td></tr>
       <tr><td><b>Abwesenheit hält die Uhr an</b> (Standard aus)</td><td>Wer den Raum kurz verlässt (Toilette) und im Pult als abwesend markiert wird, behält die Zeit. Aus: Die Uhr läuft weiter.</td></tr>
+      <tr><td><b>Live-Ansicht der Klausurseite im Pult</b> (Standard an)</td><td>Das Pult zeigt in der Live-Wand je Person die aktuelle Aufgabe, einen Code-Ausschnitt um die Cursorzeile und die letzten Konsolenzeilen (5.15). Das funktioniert überall, auch im Safe Exam Browser. Es wird nichts gespeichert: Nur der jeweils letzte Stand liegt im Arbeitsspeicher des Servers und wird am Klausurende gelöscht.</td></tr>
+      <tr><td><b>Bildschirmfreigabe verlangen (ganzer Bildschirm)</b> (Standard aus)</td><td>Der Browser der Schüler fragt nach der Freigabe des ganzen Bildschirms. Die Live-Wand zeigt dann zusätzlich ein Standbild (etwa alle 5 Sekunden klein, bei Fokus etwa 1 Bild pro Sekunde groß). Das ist ein Eingriff in die Privatsphäre: Teilen Sie den Schülern vorab mit, dass der Bildschirm übertragen wird (Vorlage in Anhang E). Beendet oder verweigert jemand die Freigabe oder gibt nur ein Fenster oder einen Tab frei, gibt es einen Alarm im Pult, aber keine Sperre. Im Safe Exam Browser entfällt die Freigabe ohne Alarm.</td></tr>
       <tr><td><b>Abgabe-Knopf anzeigen</b></td><td>Schüler können die Abgabe anfragen; Sie bestätigen sie im Pult. Aus: Es gibt keinen Knopf, Sie geben für die Schüler ab.</td></tr>
     </tbody>
   </table>
+  <figure>
+    <img src="img/206b-einstellungen-live.jpg" alt="Schalter Live-Ansicht und Bildschirmfreigabe">
+    <figcaption><b>{fig}</b> Die zwei Schalter für die Live-Wand: Live-Ansicht der Klausurseite und Bildschirmfreigabe</figcaption>
+  </figure>
   <h3>Darstellung und Ausführung</h3>
   <figure>
     <img src="img/207-einstellungen-darstellung.jpg" alt="Einstellungen Darstellung">
@@ -89,11 +95,23 @@
   <h3>Aufgaben und Teilaufgaben</h3>
   <ul>
     <li><span class="ui">Aufgabe</span> (Plus-Symbol) legt eine Aufgabe auf oberster Ebene an (1, 2, 3 …), <span class="ui">Teilaufgabe</span> (Plus-Symbol) eine untergeordnete (1a, 1b …).</li>
-    <li>Die Pfeil-Knöpfe über der Aufgabenliste verschieben die Aufgabe (nach oben, nach unten), machen sie zur Teilaufgabe der vorherigen (Pfeil nach rechts) oder holen sie wieder eine Ebene hoch (Pfeil nach links). <span class="ui d">Löschen</span> entfernt sie samt Teilaufgaben.</li>
+    <li>Die Pfeil-Knöpfe über der Aufgabenliste verschieben die Aufgabe (nach oben, nach unten), machen sie zur Teilaufgabe der vorherigen (Pfeil nach rechts) oder holen sie wieder eine Ebene hoch (Pfeil nach links). <span class="ui d">Löschen</span> (oder <span class="kbd">Entf</span> beziehungsweise die Rücktaste bei markierter Aufgabe) entfernt sie samt Teilaufgaben, nach einer Rückfrage.</li>
     <li>Eine Aufgabe mit Teilaufgaben ist ein <b>Container</b>: Sie hat einen eigenen Text (zum Beispiel eine Ausgangslage), aber keinen Antworttyp. Ihre <b>Punkte</b> sind die Summe der Teilaufgaben und werden automatisch berechnet.</li>
     <li><span class="ui p">Speichern</span> speichert die gewählte Aufgabe; daneben steht „Gespeichert“ oder ein Hinweis auf ungespeicherte Änderungen.</li>
   </ul>
   <div class="box note"><span class="t">Nach dem Start ist die Struktur gesperrt</span><p>Sobald eine Klausur gestartet wurde, steht im Baum „Struktur gesperrt (Klausur gestartet)“. Sie können dann Aufgaben nicht mehr hinzufügen, löschen oder verschieben. Texte und der Erwartungshorizont bleiben bearbeitbar, zum Beispiel um einen Tippfehler zu korrigieren (die Schüler sehen die Änderung nach dem nächsten Laden; für wichtige Hinweise nutzen Sie die Durchsage).</p></div>
+  <h3>Löschen per Auswahl</h3>
+  <p>Überall im Editor löschen Sie gleich: <b>erst auswählen, dann löschen</b>. Klicken Sie das Element an (es wird sichtbar markiert, zum Beispiel mit einem blauen Rahmen), und drücken Sie dann <span class="kbd">Entf</span> oder die <span class="kbd">Rücktaste</span>, oder klicken Sie in der Werkzeugleiste auf <span class="ui">Löschen</span>. Das gilt für</p>
+  <ul>
+    <li>Aufgaben in der Liste links (mit Rückfrage),</li>
+    <li>Einträge in den Listen des Formulars: Antwortoptionen, Paare, Reihenfolge-Einträge, Beispieltests, versteckte Tests, Testwelten und Dateireiter,</li>
+    <li>Elemente in den Diagramm-Editoren: Klassen, Beziehungen, Blöcke, Zustände, Gatter, Tabellen und Spalten sowie Striche und Texte der Zeichnung (dort mit dem Werkzeug <span class="ui">Auswählen</span>). <span class="kbd">Strg</span> + <span class="kbd">Z</span> holt Gelöschtes zurück.</li>
+  </ul>
+  <div class="figrow">
+    <figure><img src="img/x-320-aufgabenliste-auswahl.jpg" alt="Aufgabenliste mit gewählter Aufgabe"><figcaption><b>{fig}</b> Die Aufgabe „Bubblesort“ ist gewählt: <span class="kbd">Entf</span> oder <span class="ui d">Löschen</span> fragt nach und entfernt sie</figcaption></figure>
+    <figure><img src="img/321-diagramm-auswahl.jpg" alt="Diagramm mit gewählter Klasse"><figcaption><b>{fig}</b> Im UML-Editor ist die Klasse markiert: <span class="kbd">Entf</span> oder <span class="ui">Löschen</span> in der Leiste entfernt sie</figcaption></figure>
+  </div>
+  <div class="box note"><span class="t">In Eingabefeldern bleibt die Rücktaste eine Rücktaste</span><p>Steht der Cursor in einem Textfeld, im Code-Editor oder in einer Auswahlliste, löscht die Rücktaste nur Zeichen. Es wird dann nie ein Element gelöscht. Klicken Sie zum Löschen eines Elements auf das Element selbst und nicht in sein Textfeld. Eine Datei mit Inhalt (Dateireiter in Code-Aufgaben) wird nur nach einer Rückfrage gelöscht.</p></div>
   <h3>Aufgabentext (Markdown)</h3>
   <p>Der Text wird als Markdown geschrieben, rechts erscheint die Live-Vorschau. Möglich sind Überschriften, Fett und Kursiv, Listen, Tabellen, <b>Code</b> in Backticks oder als Block mit Sprache (<code>```java</code>), <b>Formeln</b> mit <code>$...$</code> im Text und <code>$$...$$</code> abgesetzt (KaTeX) sowie <b>Bilder</b> aus dem Klausurmaterial. Das HTML wird auf dem Server erzeugt und bereinigt.</p>
   <div class="mono-block">Erläutere, warum die lineare Suche im schlechtesten Fall $n$ Vergleiche braucht.
@@ -120,8 +138,9 @@ for (int i = 0; i &lt; feld.length; i++) { ... }
     <li><b>Vorgegebene Dateien</b> anlegen: Reiter pro Datei, mit <span class="ui">+ Datei</span> neue Dateien, je Datei das Schloss für „schreibgeschützt“. Typisch: ein Gerüst <code>Konto.java</code> mit <code>// TODO</code> (bearbeitbar) und ein <code>Main.java</code>, das die Klasse aufruft (schreibgeschützt). Es sind höchstens 20 Dateien möglich; Namen dürfen nur Buchstaben, Ziffern, Punkt, Unterstrich und Minus enthalten.</li>
     <li><b>Beispieltests</b> eintragen, die Schüler sehen dürfen (Name, Eingabe, erwartete Ausgabe, Vergleichsart). In Übungen zeigt die Schüleransicht sie sofort mit Ergebnis; in Klausuren nur, wenn Sie sie in den Aufgabentext übernehmen.</li>
     <li><b>Versteckte Tests</b> mit Punkten anlegen. Sie laufen erst in der Korrektur auf dem Server und verlassen ihn nie in Richtung Schüler.</li>
-    <li>Mit dem Knopf zum <b>Testen der Aufgabe</b> im Editor führen Sie die Musterlösung gegen die Tests aus, bevor die Klausur fertig ist.</li>
+    <li>Mit dem Knopf zum <b>Testen der Aufgabe</b> im Editor führen Sie die Musterlösung gegen die Tests aus, bevor die Klausur fertig ist. Dabei dienen die <code>io</code>-Tests als Fälle. Fragt das Programm nach einer Eingabe und ist keine hinterlegt, meldet der Editor sofort „wartet auf Eingabe“, statt 15 Sekunden bis zur Zeitüberschreitung zu laufen.</li>
   </ol>
+  <div class="box warn"><span class="t">Testpunkte und Aufgabenpunkte</span><p>Die Punkte der Tests einer Code-Aufgabe sollten zusammen die Punktzahl der Aufgabe ergeben. Weichen sie ab, zeigt der Editor sofort einen Hinweis („Die Tests ergeben zusammen … Punkte, die Aufgabe ist aber mit … Punkten bewertet“), und <span class="ui">Fertigstellen</span> wiederholt ihn als Warnung. Beides sind nur Hinweise, nichts wird verhindert. Die automatische Vorbewertung schlägt dann nicht die volle Punktzahl vor.</p></div>
   <div class="box tip"><span class="t">Tests sorgfältig formulieren</span><p>Ein <code>io</code>-Test vergleicht Ausgaben. „getrimmt“ ignoriert Leerraum am Anfang und Ende, „ohne Leerraum“ ignoriert jeden Leerraum, „enthält“ und „Regex“ sind lockerer. Wählen Sie die lockerste Art, die noch sinnvoll ist, damit richtige Lösungen nicht an Leerzeichen scheitern. Beim Prüfen in der Korrektur sehen Sie nach Bedarf Ausgabe und Fehlerausgabe jedes Tests.</p></div>
   <p>Die Einstellung <b>Ausführung</b> je Aufgabe kann von der Klausur abweichen, zum Beispiel „nur Syntax prüfen“ für eine Aufgabe, bei der Schüler nur schreiben sollen. Bei „nicht ausführen“ fehlt der Knopf <span class="ui">Ausführen</span>.</p>
 
@@ -185,7 +204,7 @@ for (int i = 0; i &lt; feld.length; i++) { ... }
 
   <h2 id="k4-11"><span class="num">4.11</span>Fertigstellen: Entwurf, Bereit, Klausurcode</h2>
   <ol class="steps">
-    <li>Prüfen Sie Aufgaben, Punkte, Einstellungen und die Vorschau.</li>
+    <li>Prüfen Sie Aufgaben, Punkte, Einstellungen (auch Live-Ansicht und Bildschirmfreigabe) und die Vorschau. Warnungen von <span class="ui">Fertigstellen</span>, zum Beispiel abweichende Testpunkte, sind Hinweise und kein Hindernis.</li>
     <li>Wählen Sie auf der Klausurseite <span class="ui">Fertigstellen</span>. Die Klausur wechselt auf <b>Bereit</b>. Damit ist die Klausur gegen versehentliche Änderungen gesperrt; Pult, Zugangskarten und Probelauf sind möglich. Mit <span class="ui">Zurück in den Entwurf</span> öffnen Sie sie wieder, solange niemand teilgenommen hat.</li>
     <li>Wenn Sie „Klausurcode verlangen“ gewählt haben, steht der 6-stellige Code jetzt auf der Klausurseite und im Pult; er lässt sich dort neu erzeugen.</li>
     <li>Drucken Sie bei Bedarf Zugangskarten (3.4) und machen Sie am Vortag einen <b>Technik-Check</b> (4.13).</li>

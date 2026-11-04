@@ -80,6 +80,9 @@ export function createHeader(store, actions, sound) {
                 btn('flag', 'Klausur beenden', 'finish', 'btn-danger-ghost'),
             );
         }
+        if (['finished', 'grading', 'returned'].includes(status) && boot.can?.grade && boot.urls.grading) {
+            controls.append(h('a', { class: 'btn btn-primary', href: boot.urls.grading }, icon('circle-check'), ' Zur Korrektur'));
+        }
         if (['lobby', 'running', 'paused'].includes(status)) {
             controls.append(h('button', { type: 'button', class: 'btn', onclick: () => actions.announceAll() }, icon('megaphone'), ' Durchsage an alle'));
         }
@@ -101,7 +104,8 @@ export function createHeader(store, actions, sound) {
         renderControls(exam.status);
 
         const live = state.participants.filter((p) => p.state !== 'submitted');
-        counterEls.online.textContent = `${live.filter((p) => p.online).length}/${live.length}`;
+        // Haben alle abgegeben, bleibt der Nenner die Gesamtzahl ("0/2" statt "0/0").
+        counterEls.online.textContent = `${live.filter((p) => p.online).length}/${live.length > 0 ? live.length : state.participants.length}`;
         counterEls.active.textContent = String(state.participants.filter((p) => p.state === 'active').length);
         counterEls.locked.textContent = String(state.participants.filter((p) => p.state === 'locked').length);
         counterEls.submitted.textContent = `${state.participants.filter((p) => p.state === 'submitted').length}/${state.participants.length}`;

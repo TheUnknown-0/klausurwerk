@@ -133,9 +133,10 @@ const ChoiceWidget = {
         const inputs = new Map();
 
         const fieldset = h('fieldset', { class: 'w-choice-set' });
+        // Der Hinweis steht nur einmal im Zugänglichkeitsbaum: die Legende für alle, der sichtbare Text bei Mehrfachauswahl nur optisch.
         fieldset.append(h('legend', { class: 'sr-only' }, multiple ? 'Mehrere Antworten möglich' : 'Wähle eine Antwort'));
         if (multiple) {
-            fieldset.append(h('p', { class: 'w-hint' }, 'Mehrere Antworten möglich.'));
+            fieldset.append(h('p', { class: 'w-hint', 'aria-hidden': 'true' }, 'Mehrere Antworten möglich.'));
         }
         for (const opt of options) {
             const id = String(opt.id);

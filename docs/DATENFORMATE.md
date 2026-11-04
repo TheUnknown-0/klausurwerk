@@ -25,6 +25,8 @@ Grundsätze:
   "require_seb": false,
   "require_access_code": false,
   "toilet_pauses_clock": false,
+  "live_view": true,
+  "screen_share": false,
   "allow_self_submit": true,
   "shuffle_choices": true,
   "show_points": true,
@@ -55,6 +57,8 @@ Grundsätze:
 | `require_seb` | bool | nur mit Safe Exam Browser (Config-Key-Prüfung) |
 | `require_access_code` | bool | Klausurcode (`exams.access_code`) beim Beitritt |
 | `toilet_pauses_clock` | bool | Abwesenheit hält die Uhr der Person an |
+| `live_view` | bool (Standard `true`) | Live-Wand: Live-Ansicht der Klausurseite im Pult (Aufgabe, Code-Ausschnitt, Konsole) |
+| `screen_share` | bool (Standard `false`) | Live-Wand: Bildschirmfreigabe (ganzer Bildschirm) verlangen; Standbilder im Pult. Im SEB entfällt sie |
 | `allow_self_submit` | bool | Knopf „Abgeben“ (Lehrkraft muss bestätigen) |
 | `shuffle_choices` | bool | MC-Optionen/Zuordnungen je Person mischen |
 | `show_points` | bool | Punkte je Aufgabe in der Schüleransicht anzeigen |
@@ -274,8 +278,28 @@ bei 1, überlebt Neuladen über IndexedDB).
 | `hand_raised` / `hand_lowered` | info | Hand heben / quittiert |
 | `device_change_requested` | warning | Anmeldung an anderem Gerät |
 | `time_added` | info | Zeit verlängert (`details.minutes`) |
+| `screen_share_started` | info | Bildschirmfreigabe läuft (`details.surface`: `monitor`/`window`/`browser`/`unknown`) |
+| `screen_share_stopped` | alarm | Freigabe beendet; keine Sperre |
+| `screen_share_denied` | alarm | Freigabe verweigert (`details.reason`); keine Sperre |
+| `screen_share_wrong_surface` | alarm | nur Fenster oder Tab statt des ganzen Bildschirms (`details.surface`); keine Sperre |
 
-Alarm-Ereignisse lösen im Pult Ton und Meldung aus.
+Alarm-Ereignisse lösen im Pult Ton und Meldung aus. Die vier `screen_share_*`-Ereignisse kommen
+über `POST /api/klausur/{id}/ereignis` wie `window_blur`, sind aber nie ein Verstoß (`EventLog::VIOLATIONS`):
+die Person arbeitet weiter.
+
+### 4.1 Live-Wand: flüchtige Daten (kein Datenbankformat)
+
+Live-Zustand und Standbilder liegen nur im Arbeitsspeicher (`Services\LiveStore`, tmpfs `LIVE_DIR`,
+Standard `/run/klausurwerk-live`), je Teilnahme nur der letzte Stand, nie in der Datenbank:
+
+```
+<LIVE_DIR>/e<Klausur-ID>/p<Teilnahme-ID>.live.json    letzter Live-Zustand (+ received_ms)
+<LIVE_DIR>/e<Klausur-ID>/p<Teilnahme-ID>.screen.jpg   letztes Standbild
+<LIVE_DIR>/e<Klausur-ID>/p<Teilnahme-ID>.screen.json  {ts_ms, width, height, surface}
+<LIVE_DIR>/e<Klausur-ID>/focus.json                   {participation_id, until_ms}
+```
+Einträge älter als 120 s gelten als veraltet. Beim Ende der Klausur (`finished`), beim Löschen und
+beim Archivieren wird das Klausurverzeichnis gelöscht.
 
 ---
 

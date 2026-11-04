@@ -390,7 +390,9 @@ Sequenznummern je Teilnahme eindeutig.
 - Nach Ablauf erinnert das Dashboard; gelöscht wird nach Bestätigung, protokolliert im Audit-Log.
 - Ereignisprotokoll und Replay sind nur der Hauptlehrkraft, berechtigten Lehrkräften und Admins
   zugänglich.
-- Keine Bildschirmübertragung, keine Kamera, kein Mikrofon (Permissions-Policy sperrt das).
+- Keine Kamera, kein Mikrofon (Permissions-Policy sperrt das). Bildschirmübertragung nur, wenn die
+  Lehrkraft sie für eine Klausur einschaltet (Abschnitt 19): Standbilder, nur im Arbeitsspeicher,
+  nie gespeichert.
 - Eine kurze Datenschutzinfo für Schüler:innen und Eltern liefere ich als Textvorlage mit; die
   rechtliche Prüfung gehört zur Schule bzw. zum Datenschutzbeauftragten.
 
@@ -465,3 +467,21 @@ Bitte zu jedem kurz Bescheid geben; bei einigen habe ich eine Empfehlung.
     steht.
   - Einrichtung auf dem echten Server: Domain, Reverse-Proxy mit HTTPS (Cross-Origin-Isolation
     prüfen), SMTP, dann Probelauf. Die Domain steht noch nicht fest.
+
+## 19. Live-Wand und Löschen per Auswahl (4. November 2026)
+
+- **Live-Wand im Pult** (Umschalter „Sitzplan / Live-Wand“): je Teilnahme eine Karte mit Aufgabe,
+  Code-Ausschnitt um die Cursorzeile und letzten Konsolenzeilen (`live_view`, Standard an, auch
+  im SEB).
+- **Bildschirmfreigabe des ganzen Bildschirms** (`screen_share`, Standard aus): Standbilder, in der
+  Übersicht etwa alle 5 s klein, in der Großansicht (Fokus) etwa 1 pro Sekunde groß. Kein Ton, keine
+  Aufzeichnung.
+- **Beenden oder Verweigern** ergibt nur einen Alarm, keine Sperre. Im SEB entfällt die Freigabe
+  ohne Alarm.
+- **Solange der Auswahldialog offen ist**, ruht die Fokusüberwachung höchstens 30 s.
+- **Speicherung: keine.** Nur das jeweils letzte Bild und der letzte Live-Zustand liegen im tmpfs
+  des App-Containers und werden beim Klausurende gelöscht.
+- **Löschen überall einheitlich:**
+  - Auswählen (Klick oder Fokus), dann Entf, Rücktaste oder Knopf „Löschen“.
+  - In Textfeldern löscht die Rücktaste nur Zeichen.
+  - Aufgaben und Dateien mit Inhalt nur nach Rückfrage, Diagrammelemente mit Strg+Z.

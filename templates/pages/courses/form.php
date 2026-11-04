@@ -63,7 +63,9 @@ $staffName = static fn (array $u): string => trim((string) $u['lastname'] . ', '
                 <option value="">Standard der Klassenstufe</option>
                 <?php foreach ($scales as $scale): ?>
                     <option value="<?= e((string) (int) $scale['id']) ?>"<?= $val('grading_scale_id') === (string) $scale['id'] ? ' selected' : '' ?>>
-                        <?= e($scale['name']) ?><?= $scale['grade_level'] !== null ? ' (Standard Klasse ' . e((string) (int) $scale['grade_level']) . ')' : ' (Vorlage)' ?>
+                        <?= e($scale['name']) ?><?= $scale['grade_level'] !== null
+                            ? (stripos((string) $scale['name'], 'Klasse ' . (int) $scale['grade_level']) === false ? ' (Standard Klasse ' . e((string) (int) $scale['grade_level']) . ')' : ' (Standard)')
+                            : ' (Vorlage)' ?>
                     </option>
                 <?php endforeach; ?>
             </select>

@@ -196,6 +196,22 @@ final class ExamModuleTest extends DatabaseTestCase
         self::assertIsArray($warnings);
     }
 
+    public function testCodeAufgabeWarntBeiAbweichenderTestpunktsumme(): void
+    {
+        $id = $this->newExam();
+        $taskId = $this->tasks->create($this->exam($id), null, 'code');
+        // Aufgabe 6 Punkte, ein Test mit 2 Punkten: nur Hinweis, kein Fehler.
+        $this->tasks->save($this->exam($id), $taskId, $this->codeInput());
+        $report = $this->tasks->check($id);
+        self::assertSame([], $report['errors']);
+        self::assertNotEmpty(array_filter($report['warnings'], static fn (string $m): bool => str_contains($m, 'Die Tests ergeben zusammen 2 Punkte')));
+
+        $input = $this->codeInput();
+        $input['tests'][0]['points'] = 6;
+        $this->tasks->save($this->exam($id), $taskId, $input);
+        self::assertEmpty(array_filter($this->tasks->check($id)['warnings'], static fn (string $m): bool => str_contains($m, 'Die Tests ergeben')));
+    }
+
     public function testLoeschenNurInErlaubtenStatus(): void
     {
         $id = $this->newExam();

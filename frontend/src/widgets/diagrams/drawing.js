@@ -13,6 +13,7 @@ import { bindUndoKeys, createTracker } from './core/simple.js';
 import { svgToPng } from './core/png.js';
 import { smallButton, withIcon } from './core/form.js';
 import { s, text as svgText } from './core/svg.js';
+import { isDeleteKey, isTypingTarget } from '../delete-keys.js';
 
 export const MAX_STROKES = 1500;
 export const MAX_POINTS_TOTAL = 40000;
@@ -95,7 +96,7 @@ export const DrawingWidget = {
         const taskId = ctx.task?.id ?? null;
         let readOnly = !!ctx.readOnly;
         let model = normalizeDrawing(ctx.content, config);
-        const state = { tool: 'pen', color: COLORS[0][0], width: 2, selected: null, gesture: null };
+        const state = { tool: 'pen', color: COLORS[0][0], width: 2, selected: null, selectedStroke: null, gesture: null };
         const bgUrl = config.background_material_id && examId ? url(`/klausur/${examId}/material/${config.background_material_id}`) : null;
         const uploads = new Map(); // id -> {name, url}
 
@@ -129,12 +130,14 @@ export const DrawingWidget = {
         const root = h('div', { class: 'w-diagram w-drawing', dataset: { mode: ctx.mode ?? 'exam', type: 'drawing' } });
         const status = h('div', { class: 'sr-only', role: 'status', 'aria-live': 'polite' });
         const strokeLayer = s('g', { class: 'dg-strokes', fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+        const hitLayer = s('g', { class: 'dg-stroke-hits' });
+        const selLayer = s('g', { class: 'dg-sel', 'pointer-events': 'none' });
         const textLayer = s('g', { class: 'dg-texts' });
         const liveLayer = s('g', { class: 'dg-live', 'pointer-events': 'none', fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
         const bgImage = bgUrl ? s('image', { href: bgUrl, x: 0, y: 0, width: W, height: H, preserveAspectRatio: 'xMidYMid meet', 'pointer-events': 'none' }) : null;
         const svg = s('svg', {
-            class: 'dg-draw-svg', viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Zeichenfläche', focusable: 'false',
-        }, s('rect', { x: 0, y: 0, width: W, height: H, fill: '#ffffff' }), bgImage, strokeLayer, textLayer, liveLayer);
+            class: 'dg-draw-svg', viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Zeichenfläche', focusable: 'false', tabindex: readOnly ? null : '-1',
+        }, s('rect', { x: 0, y: 0, width: W, height: H, fill: '#ffffff' }), bgImage, strokeLayer, hitLayer, selLayer, textLayer, liveLayer);
         svg.style.maxWidth = `${W}px`;
         const surface = h('div', { class: 'dg-draw-surface' }, svg);
 
@@ -152,6 +155,24 @@ export const DrawingWidget = {
             for (const st of model.strokes) {
                 strokeLayer.append(s('path', { d: pointsToPath(st.points), stroke: st.color, 'stroke-width': st.width }));
             }
+            hitLayer.replaceChildren();
+            if (state.tool === 'select' && !readOnly) {
+                // Unsichtbare, breite Treffer-Linien: Striche per Klick und per Tab auswählbar
+                model.strokes.forEach((st, i) => {
+                    const hit = s('path', {
+                        d: pointsToPath(st.points), class: 'dg-stroke-hit', 'stroke-width': Math.max(14, st.width + 10), 'data-stroke': i,
+                        tabindex: '0', role: 'button', 'aria-label': `Strich ${i + 1} von ${model.strokes.length}. Entf löscht ihn.`,
+                    });
+                    hit.addEventListener('focus', () => {
+                        if (state.selectedStroke !== i) {
+                            state.selected = null;
+                            state.selectedStroke = i;
+                            paintSelection();
+                        }
+                    });
+                    hitLayer.append(hit);
+                });
+            }
             textLayer.replaceChildren();
             for (const t of model.texts) {
                 const g = s('g', { class: 'dg-text-item', dataset: { id: t.id } }, svgText(t.text, t.x, t.y - TEXT_SIZE / 2 + 2, { anchor: 'start', size: TEXT_SIZE, fill: t.color ?? '#111827', events: true }));
@@ -163,14 +184,62 @@ export const DrawingWidget = {
                     g.setAttribute('aria-label', `Text: ${t.text.replace(/\n/g, ' ')}. Pfeiltasten verschieben, Entf löscht, Enter bearbeitet.`);
                     g.addEventListener('keydown', (e) => onTextKey(e, t.id));
                     g.addEventListener('dblclick', () => openTextEditor(t.id));
-                    g.addEventListener('focus', () => { state.selected = t.id; });
+                    g.addEventListener('focus', () => {
+                        state.selected = t.id;
+                        state.selectedStroke = null;
+                        paintSelection();
+                    });
                 } else {
                     g.setAttribute('role', 'img');
                     g.setAttribute('aria-label', `Text: ${t.text.replace(/\n/g, ' ')}`);
                 }
                 textLayer.append(g);
             }
+            paintSelection();
         };
+
+        /** Markierung der Auswahl (gestrichelt) und Zustand des Knopfs "Löschen". */
+        function paintSelection() {
+            selLayer.replaceChildren();
+            const st = state.selectedStroke !== null ? model.strokes[state.selectedStroke] : null;
+            if (state.selectedStroke !== null && !st) {
+                state.selectedStroke = null;
+            }
+            if (st) {
+                selLayer.append(s('path', { d: pointsToPath(st.points), class: 'dg-sel-stroke', 'stroke-width': st.width + 6 }));
+            }
+            if (state.selected !== null && !model.texts.some((t) => t.id === state.selected)) {
+                state.selected = null;
+            }
+            for (const g of textLayer.children) {
+                const rect = g.children?.[0];
+                rect?.setAttribute?.('stroke', g.getAttribute('data-id') === state.selected ? '#4f46e5' : 'none');
+            }
+            deleteBtn.disabled = readOnly || (state.selected === null && state.selectedStroke === null);
+        }
+
+        /** Löscht den gewählten Strich oder Text (mit Rückgängig). */
+        function deleteSelection() {
+            if (readOnly) {
+                return false;
+            }
+            if (state.selectedStroke !== null && model.strokes[state.selectedStroke]) {
+                model.strokes.splice(state.selectedStroke, 1);
+                state.selectedStroke = null;
+                commit();
+                status.textContent = 'Strich gelöscht.';
+            } else if (state.selected !== null && model.texts.some((t) => t.id === state.selected)) {
+                model.texts = model.texts.filter((t) => t.id !== state.selected);
+                state.selected = null;
+                commit();
+                status.textContent = 'Text gelöscht.';
+            } else {
+                return false;
+            }
+            svg.focus?.({ preventScroll: true });
+
+            return true;
+        }
 
         const commit = (key = null) => {
             tracker.record(model, key);
@@ -201,6 +270,7 @@ export const DrawingWidget = {
         const undoBtn = smallButton(withIcon('undo-2', 'Rückgängig'), () => undo(), { title: 'Rückgängig (Strg+Z)' });
         const redoBtn = smallButton(withIcon('redo-2', 'Wiederholen'), () => redo(), { title: 'Wiederholen (Strg+Y)' });
         let clearArmed = false;
+        const deleteBtn = smallButton(withIcon('trash-2', 'Löschen'), () => deleteSelection(), { title: 'Ausgewählten Strich oder Text löschen (Entf oder Rücktaste)', 'aria-label': 'Ausgewählten Strich oder Text löschen', disabled: true });
         const clearBtn = smallButton('Alles löschen', () => {
             if (!clearArmed) {
                 clearArmed = true;
@@ -217,18 +287,23 @@ export const DrawingWidget = {
         const bar = h('div', { class: 'dg-toolbar', role: 'toolbar', 'aria-label': 'Zeichenwerkzeuge' },
             h('div', { class: 'dg-tool-group', role: 'group', 'aria-label': 'Werkzeug' },
                 mkTool('pen', withIcon('pencil', 'Stift'), 'Freihand zeichnen'), mkTool('eraser', 'Radierer', 'Ganze Striche löschen'),
-                mkTool('text', withIcon('type', 'Text'), 'Text setzen (Klick auf die Fläche)'), mkTool('select', withIcon('move', 'Verschieben'), 'Texte verschieben und bearbeiten')),
+                mkTool('text', withIcon('type', 'Text'), 'Text setzen (Klick auf die Fläche)'), mkTool('select', withIcon('move', 'Auswählen'), 'Striche und Texte auswählen, Texte verschieben und bearbeiten')),
             h('div', { class: 'dg-tool-group', role: 'group', 'aria-label': 'Farbe' }, ...colorBtns),
             h('div', { class: 'dg-tool-group' }, h('label', { class: 'dg-tool-label', for: 'dg-w' }, 'Stärke'), widthSel),
-            h('div', { class: 'dg-tool-group', role: 'group', 'aria-label': 'Bearbeiten' }, undoBtn, redoBtn, clearBtn));
+            h('div', { class: 'dg-tool-group', role: 'group', 'aria-label': 'Bearbeiten' }, deleteBtn, undoBtn, redoBtn, clearBtn));
         widthSel.id = 'dg-w';
-        const hint = h('p', { class: 'dg-hint' }, 'Zeichne mit Maus, Stift oder Finger. Texte setzt du mit dem Text-Werkzeug; sie lassen sich auch per Tastatur verschieben (Tab, Pfeiltasten).');
+        const hint = h('p', { class: 'dg-hint' }, 'Zeichne mit Maus, Stift oder Finger. Texte setzt du mit dem Text-Werkzeug; sie lassen sich auch per Tastatur verschieben (Tab, Pfeiltasten). Mit „Auswählen“ markierst du einen Strich oder Text; Entf, Rücktaste oder „Löschen“ entfernt ihn (Strg+Z holt ihn zurück).');
 
         function setTool(id) {
             state.tool = id;
+            if (id !== 'select') {
+                state.selected = null;
+                state.selectedStroke = null;
+            }
+            drawContent();
             refresh();
             surface.dataset.tool = id;
-            status.textContent = { pen: 'Stift', eraser: 'Radierer', text: 'Text-Werkzeug', select: 'Verschieben' }[id];
+            status.textContent = { pen: 'Stift', eraser: 'Radierer', text: 'Text-Werkzeug', select: 'Auswählen' }[id];
         }
 
         function refresh() {
@@ -244,6 +319,7 @@ export const DrawingWidget = {
             undoBtn.disabled = readOnly || !tracker.history.canUndo;
             redoBtn.disabled = readOnly || !tracker.history.canRedo;
             clearBtn.disabled = readOnly || (model.strokes.length === 0 && model.texts.length === 0);
+            deleteBtn.disabled = readOnly || (state.selected === null && state.selectedStroke === null);
             bar.hidden = readOnly;
             hint.hidden = readOnly;
             surface.classList.toggle('is-readonly', readOnly);
@@ -263,6 +339,18 @@ export const DrawingWidget = {
             });
 
             return before !== model.strokes.length + model.texts.length;
+        };
+
+        /** Index des obersten Strichs unter dem Punkt (oder null). */
+        const strokeAt = (p) => {
+            for (let i = model.strokes.length - 1; i >= 0; i -= 1) {
+                const st = model.strokes[i];
+                if (distToPolyline(p, st.points) <= 6 + st.width / 2) {
+                    return i;
+                }
+            }
+
+            return null;
         };
 
         svg.addEventListener('pointerdown', (e) => {
@@ -286,12 +374,16 @@ export const DrawingWidget = {
                 const item = ancestor(e.target, 'data-id');
                 if (item) {
                     state.selected = item.getAttribute('data-id');
+                    state.selectedStroke = null;
                     const t = model.texts.find((x) => x.id === state.selected);
                     state.gesture = t ? { type: 'move', id: t.id, start: p, origin: { x: t.x, y: t.y }, moved: false } : null;
                 } else {
                     state.selected = null;
+                    state.selectedStroke = strokeAt(p);
                 }
-                drawContent();
+                paintSelection();
+                // Fokus auf die Fläche, damit Entf und Rücktaste sofort wirken (pointerdown ist abgebrochen).
+                svg.focus?.({ preventScroll: true });
             }
             svg.setPointerCapture?.(e.pointerId);
             e.preventDefault();
@@ -436,11 +528,11 @@ export const DrawingWidget = {
                 t.y = Math.max(0, Math.min(H, t.y + moves[e.key][1]));
                 commit(`move:${id}`);
                 focusText(id);
-            } else if (e.key === 'Delete' || e.key === 'Backspace') {
+            } else if (isDeleteKey(e)) {
                 e.preventDefault();
-                model.texts = model.texts.filter((x) => x.id !== id);
-                commit();
-                status.textContent = 'Text gelöscht.';
+                state.selected = id;
+                state.selectedStroke = null;
+                deleteSelection();
             } else if (e.key === 'Enter' || e.key === 'F2') {
                 e.preventDefault();
                 openTextEditor(id);
@@ -458,6 +550,7 @@ export const DrawingWidget = {
         function applyModel(next) {
             model = next;
             state.selected = null;
+            state.selectedStroke = null;
             drawContent();
             refresh();
         }
@@ -476,6 +569,15 @@ export const DrawingWidget = {
             }
         }
         bindUndoKeys(root, undo, redo);
+        root.addEventListener('keydown', (e) => {
+            // Entf/Rücktaste löscht die Auswahl, aber nie in Textfeldern (dort bleibt es Zeichenlöschen)
+            if (e.defaultPrevented || readOnly || editor || !isDeleteKey(e) || isTypingTarget(e.target)) {
+                return;
+            }
+            if (deleteSelection()) {
+                e.preventDefault();
+            }
+        });
 
         // ---------- Upload ----------
         const uploadList = h('ul', { class: 'dg-uploads' });
@@ -562,6 +664,13 @@ export const DrawingWidget = {
                 readOnly = !!flag;
                 tracker.setReadOnly(readOnly);
                 closeTextEditor(false);
+                state.selected = null;
+                state.selectedStroke = null;
+                if (readOnly) {
+                    svg.removeAttribute('tabindex');
+                } else {
+                    svg.setAttribute('tabindex', '-1');
+                }
                 root.dataset.readonly = readOnly ? '1' : '0';
                 drawContent();
                 refresh();

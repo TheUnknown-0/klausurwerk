@@ -125,7 +125,7 @@
 .rel-name { flex: 1 1 200px; width: auto; font-weight: 700; }
 .rel-actions { display: flex; gap: 4px; margin-left: auto; }
 .rel-cols { display: grid; gap: 6px; }
-.rel-col { display: grid; grid-template-columns: minmax(120px, 1.2fr) auto minmax(150px, 1fr) auto; gap: 8px; align-items: center; }
+.rel-col { display: grid; grid-template-columns: auto minmax(120px, 1.2fr) auto minmax(150px, 1fr) auto; gap: 8px; align-items: center; }
 .rel-preview {
   background: #ffffff; color: #1b1d28; border: 1px solid #8a8677; border-radius: var(--radius-sm); padding: 12px 14px;
   font-family: Arial, Helvetica, sans-serif; font-size: 1.05rem; line-height: 1.9; overflow-x: auto;
@@ -134,7 +134,7 @@
 .rel-line { white-space: nowrap; }
 .rel-pk { text-decoration: underline; text-underline-offset: 3px; }
 .rel-fk { color: #1f3fa8; font-weight: 700; }
-@media (max-width: 640px) { .rel-col { grid-template-columns: 1fr auto; } .rel-col .rel-actions { margin-left: 0; } }
+@media (max-width: 640px) { .rel-col { grid-template-columns: auto 1fr auto; } .rel-col .rel-actions { margin-left: 0; } }
 
 /* ---------- Zeichnung ---------- */
 .dg-swatch { width: 26px; height: 26px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); cursor: pointer; padding: 0; }
@@ -178,3 +178,14 @@
 @media (prefers-reduced-motion: no-preference) {
   .dg-tool, .dg-swatch { transition: background-color .12s ease, border-color .12s ease; }
 }
+
+/* Auswahl und Löschen: Relationenschema (Tabellen, Spalten) und Zeichnung (Striche, Texte) */
+.rel-head, .rel-col { border-radius: var(--radius-sm); }
+.rel-head:focus-visible, .rel-col:focus-visible, .dg-stroke-hit:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.rel-head.is-selected, .rel-col.is-selected { background: var(--primary-soft); box-shadow: 0 0 0 2px var(--primary); }
+.dg-stroke-hit { cursor: pointer; stroke: transparent; fill: none; pointer-events: stroke; outline: none; }
+.dg-sel-stroke { stroke: #4f46e5; fill: none; opacity: .55; stroke-dasharray: 6 4; stroke-linecap: round; stroke-linejoin: round; }
+.w-truth-cell.is-selected { outline: 2px solid var(--primary); outline-offset: -2px; background: var(--primary-soft); }
+.rel-handle { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; color: var(--ink-faint); cursor: pointer; border-radius: var(--radius-sm); }
+.rel-handle:hover { color: var(--primary); background: var(--primary-soft); }
+.rel-handle.is-off { display: none; }

@@ -173,6 +173,10 @@ Verstöße (`fullscreen_exit`, `visibility_hidden`, `window_blur` über der Schw
 sperren bei `lock_on_violation` sofort (`active` → `locked`). Im Modus `practice` nichts sperren.
 Response: `{ "success": true, "state": "locked", "lock_reason": "Vollbild verlassen" }`
 
+Zusätzlich für die Bildschirmfreigabe: `screen_share_started {surface}`, `screen_share_stopped {}`,
+`screen_share_denied {reason}`, `screen_share_wrong_surface {surface}`. Die letzten drei sind Alarme im
+Pult, sperren aber nie.
+
 ### 1.7 `POST /api/klausur/{id}/anfrage`
 
 Request: `{ "type": "hand" | "release" | "submit", "cancel": false }`
@@ -295,6 +299,16 @@ Live mitlesen: `{ "success": true, "answers": { "102": { "content": {…}, "vers
 ### 3.6 `GET /api/pult/{id}/ereignisse/{participationId}`
 Vollständiges Protokoll einer Person (für die Detailansicht).
 
+### 3.7 Live-Wand (`live`, `bildschirm`, `fokus`)
+
+Antworten dieser Endpunkte haben die Form `{ "ok": true, "data": { … } }`, Fehler wie üblich
+`{ "success": false, "error": "…" }`. Alle Daten liegen nur im Arbeitsspeicher (`Services\LiveStore`).
+
+- `GET /api/pult/{id}/live` → `data: { participants: [ { participation_id, live: { task_id, view, file, cursor_line, code_excerpt, excerpt_start_line, console_tail, client_ms, received_ms } | null, live_age_ms | null, screen: { ts_ms, width, height, surface } | null, screen_age_ms | null } ], settings: { live_view, screen_share } }`.
+  Einträge älter als 120 s erscheinen als `null`.
+- `GET /api/pult/{id}/bildschirm/{participationId}` → `image/jpeg`, `Cache-Control: no-store`; 404 ohne (oder mit veraltetem) Bild.
+- `POST /api/pult/{id}/fokus` `{ "participation_id": 301 | null }` → setzt den Fokus für 30 s (das Pult wiederholt alle 10 s, solange die Großansicht offen ist); `null` hebt auf. 404 für Teilnahmen einer anderen Klausur. Antwort `data: { participation_id }`.
+
 ---
 
 ## 4. Lehrkräfte: Hilfs-Endpunkte
@@ -362,5 +376,11 @@ Läufe ohne Abruf für 60 s werden beendet und verworfen.
 - `POST /api/klausur/{id}/vorschaubild` `{ "task_id", "png": "data:image/png;base64,…" }`: PNG-Vorschau einer
   Zeichenaufgabe (höchstens 2 MB, nur zu einer gespeicherten Antwort, nur im Zustand `active`). Die
   Schüleransicht sendet sie höchstens alle 10 s je Aufgabe und vor der Abgabe.
+- Live-Wand (Schüler:innen, nur eigene Teilnahme, CSRF; Teilnahme `active`/`locked`/`paused` und Klausur `running`/`paused`, sonst 409):
+  - `POST /api/klausur/{id}/live` `{ task_id: int|null, view: "task"|"overview"|"aids"|…, file: string|null, cursor_line: int|null, code_excerpt, excerpt_start_line: int, console_tail, client_ms: int }`
+    → `{ "ok": true, "data": { "focus": bool, "screen_interval_ms": 5000 } }` (bei Fokus 1000). `code_excerpt` wird auf 60 Zeilen bzw. 4000 Zeichen
+    (Anfang), `console_tail` auf 20 Zeilen bzw. 2000 Zeichen (Ende) gekürzt. 409, wenn `live_view` aus ist; 422 bei ungültigen Typen; 429 über 2 Anfragen je Sekunde.
+  - `POST /api/klausur/{id}/bildschirm` `{ jpeg: "data:image/jpeg;base64,…", width, height, surface: "monitor"|"window"|"browser"|"unknown" }`
+    → wie oben. Höchstens 600 KB Bilddaten (413), Signatur `FF D8 FF` (422), 409, wenn `screen_share` aus ist, 429 über 2 je Sekunde.
 - `POST /speichern` liefert zusätzlich `invalid` (`{ task_id: Meldung }`): nur diese Antworten wurden
   zurückgewiesen, alle anderen Schritte und Inhalte des Pakets sind gespeichert.

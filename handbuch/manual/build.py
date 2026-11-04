@@ -36,8 +36,8 @@ CROPS = {"c-100-login": (540, 90, 1660, 900), "c-101-login-fehler": (540, 90, 16
 SIDEBAR_X, TOPBAR_Y = 312, 86
 # Aufnahmen mit viel leerem Hintergrund (Karten in der Mitte): auf den Inhalt zuschneiden
 TRIM = ("x-501", "x-502", "x-503", "x-520", "x-521", "x-523", "x-525", "x-526", "x-528", "x-529", "x-530", "x-531",
-        "x-560", "x-561", "x-700")
-CROPS.update({"x-517-matching": (0, 0, 1800, 760), "x-518-ordering": (0, 0, 1800, 760)})
+        "x-560", "x-561", "x-570", "x-571", "x-700")
+CROPS.update({"x-441-pult-livewall": (312, 86, 1800, 1813), "x-443-pult-alarm-freigabe": (312, 86, 1800, 1813), "x-517-matching": (0, 0, 1800, 760), "x-518-ordering": (0, 0, 1800, 760)})
 
 
 def trim(im: Image.Image, pad: int = 50) -> Image.Image:

@@ -18,6 +18,10 @@ import { ExamView } from './view-exam.js';
 import { TechCheck } from './techcheck.js';
 import { taskLabel } from './answers.js';
 import { mergeSettings } from './settings.js';
+import { LiveReporter } from './live.js';
+import { collectLive } from './live-collect.js';
+import { PICK_GRACE_MS, ScreenShare } from './screenshare.js';
+import { acceptsLive, liveRequired, shareRequired } from './live-logic.js';
 
 const PULSE_MS = 2000;
 const CONTENT_STATES = new Set(['active', 'locked', 'absent', 'paused', 'submit_requested']);
@@ -91,6 +95,9 @@ export class ExamApp {
         this.autosave = null;
         this.events = null;
         this.monitor = null;
+        this.live = null;
+        this.share = null;
+        this.shareEnded = false;
         this.armed = false;
         this.localLock = null;
         this.secondTab = false;
@@ -138,6 +145,7 @@ export class ExamApp {
             onResult: (res) => this.onEventsResult(res),
         });
         await this.events.init();
+        this.setupShare(this.boot.live?.screen_share);
         if (reloadMarker.consume(this.boot.exam_id)) {
             this.events.push('reload', {});
         }
@@ -191,6 +199,9 @@ export class ExamApp {
             getLatency: () => this.avgLatency(),
             onJoin: (code) => this.join(code),
             onReady: (details) => this.onReady(details),
+            share: this.share
+                ? { status: this.share.status, onRequest: () => this.requestShare(), onSkip: () => this.skipShare() }
+                : null,
         });
         replace(this.viewHost, this.waiting.el);
         this.updateWaiting();
@@ -369,6 +380,9 @@ export class ExamApp {
         this.updateConnection();
         this.examStatus = d.exam_status ?? this.examStatus;
         this.running = this.examStatus === 'running' || this.examStatus === 'paused';
+        if (this.examStatus === 'finished' || this.examStatus === 'archived') {
+            this.stopLive();
+        }
         this.clockData = d.clock ?? this.clockData;
         this.clockReceived = Date.now();
         this.openRequests = Array.isArray(d.open_requests) ? d.open_requests : [];
@@ -414,6 +428,10 @@ export class ExamApp {
             }
             if (newState === 'submitted') {
                 this.autosave?.pause();
+                this.stopLive();
+            } else if (prev === 'submitted') {
+                // Abgabe wieder geöffnet: Live-Zustand läuft weiter, die Freigabe kann neu angefordert werden.
+                this.resumeLive();
             }
         }
         if (newState === 'active') {
@@ -444,6 +462,7 @@ export class ExamApp {
         if (CONTENT_STATES.has(newState) && !this.content && this.joined) {
             this.loadContent();
         }
+        this.updateLiveGates();
         this.maybeArm();
         this.refreshUi();
     }
@@ -470,7 +489,130 @@ export class ExamApp {
 
     /** Ist die Überwachung gerade scharf? */
     monitoringActive() {
-        return this.monitorEnabled && this.state === 'active' && this.armed && !this.localLock && !this.secondTab && !!this.content;
+        // Während der Auswahldialog der Bildschirmfreigabe offen ist, verliert die Seite kurz den Fokus: kein Verstoß.
+        return this.monitorEnabled && this.state === 'active' && this.armed && !this.localLock && !this.secondTab && !!this.content
+            && !this.share?.isPicking();
+    }
+
+    // ---------- Live-Wand ----------
+
+    /** Schlüssel in sessionStorage: 'had' (war freigegeben), 'skip' (bewusst ohne Freigabe), 'lost'. */
+    get shareKey() {
+        return `kw-share-${this.boot.exam_id}`;
+    }
+
+    /** Legt die Bildschirmfreigabe an, wenn die Klausur sie verlangt (Klausur/Technik-Check, nicht im SEB). */
+    setupShare(wanted) {
+        const required = shareRequired({ screenShare: wanted, mode: this.mode, preview: this.preview, seb: !!this.boot.seb?.detected });
+        if (!required) {
+            if (this.share && !wanted) {
+                this.share.stop();
+                this.share = null;
+            }
+            return;
+        }
+        if (this.share) {
+            return;
+        }
+        this.share = new ScreenShare({ api: this.api, events: this.events, onChange: (st) => this.onShareChange(st) });
+        const mark = ss.get(this.shareKey);
+        if (mark === 'skip') {
+            this.share.status = 'skipped';
+        } else if (mark === 'had') {
+            // Die Seite wurde neu geladen: die Freigabe ist weg. Die Lehrkraft erfährt es einmal.
+            ss.set(this.shareKey, 'lost');
+            this.events.push('screen_share_stopped', {});
+        }
+        this.updateLiveGates();
+    }
+
+    onShareChange(status) {
+        if (status === 'active') {
+            ss.set(this.shareKey, 'had');
+        } else if (status === 'skipped') {
+            ss.set(this.shareKey, 'skip');
+        } else if (status === 'stopped' || status === 'denied' || status === 'wrong') {
+            ss.set(this.shareKey, 'lost');
+        }
+        this.waiting?.setShare(status);
+        this.showShareState();
+    }
+
+    showShareState() {
+        if (this.share && this.view) {
+            this.view.setShare(this.shareEnded ? 'idle' : this.share.status, {
+                required: !this.shareEnded && this.share.status !== 'skipped',
+                onRequest: () => this.requestShare(),
+            });
+        }
+    }
+
+    async requestShare() {
+        if (!this.share) {
+            return;
+        }
+        const wasFullscreen = isFullscreen();
+        // Endet die Schonfrist, während der Dialog noch offen ist, oder kurz nach dem Schließen:
+        // dann nachprüfen, ob die Seite den Fokus hat (ein Blur-Ereignis kommt nur einmal).
+        const recheck = () => this.monitor?.recheckFocus();
+        const graceTimer = setTimeout(recheck, PICK_GRACE_MS + 100);
+        await this.share.request();
+        clearTimeout(graceTimer);
+        setTimeout(recheck, 1600);
+        // Der Auswahldialog kann den Vollbildmodus beenden: dann wieder zur Fortsetzen-Seite (Klick betritt ihn erneut).
+        if (this.view && wasFullscreen && this.fullscreenRequired() && !isFullscreen()) {
+            this.armed = false;
+            this.refreshUi();
+        }
+    }
+
+    skipShare() {
+        if (!this.share) {
+            return;
+        }
+        if (this.share.status === 'unsupported') {
+            this.events.push('screen_share_denied', { reason: 'unsupported' });
+        }
+        this.share.skip();
+    }
+
+    /** Senden nur, solange die Teilnahme aktiv, gesperrt oder pausiert ist und die Klausur läuft. */
+    updateLiveGates() {
+        this.share?.setSendingAllowed(acceptsLive(this.state, this.running));
+    }
+
+    startLive() {
+        if (this.live) {
+            this.live.start();
+            return;
+        }
+        if (!liveRequired({ liveView: this.settings.live_view, mode: this.mode, preview: this.preview })) {
+            return;
+        }
+        this.live = new LiveReporter({
+            api: this.api,
+            collect: () => (this.view ? collectLive(this.view) : null),
+            active: () => acceptsLive(this.state, this.running),
+        });
+        this.live.start();
+    }
+
+    /** Abgabe, Klausurende: Live-Zustand und Freigabe beenden (alle Tracks stoppen). */
+    stopLive() {
+        this.shareEnded = true;
+        this.live?.stop();
+        this.share?.stop();
+        this.showShareState();
+    }
+
+    /** Nach Wiedereröffnung einer Abgabe: Live-Zustand wieder starten, Freigabe wieder anbieten. */
+    resumeLive() {
+        if (this.examStatus === 'finished' || this.examStatus === 'archived') {
+            return;
+        }
+        this.shareEnded = false;
+        this.startLive();
+        this.showShareState();
     }
 
     // ---------- Inhalt ----------
@@ -551,6 +693,8 @@ export class ExamApp {
             onSecondTab: () => this.onSecondTab(),
         });
         this.monitor.start();
+        // Die Einstellungen der Klausur sind jetzt maßgeblich (der Vorab-Stand aus dem Startblock kann veraltet sein).
+        this.setupShare(this.settings.screen_share);
 
         this.view = new ExamView({
             boot: this.boot,
@@ -595,6 +739,8 @@ export class ExamApp {
         }
         this.view.setHand(this.handRaised);
         this.view.setAnnouncements(this.announcements);
+        this.showShareState();
+        this.startLive();
         this.updateConnection();
         if (this.preview) {
             this.armed = true;
@@ -940,6 +1086,7 @@ export class ExamApp {
             }
             reloadMarker.mark(this.boot.exam_id);
             this.autosave?.persistNow();
+            this.share?.stop();
         });
         window.addEventListener('online', () => {
             this.onlineSince = Date.now();

@@ -212,6 +212,8 @@ final class PultActions
             $set['paused_seconds'] = (int) $exam['paused_seconds'] + ($pausedAt !== null ? (int) round(max(0, $nowMs - $pausedAt) / 1000) : 0);
         }
         $this->changeStatus($exam, ['running', 'paused'], 'finished', $set, $actorId, $nowMs, 'Die Klausur läuft nicht mehr.');
+        // Live-Wand: Bilder und Live-Zustand nicht über das Klausurende hinaus behalten.
+        (new LiveStore())->clearExam((int) $exam['id']);
 
         return ['success' => true, 'affected' => count($this->participants((int) $exam['id'])), 'errors' => [], 'exam_status' => 'finished'];
     }

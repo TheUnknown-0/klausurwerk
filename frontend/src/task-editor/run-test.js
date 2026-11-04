@@ -31,6 +31,7 @@ function runOnce(runtime, request, input) {
         let out = '';
         let finished = false;
         let session;
+        const hasInput = !!input;
         const done = (result) => {
             if (!finished) {
                 finished = true;
@@ -50,6 +51,15 @@ function runOnce(runtime, request, input) {
                 session = s ?? session;
                 session.onOutput?.((text) => { out += text; });
                 session.onExit?.((result) => done(result));
+                // Wartet das Programm auf Eingabe, obwohl keine hinterlegt ist: sofort melden statt 15 s zu warten.
+                session.onInputRequest?.((waiting) => {
+                    if (waiting && !hasInput) {
+                        try {
+                            session.stop?.();
+                        } catch { /* egal */ }
+                        done({ waitingInput: true });
+                    }
+                });
                 if (input) {
                     session.sendInput?.(input.endsWith('\n') ? input : `${input}\n`);
                 }
@@ -96,14 +106,19 @@ export async function testModelAnswer(payload, env) {
     ];
     const base = { language: config.language, files, mainFile: main, stdinMode: 'interactive', javaVersion: config.java_version ?? env.settings?.java_version, task };
 
-    const cases = config.sample_tests?.length ? config.sample_tests : [{ name: 'Lauf ohne Beispiel', input: config.stdin ?? '', expected_output: null, compare: 'trim' }];
+    const ioTests = (payload.tests ?? []).filter((t) => (t.type ?? 'io') === 'io' && t.expected_output !== undefined);
+    const cases = config.sample_tests?.length ? config.sample_tests : ioTests.length ? ioTests : [{ name: 'Lauf ohne Beispiel', input: config.stdin ?? '', expected_output: null, compare: 'trim' }];
     const lines = [];
     let allOk = true;
     for (const c of cases) {
         const { output, result } = await runOnce(runtime, base, c.input ?? '');
-        if (result?.timeout) {
+        if (result?.waitingInput) {
             allOk = false;
-            lines.push(`${c.name}: Zeitüberschreitung nach ${TIMEOUT_MS / 1000} s.`);
+            lines.push(`${c.name}: Das Programm wartet auf Eingabe. Hinterlege bei den Tests eine Eingabe (stdin), dann wird sie hier verwendet.`);
+        } else if (result?.timeout) {
+            allOk = false;
+            lines.push(`${c.name}: Zeitüberschreitung nach ${TIMEOUT_MS / 1000} s.`
+                + (c.input ? '' : ' Wartet das Programm auf eine Eingabe? Ohne hinterlegte Eingabe (stdin) kann es nicht weiterlaufen.'));
         } else if (result?.error) {
             allOk = false;
             lines.push(`${c.name}: Fehler: ${result.error}`);

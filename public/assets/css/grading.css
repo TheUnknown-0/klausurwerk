@@ -48,7 +48,7 @@
 .g-app { display: flex; flex-direction: column; gap: 14px; }
 .g-toolbar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 14px; }
 .g-navgroup { display: flex; gap: 4px; align-items: center; }
-.g-select { width: auto; max-width: 13rem; }
+.g-select { width: auto; min-width: 11rem; max-width: min(22rem, 100%); text-overflow: ellipsis; }
 .g-segment { display: inline-flex; gap: 0; }
 .g-segment .btn { border-radius: 0; }
 .g-segment .btn:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
@@ -79,6 +79,8 @@
 .g-grade-label { font-family: var(--font-mono); font-size: .72rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); }
 /* Die Punkte stehen wie vom Rotstift an den Rand geschrieben. */
 .g-points-input { width: 5.5rem; font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums lining-nums; color: var(--danger); background: transparent; border: 0; border-bottom: 2px solid var(--danger); border-radius: 0; padding: 2px 6px; }
+.g-points-input.is-full { color: var(--success); border-bottom-color: var(--success); }
+.g-points-input.is-full:focus { border-bottom-color: var(--success); outline-color: var(--success); }
 .g-points-input:focus { box-shadow: none; border-bottom-color: var(--danger); outline: 2px solid var(--danger); outline-offset: 2px; }
 .g-points-max { font-family: var(--font-display); font-size: 1.1rem; color: var(--ink-soft); }
 .g-save-state { min-width: 8rem; color: var(--ink-faint); }

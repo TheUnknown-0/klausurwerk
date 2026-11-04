@@ -16,6 +16,8 @@ cd tests/e2e && python -m pytest -q
 | `test_code.py` | Python im Browser mit interaktivem `input()`, Java über den Runner, SQL mit Ergebnistabelle |
 | `test_seiten.py` | alle wichtigen Seiten je Rolle ohne Serverfehler und ohne JS-Fehler; Sperren für Schüler:innen |
 | `test_sicherheit.py` | keine Lösungen in Schüler-APIs, gesperrte Lehrkräfte-APIs, Aufgaben erst ab Start, CSRF, QR-Login |
+| `test_live.py` | Live-Wand: Einstellungen, Beitritt mit Bildschirmfreigabe (Fake-Bildschirmquelle), Code-Ausschnitt und Bild im Pult, Fokus, Alarm ohne Sperre, Rechte, Aufräumen am Klausurende; Link zur Korrektur im Pult; Enter in der letzten Korrekturzelle speichert |
+| `test_loeschen.py` | Löschen per Entf/Rücktaste: Aufgabenliste mit Rückfrage, Formularlisten, Diagramm-Elemente, Rücktaste im Textfeld |
 
 Umgebungsvariablen: `KW_BASE` (Standard `http://localhost:9030`), `KW_HEADED=1` (sichtbarer Browser),
 `KW_SHOTS` (Ordner für Bildschirmfotos, Standard `tests/e2e/shots`).

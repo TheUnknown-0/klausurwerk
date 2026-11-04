@@ -41,6 +41,9 @@ export function mountReview(root, boot) {
             h('h3', { class: 'g-h3' }, 'Deine Antwort'),
             answerHost);
 
+        // Die Karte muss im Dokument hängen, bevor die Antwort gemountet wird: CodeMirror misst die
+        // Zeilenhöhen beim Aufbau, sonst bleiben die Zeilennummern gestaucht.
+        root.append(card);
         const comments = task.comments.map((c) => ({ ...c, mine: false }));
         let view = null;
         const panel = comments.length > 0 ? (() => {
@@ -75,7 +78,6 @@ export function mountReview(root, boot) {
             card.append(h('details', { class: 'g-sol-section' },
                 h('summary', {}, 'Erwartungshorizont'), richBlock(task.expectation_html)));
         }
-        root.append(card);
     }
     if (boot.tasks.length === 0) {
         root.append(h('p', { class: 'text-soft' }, 'Diese Klausur hat keine Aufgaben.'));

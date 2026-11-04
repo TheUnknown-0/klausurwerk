@@ -19,7 +19,7 @@ $ctx = require dirname(__DIR__) . '/src/bootstrap.php';
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-header('Permissions-Policy: camera=(), microphone=(), geolocation=(), display-capture=()');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=(), display-capture=(self)');
 // Cross-Origin-Isolation: nötig für SharedArrayBuffer (interaktives input()
 // in Python im Browser). Alle Ressourcen kommen von der eigenen Herkunft.
 header('Cross-Origin-Opener-Policy: same-origin');

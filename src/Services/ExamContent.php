@@ -260,6 +260,7 @@ final class ExamContent
     public static function boot(array $exam, array $user, string $baseUrl, bool $preview, bool $needsAccessCode, bool $sebDetected): array
     {
         $settings = ExamAccess::settingsOf($exam);
+        $norm = ExamSettings::normalize($settings, (string) $exam['mode']);
 
         return [
             'exam_id' => (int) $exam['id'],
@@ -270,6 +271,8 @@ final class ExamContent
             'api_base' => $baseUrl . '/api/klausur/' . (int) $exam['id'],
             'needs_access_code' => $needsAccessCode,
             'seb' => ['required' => !empty($settings['require_seb']), 'detected' => $sebDetected],
+            // Live-Wand: im Warteraum noch ohne Inhalt bekannt (Schritt "Bildschirm freigeben").
+            'live' => ['live_view' => !empty($norm['live_view']), 'screen_share' => !empty($norm['screen_share'])],
             'assets' => [
                 'pyodide' => $baseUrl . '/assets/vendor/pyodide/',
                 'sqljs' => $baseUrl . '/assets/vendor/sqljs/',

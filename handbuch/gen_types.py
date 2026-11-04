@@ -34,7 +34,7 @@ T = [
   "<b>SQL-Aufbauskript</b> (CREATE und INSERT, läuft vor jeder Ausführung auf einer frischen Datenbank). Tests vom Typ <code>sql_result</code>: Das Ergebnis der letzten Anweisung wird mit dem einer Musterabfrage verglichen, wahlweise mit beachteter Reihenfolge.",
   "Ja, durch Vergleich der Ergebnisse."),
  ("drawing", "Zeichnung (Freihand)", "Diagramme",
-  "Eine Zeichenfläche mit Stift, Radierer, Textwerkzeug, Verschieben, Farben und Strichstärke, Rückgängig und Wiederholen. Funktioniert mit Maus, Stift und Finger.",
+  "Eine Zeichenfläche mit Stift, Radierer, Textwerkzeug, Auswählen (Striche und Texte wählen, verschieben, löschen), Farben und Strichstärke, Rückgängig und Wiederholen. Funktioniert mit Maus, Stift und Finger.",
   "Breite und Höhe der Fläche (200 bis 3000 Pixel), optional ein <b>Hintergrundbild aus dem Klausurmaterial</b> und der Haken, dass Schüler zusätzlich eine Datei hochladen dürfen (PNG, JPEG, PDF, höchstens 10 MB).",
   "Nein, manuell. Die Korrektur zeigt ein Bild der Zeichnung."),
  ("uml", "UML-Klassendiagramm", "Diagramme",

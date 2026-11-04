@@ -3,6 +3,9 @@
  * Alles wird mit h() gebaut (Textknoten, kein innerHTML).
  */
 import { h, icon } from '../lib/dom.js';
+import { rowSelection } from '../widgets/delete-keys.js';
+
+export { isControlTarget, isDeleteKey, isTypingTarget, rowSelection } from '../widgets/delete-keys.js';
 
 let counter = 0;
 export const uid = (prefix = 'te') => `${prefix}-${++counter}`;
@@ -102,18 +105,40 @@ export function itemsEditor(opts) {
         onChange();
     }, { disabled: locked });
 
+    const sel = rowSelection({
+        label,
+        onDelete: (id, { viaKey }) => {
+            const index = items.findIndex((i) => i.id === id);
+            if (index < 0) {
+                return;
+            }
+            items.splice(index, 1);
+            render();
+            const next = items[Math.min(index, items.length - 1)];
+            if (next) {
+                sel.select(next.id, { focus: viaKey });
+            } else {
+                addBtn.focus?.();
+            }
+            onChange();
+        },
+    });
+
     function move(index, delta) {
         const to = index + delta;
         if (to < 0 || to >= items.length) {
             return;
         }
+        const movedId = items[index].id;
         [items[index], items[to]] = [items[to], items[index]];
         render();
+        sel.select(movedId);
         onChange();
     }
 
     function render() {
         list.replaceChildren();
+        sel.begin();
         items.forEach((item, index) => {
             const area = textarea(item.text_md, (v) => {
                 item.text_md = v;
@@ -123,22 +148,25 @@ export function itemsEditor(opts) {
                 button(icon('arrow-up'), () => move(index, -1), { 'aria-label': 'Nach oben', disabled: locked || index === 0 }),
                 button(icon('arrow-down'), () => move(index, 1), { 'aria-label': 'Nach unten', disabled: locked || index === items.length - 1 }),
                 button(icon('x'), () => {
-                    items.splice(index, 1);
-                    render();
-                    onChange();
+                    sel.select(item.id);
+                    sel.remove(false);
                 }, { 'aria-label': `${label} ${index + 1} entfernen`, disabled: locked || items.length <= min }),
             );
-            list.append(h('div', { class: 'te-item' },
+            const row = h('div', { class: 'te-item' },
                 lead?.(item, index) ?? h('span', { class: 'text-faint mono' }, item.id),
                 h('div', {}, area, extra?.(item, render) ?? null),
                 actions,
-            ));
+            );
+            sel.bind(row, item.id, { canDelete: !locked && items.length > min, name: `${label} ${index + 1}` });
+            list.append(row);
         });
+        sel.end();
         addBtn.disabled = locked || items.length >= max;
     }
+
     render();
 
-    return { el: h('div', {}, list, addBtn), items, render };
+    return { el: h('div', {}, list, h('div', { class: 'te-list-bar' }, addBtn, locked ? null : sel.button)), items, render, selection: sel };
 }
 
 /** Wandelt eine leere Liste aus PHP (statt {}) in ein Objekt. */

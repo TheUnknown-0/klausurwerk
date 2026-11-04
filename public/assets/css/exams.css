@@ -180,3 +180,10 @@ fieldset.field { border: 0; padding: 0; margin-left: 0; margin-right: 0; min-wid
   border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 8px;
 }
 .settings-card > .hint { margin: 2px 0 0 28px; font-size: .86rem; color: var(--ink-faint); line-height: 1.45; max-width: 70ch; }
+
+/* Auswahl und Löschen in Listen des Aufgabenformulars (Entf, Rücktaste oder Knopf "Löschen") */
+.te-selectable { cursor: default; }
+.te-selectable:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.te-selectable.is-selected { border-color: var(--primary); border-left-color: var(--primary); background: var(--primary-soft); box-shadow: inset 3px 0 0 var(--primary); }
+.te-list-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.te-list-bar:first-child { margin-top: 0; }

@@ -9,7 +9,7 @@
 import { h } from '../../lib/dom.js';
 import { createCodeEditor } from '../../lib/code-editor.js';
 import { registerTaskEditor } from '../../lib/widgets.js';
-import { button, checkbox, labeled, numberInput, select, textInput, textarea } from '../../task-editor/ui.js';
+import { button, checkbox, labeled, numberInput, rowSelection, select, textInput, textarea } from '../../task-editor/ui.js';
 import { createGridEditor, emptyWorld } from '../../robo/grid-editor.js';
 import { normalizeWorldData } from '../../robo/world.js';
 import { DEFAULT_START } from '../robo.js';
@@ -148,9 +148,20 @@ registerTaskEditor('robo', {
 
         // ---------- Testwelten ----------
         const testBox = h('div', { class: 're-tests' });
+        const testSel = rowSelection({
+            label: 'Testwelt',
+            onDelete: (t, { viaKey }) => {
+                const i = tests.indexOf(t);
+                tests.splice(i, 1);
+                renderTests();
+                testSel.select(tests[Math.min(i, tests.length - 1)] ?? null, { focus: viaKey });
+                changed();
+            },
+        });
         function renderTests() {
             testGrids.splice(0).forEach((g) => g.destroy());
             testBox.replaceChildren();
+            testSel.begin();
             tests.forEach((t, i) => {
                 const g = t.goal;
                 const gridHost = h('div', {});
@@ -169,7 +180,7 @@ registerTaskEditor('robo', {
                     labeled('x', numberInput(g.roboAtX, (v) => { g.roboAtX = v; changed(); }, { min: 0, max: 29, disabled: locked || !g.roboAtOn })),
                     labeled('y', numberInput(g.roboAtY, (v) => { g.roboAtY = v; changed(); }, { min: 0, max: 29, disabled: locked || !g.roboAtOn })));
                 const [xIn, yIn] = posGrid.querySelectorAll('input[type=number]');
-                testBox.append(h('details', { class: 'te-test re-test', open: tests.length <= 2 },
+                const card = h('details', { class: 'te-test re-test', open: tests.length <= 2 },
                     h('summary', {}, `Testwelt ${i + 1}: ${t.name || 'ohne Namen'}`),
                     h('div', { class: 'te-grid' },
                         labeled('Name', textInput(t.name, (v) => { t.name = v; changed(); }, { disabled: locked, maxlength: 100 })),
@@ -187,14 +198,17 @@ registerTaskEditor('robo', {
                         checkbox('Robo muss auf einem Zielfeld stehen', g.onTarget, (v) => { g.onTarget = v; changed(); }, { disabled: locked }),
                         checkbox('Alle Kisten müssen auf Zielfeldern stehen', g.boxesOnTargets, (v) => { g.boxesOnTargets = v; changed(); }, { disabled: locked })),
                     labeled('Kisten müssen auf diesen Feldern stehen', textInput(g.boxesAt, (v) => { g.boxesAt = v; changed(); }, { disabled: locked, placeholder: 'z. B. 4|2; 5|3' }), 'Felder als x|y, mit Semikolon getrennt.'),
-                    button('Testwelt entfernen', () => { tests.splice(i, 1); renderTests(); changed(); }, { disabled: locked, class: 'btn btn-sm btn-danger-ghost' }),
-                ));
+                    button('Testwelt entfernen', () => { testSel.select(t); testSel.remove(false); }, { disabled: locked, class: 'btn btn-sm btn-danger-ghost' }),
+                );
+                testSel.bind(card, t, { canDelete: !locked, name: `Testwelt ${i + 1}` });
+                testBox.append(card);
             });
-            testBox.append(button('+ Testwelt hinzufügen', () => {
+            testSel.end();
+            testBox.append(h('div', { class: 'te-list-bar' }, button('+ Testwelt hinzufügen', () => {
                 tests.push({ name: `Welt ${tests.length + 1}`, points: 1, world: mainGrid.getWorld(), goal: goalState({ screws_collected: 'all' }) });
                 renderTests();
                 changed();
-            }, { disabled: locked || tests.length >= MAX_TESTS }));
+            }, { disabled: locked || tests.length >= MAX_TESTS }), locked ? null : testSel.button));
         }
 
         const root = h('div', { class: 'te-type-box' },

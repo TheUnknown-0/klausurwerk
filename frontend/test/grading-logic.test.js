@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
     anchorLabel, cellStatusFor, finalEntry, formatPoints, lineCommentMap, linesOfRange,
-    neighbour, nextOpen, parsePoints, roundHalf, stepAxis, textSegments, traversal,
+    neighbour, nextOpen, parsePoints, roundHalf, stepAxis, stepOutcome, textSegments, traversal,
 } from '../src/grading/logic.js';
 
 test('Punkte werden deutsch formatiert', () => {
@@ -143,4 +143,11 @@ test('Zellstatus aus Bewertung und Vorschlag', () => {
     assert.equal(cellStatusFor(null, null, 1.5, false), 'suggested');
     assert.equal(cellStatusFor(null, null, null, true), 'error');
     assert.equal(cellStatusFor(null, null, null, false), 'open');
+});
+
+test('stepOutcome meldet den Rand, damit dort trotzdem gespeichert wird', () => {
+    const cells = [{ pid: 1, tid: 10 }, { pid: 1, tid: 20 }];
+    assert.deepEqual(stepOutcome(cells, { pid: 1, tid: 10 }, 1), { next: { pid: 1, tid: 20 }, edge: null });
+    assert.deepEqual(stepOutcome(cells, { pid: 1, tid: 20 }, 1), { next: null, edge: 'last' });
+    assert.deepEqual(stepOutcome(cells, { pid: 1, tid: 10 }, -1), { next: null, edge: 'first' });
 });

@@ -331,6 +331,10 @@ export class DiagramBoard {
                 };
                 this.svg.setPointerCapture?.(e.pointerId);
             }
+            // Auswahl neu gezeichnet: Fokus ausdrücklich auf das Element (oder die Fläche) setzen, damit
+            // Entf, Rücktaste und Strg+Z sofort wirken (sonst landet der Fokus nach dem Neuzeichnen auf body).
+            e.preventDefault?.();
+            (findById(this.layer, id) ?? this.svg).focus?.({ preventScroll: true });
             return;
         }
         // Hintergrund: Auswahl aufheben, Ansicht verschieben
@@ -892,13 +896,21 @@ export class DiagramBoard {
         const focusedId = active && this.layer.contains?.(active) ? active.getAttribute?.('data-id') ?? null : null;
         const focusedAction = focusedId === null && active && this.layer.contains?.(active) ? active.getAttribute?.('data-action') : null;
         const focusedKey = focusedAction ? `${active.getAttribute('data-key') ?? ''}|${active.getAttribute('data-index') ?? ''}` : null;
+        const hadFocus = !!active && this.layer.contains?.(active) === true;
         this.layer.replaceChildren();
         this.plugin.render(this.model, this.makeContext(this.layer));
         this.gridRect.setAttribute('visibility', this.snapOn && this.plugin.freeLayout !== false ? 'visible' : 'hidden');
+        let restored = false;
         if (focusedId !== null) {
-            findById(this.layer, focusedId)?.focus?.({ preventScroll: true });
+            const el = findById(this.layer, focusedId);
+            el?.focus?.({ preventScroll: true });
+            restored = !!el;
         } else if (focusedKey !== null) {
-            this.refocusAction(focusedAction, focusedKey);
+            restored = this.refocusAction(focusedAction, focusedKey);
+        }
+        if (hadFocus && !restored && !this.readOnly) {
+            // Das fokussierte Element ist weg (z. B. nach Löschen): Fokus auf die Fläche, damit Tasten weiter wirken.
+            this.svg.focus?.({ preventScroll: true });
         }
     }
 
@@ -909,10 +921,12 @@ export class DiagramBoard {
             if (typeof el.getAttribute === 'function' && el.getAttribute('data-action') === name
                 && `${el.getAttribute('data-key') ?? ''}|${el.getAttribute('data-index') ?? ''}` === key) {
                 el.focus?.({ preventScroll: true });
-                return;
+                return true;
             }
             stack.push(...(el.children ?? []));
         }
+
+        return false;
     }
 
     refreshInspector() {

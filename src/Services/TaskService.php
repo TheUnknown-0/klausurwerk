@@ -687,6 +687,10 @@ final class TaskService
                 if ($task['tests'] === [] && $task['model_answer'] === '') {
                     $warnings[] = $label . ': Weder Tests noch Musterlösung hinterlegt.';
                 }
+                $pointsWarning = self::testPointsWarning((float) $task['points'], $task['tests']);
+                if ($pointsWarning !== null) {
+                    $warnings[] = $label . ': ' . $pointsWarning;
+                }
             }
             if ($task['answer_type'] === 'robo' && $task['tests'] === []) {
                 $warnings[] = $label . ': Keine Testwelten hinterlegt; die Aufgabe kann nicht automatisch vorbewertet werden.';
@@ -712,5 +716,29 @@ final class TaskService
         }
 
         return ['errors' => $errors, 'warnings' => $warnings];
+    }
+
+    /**
+     * Hinweis, wenn die Testpunkte nicht der Aufgabenpunktzahl entsprechen (Vorbewertung schlägt sonst
+     * nicht die volle Punktzahl vor). Null, wenn alles passt oder keine Tests vorhanden sind.
+     *
+     * @param list<array<string, mixed>> $tests
+     */
+    public static function testPointsWarning(float $taskPoints, array $tests): ?string
+    {
+        if ($tests === []) {
+            return null;
+        }
+        $sum = 0.0;
+        foreach ($tests as $test) {
+            $sum += (float) ($test['points'] ?? 1);
+        }
+        if (abs($sum - $taskPoints) < 0.005) {
+            return null;
+        }
+        $fmt = static fn (float $n): string => rtrim(rtrim(number_format($n, 2, ',', ''), '0'), ',');
+
+        return 'Die Tests ergeben zusammen ' . $fmt($sum) . ' Punkte, die Aufgabe ist aber mit '
+            . $fmt($taskPoints) . ' Punkten bewertet; die Vorbewertung schlägt nicht die volle Punktzahl vor.';
     }
 }

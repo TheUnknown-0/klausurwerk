@@ -73,6 +73,7 @@
       <tr><td><span class="kbd">Strg</span> + <span class="kbd">Enter</span></td><td>Code ausführen (Programmieraufgaben und Robo)</td></tr>
       <tr><td><span class="kbd">Tab</span>, <span class="kbd">Enter</span></td><td>in Diagrammen: nächstes Element wählen, in die Eigenschaften springen</td></tr>
       <tr><td><span class="kbd">Strg</span> + <span class="kbd">Z</span> / <span class="kbd">Strg</span> + <span class="kbd">Y</span></td><td>im Editor rückgängig / wiederholen</td></tr>
+      <tr><td><span class="kbd">Entf</span> oder <span class="kbd">Rücktaste</span></td><td>in Diagrammen, Zeichnung und Relationenschema: das gewählte Element löschen (erst anklicken). In Textfeldern und im Code-Editor nur Zeichen löschen</td></tr>
       <tr><td><span class="kbd">F12</span>, <span class="kbd">Strg</span> + <span class="kbd">U</span>, Rechtsklick</td><td>werden abgefangen (Hinweis an die Lehrkraft bei Verdacht auf Entwicklerwerkzeuge)</td></tr>
     </tbody>
   </table>
@@ -83,6 +84,17 @@
       <tr><td>Klick auf eine Kachel</td><td>Kachel wählen</td></tr>
       <tr><td><span class="kbd">Strg</span> + Klick</td><td>mehrere Kacheln wählen</td></tr>
       <tr><td><span class="kbd">Alt</span> + Pfeiltasten</td><td>gewählte Kachel auf dem Sitzplan verschieben (Alternative zum Ziehen)</td></tr>
+      <tr><td>Klick oder <span class="kbd">Enter</span> auf eine Karte der Live-Wand</td><td>Großansicht öffnen und Fokus setzen</td></tr>
+      <tr><td><span class="kbd">Esc</span> in der Großansicht</td><td>Großansicht schließen, Fokus aufheben</td></tr>
+    </tbody>
+  </table>
+  <h3>Aufgaben-Editor (Lehrkraft)</h3>
+  <table>
+    <thead><tr><th>Taste</th><th>Wirkung</th></tr></thead>
+    <tbody>
+      <tr><td><span class="kbd">Entf</span> oder <span class="kbd">Rücktaste</span></td><td>gewählte Aufgabe (mit Rückfrage) oder gewählten Listeneintrag löschen: Antwortoption, Paar, Reihenfolge-Eintrag, Test, Testwelt, Datei</td></tr>
+      <tr><td><span class="kbd">Entf</span> oder <span class="kbd">Rücktaste</span> im Diagramm-Editor</td><td>gewähltes Element löschen (Klasse, Beziehung, Block, Zustand, Tabelle, Spalte, Strich, Text)</td></tr>
+      <tr><td><span class="kbd">Strg</span> + <span class="kbd">Z</span></td><td>Löschen im Diagramm rückgängig machen</td></tr>
     </tbody>
   </table>
   <h3>Korrektur</h3>
@@ -107,7 +119,7 @@
     <p class="lead">Was im Ereignisprotokoll des Pults erscheint, wie schwer es wiegt und was es auslöst.</p>
     <div class="for">Für <span class="role r-teacher">Lehrkraft</span></div>
   </div>
-  <p>Jedes Ereignis hat einen Schweregrad: <b>Info</b>, <b>Warnung</b> oder <b>Alarm</b>. Alarme lösen im Pult Ton und Meldung aus, färben die Kachel rot und sperren den Schüler, wenn „Bei Verstoß sperren“ an ist.</p>
+  <p>Jedes Ereignis hat einen Schweregrad: <b>Info</b>, <b>Warnung</b> oder <b>Alarm</b>. Alarme lösen im Pult Ton und Meldung aus, färben die Kachel rot und sperren den Schüler, wenn „Bei Verstoß sperren“ an ist. <b>Ausnahme:</b> Die Alarme zur Bildschirmfreigabe (unten) sperren nie, unabhängig von dieser Einstellung.</p>
   <table>
     <thead><tr><th>Ereignis</th><th>Schwere</th><th>Auslöser</th></tr></thead>
     <tbody>
@@ -118,6 +130,10 @@
       <tr><td>Fokus verloren</td><td>Alarm (ab Toleranz) / Info</td><td>Zum Beispiel Alt+Tab. Unterhalb der Toleranz nur Info</td></tr>
       <tr><td>Zweiter Tab</td><td>Alarm</td><td>Die Klausur wurde in einem zweiten Tab geöffnet</td></tr>
       <tr><td>SEB fehlt</td><td>Alarm</td><td>Klausur verlangt den Safe Exam Browser, die Anfrage hat keinen gültigen Config Key</td></tr>
+      <tr><td>Bildschirmfreigabe läuft</td><td>Info</td><td>Der ganze Bildschirm wird übertragen (nur bei verlangter Freigabe; <code>screen_share_started</code>, mit Fläche)</td></tr>
+      <tr><td>Bildschirmfreigabe beendet</td><td>Alarm</td><td>Die Person hat die Freigabe beendet (<code>screen_share_stopped</code>). Keine Sperre</td></tr>
+      <tr><td>Bildschirmfreigabe abgelehnt</td><td>Alarm</td><td>Die Person hat die Freigabe verweigert oder abgebrochen (<code>screen_share_denied</code>, mit Grund). Keine Sperre</td></tr>
+      <tr><td>Nur Fenster oder Tab freigegeben</td><td>Alarm</td><td>Statt des ganzen Bildschirms wurde nur ein Fenster oder Tab freigegeben (<code>screen_share_wrong_surface</code>). Keine Sperre</td></tr>
       <tr><td>Einfügen blockiert</td><td>Warnung</td><td>Einfügen von außen (Länge im Protokoll)</td></tr>
       <tr><td>Einfügen von außen</td><td>Warnung</td><td>Einfügen von außen bei Einstellung „erlaubt, aber protokolliert“</td></tr>
       <tr><td>Ablegen blockiert</td><td>Warnung</td><td>Ziehen und Ablegen von außen</td></tr>
@@ -176,6 +192,8 @@
       <tr><td><b>Der Notenschlüssel fehlt, die Klausur lässt sich nicht benoten.</b></td><td>Für die Klassenstufe ist kein Standard festgelegt. Unter Notenschlüssel anlegen (Kapitel 3.8) oder in den Ergebnissen einen Schlüssel wählen.</td></tr>
       <tr><td><b>Ich habe Ergebnisse freigegeben und will etwas ändern.</b></td><td>„Freigabe zurücknehmen“: Die Klausur ist wieder in Korrektur, Schüler sehen nichts mehr.</td></tr>
       <tr><td><b>Die Seite zeigt „Keine Rechte“.</b></td><td>Der Lehrkraft fehlt ein Recht (Anhang A). Admin kontaktieren.</td></tr>
+      <tr><td><b>Das Pult zeigt „kein Bild“ oder einen Alarm zur Bildschirmfreigabe.</b></td><td>Die Person hat die Freigabe nicht erteilt, beendet oder nur ein Fenster oder einen Tab gewählt. Sie arbeitet weiter, ist nicht gesperrt und kann auf ihrer Seite <span class="ui">Erneut freigeben</span> klicken (Kapitel 5.15). Im Safe Exam Browser gibt es keine Freigabe. Die Live-Ansicht der Klausurseite funktioniert trotzdem.</td></tr>
+      <tr><td><b>Werden die Bilder der Bildschirmfreigabe gespeichert?</b></td><td>Nein. Nur das jeweils letzte Bild je Person liegt im Arbeitsspeicher des Servers und wird beim Beenden der Klausur gelöscht. Nichts davon kommt in die Datenbank oder auf die Festplatte.</td></tr>
       <tr><td><b>Gelöschte Klausur wiederherstellen?</b></td><td>Nicht möglich. Aus der Datensicherung einspielen (Kapitel 2.9).</td></tr>
     </tbody>
   </table>
@@ -200,11 +218,14 @@
     <ul>
       <li>Stammdaten: Name, Benutzername, Kurs, bei Bedarf ein Nachteilsausgleich (Prozent Zusatzzeit mit Notiz, nur für Lehrkräfte sichtbar).</li>
       <li>Klausurinhalte: Ihre Antworten, Programmcode, Zeichnungen und deren Entstehung (einzelne Änderungsschritte mit Zeitstempel, damit die Lehrkraft die Entstehung einer Antwort nachvollziehen kann).</li>
-      <li>Ablaufdaten: Zeitpunkte von Beitritt, Start und Abgabe, Zustandswechsel (zum Beispiel Pause, Sperre), Meldungen wie „Vollbild verlassen“, „Fenster gewechselt“, „Einfügen blockiert“, „Verbindung verloren“, Hand heben und Durchsagen, Fenstergröße.</li>
+      <li>Ablaufdaten: Zeitpunkte von Beitritt, Start und Abgabe, Zustandswechsel (zum Beispiel Pause, Sperre), Meldungen wie „Vollbild verlassen“, „Fenster gewechselt“, „Bildschirmfreigabe beendet“, „Einfügen blockiert“, „Verbindung verloren“, Hand heben und Durchsagen, Fenstergröße.</li>
+      <li>Live-Ansicht (flüchtig, nur im Arbeitsspeicher): aktuelle Aufgabe, Code-Ausschnitt um die Cursorzeile und letzte Konsolenzeilen, jeweils nur der letzte Stand. Sie werden nicht gespeichert und am Ende der Klausur gelöscht.</li>
+      <li>[Nur wenn die Bildschirmfreigabe für diese Klausur eingeschaltet ist:] Standbilder des Bildschirms (siehe unten).</li>
       <li>Bewertung: Punkte, Kommentare, Rückmeldung und Note.</li>
       <li>Technische Daten: Eine Kennung des Geräts (Cookie) und die IP-Adresse bei der Anmeldung.</li>
     </ul>
-    <p><b>Was nicht geschieht:</b> Es gibt <b>keine Kamera-, Mikrofon- oder Bildschirmübertragung</b>. Die Lehrkraft sieht den Inhalt der Antworten und das Ereignisprotokoll, aber nicht Ihren Bildschirm. Die Überwachung erkennt nur, ob die Klausurseite verlassen wurde; sie erkennt keine anderen Geräte und Unterlagen. Eine automatische Bewertung eines Verstoßes findet nicht statt: Über Konsequenzen entscheidet die aufsichtführende Lehrkraft.</p>
+    <p><b>Was nicht geschieht:</b> Es gibt <b>keine Kamera- und keine Mikrofonübertragung</b>, und es gibt keine Bild- oder Tonaufzeichnung. Die Lehrkraft sieht den Inhalt der Antworten, das Ereignisprotokoll und die Live-Ansicht der Klausurseite (aktuelle Aufgabe, Code-Ausschnitt, letzte Konsolenzeilen), die nicht gespeichert wird. Die Überwachung erkennt nur, ob die Klausurseite verlassen wurde; sie erkennt keine anderen Geräte und Unterlagen. Eine automatische Bewertung eines Verstoßes findet nicht statt: Über Konsequenzen entscheidet die aufsichtführende Lehrkraft.</p>
+    <p><b>Bildschirmübertragung [nur einsetzen, wenn die Lehrkraft die Funktion für die Klausur einschaltet, sonst streichen]:</b> Bei dieser Klausur wird der Bildschirm Ihres Geräts während der Klausur als Standbild an die aufsichtführende Lehrkraft übertragen, damit sie sehen kann, ob die Klausur ordnungsgemäß bearbeitet wird. Es werden nur einzelne, verkleinerte Einzelbilder übertragen (etwa alle 5 Sekunden, bei näherer Ansicht etwa jede Sekunde), <b>kein Ton, keine Kamera und keine Aufzeichnung</b>. Die Bilder werden <b>nicht gespeichert</b>: Auf dem Server liegt nur das jeweils letzte Bild im Arbeitsspeicher, es wird laufend überschrieben und am Ende der Klausur gelöscht. Während der Übertragung zeigt Ihr Gerät deutlich „Bildschirm wird übertragen“. Schließen Sie vor der Klausur alle Fenster mit privaten Inhalten. Beenden Sie die Freigabe oder geben Sie nur ein Fenster frei, erhält die Lehrkraft eine Meldung, Sie werden aber nicht gesperrt. Im Safe Exam Browser findet keine Übertragung statt.</p>
     <p><b>Wer hat Zugriff?</b> Die Hauptlehrkraft der Klausur, die von ihr hinzugefügten Lehrkräfte entsprechend ihrer Rechte und die Administratoren des Systems. Sie selbst sehen nur Ihre eigenen Daten. Eine Weitergabe an Dritte erfolgt nicht [Ausnahmen eintragen]. Die Anwendung lädt keine Inhalte aus dem Internet nach und nutzt keine Analyse- oder Werbedienste.</p>
     <p><b>Speicherdauer:</b> Protokolle (Ereignisse, Änderungsschritte) werden nach [6] Monaten, Antworten und Noten nach [24] Monaten gelöscht, jeweils nach dem Ende bzw. der Rückgabe der Klausur [Fristen von der Schule festlegen lassen; sie sind im System einstellbar]. Das Löschen geschieht nur nach Bestätigung durch die Administration und wird protokolliert.</p>
     <p><b>Ihre Rechte:</b> Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch sowie Beschwerde bei der Berliner Beauftragten für Datenschutz und Informationsfreiheit. Wenden Sie sich bitte an [Kontakt].</p>

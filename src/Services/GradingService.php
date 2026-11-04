@@ -877,6 +877,7 @@ final class GradingService
     public function archive(array $exam): void
     {
         $this->transition($exam, 'returned', 'archived', 'Archiviert werden kann nur eine zurückgegebene Klausur.');
+        (new LiveStore())->clearExam((int) $exam['id']);
     }
 
     // ---------- intern ----------

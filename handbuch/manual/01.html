@@ -47,7 +47,7 @@
     <li><b>16 Antworttypen</b> (Kapitel 4.6): Programmcode, Freitext, Multiple Choice, Zuordnung, Reihenfolge, Lückentext, Freihandzeichnung, UML-Klassendiagramm, Struktogramm, Programmablaufplan, Schaltnetz, Wahrheitstabelle, endlicher Automat, ER-Diagramm, Relationenschema und Robo.</li>
     <li><b>Code ausführen</b>: Python und SQL laufen direkt im Browser, Java läuft abgeschottet im Runner-Container auf dem Server. Python-<code>input()</code> wartet echt auf die Eingabe, es gibt eine Turtle-Grafik.</li>
     <li><b>Überwachung</b>: Vollbild, Fokus, Tabwechsel, Einfügen von außen, zweiter Tab, Verbindungsabbruch. Bei einem Verstoß ertönt bei Schüler und Lehrkraft ein Signal, der Bildschirm des Schülers wird gesperrt, bis die Lehrkraft freigibt.</li>
-    <li><b>Pult</b>: Kacheln wie die Sitzordnung im Raum, Zustände live, Mitlesen, Replay, Zeit verlängern, Pause, Abwesend (Toilette), Durchsagen, Hand heben, Gerätewechsel.</li>
+    <li><b>Pult</b>: Kacheln wie die Sitzordnung im Raum, Zustände live, Mitlesen, Replay, Zeit verlängern, Pause, Abwesend (Toilette), Durchsagen, Hand heben, Gerätewechsel. Eine <b>Live-Wand</b> zeigt je Person die Klausurseite (Aufgabe, Code, Konsole) und, wenn Sie es einschalten, ein Standbild des ganzen Bildschirms.</li>
     <li><b>Ausfallsicherheit</b>: Autosave nach jeder Änderung, lokale Sicherung im Browser (IndexedDB), Nachsenden nach Verbindungsabbruch. Das Pult zeigt, ob der letzte Stand vollständig angekommen ist.</li>
     <li><b>Korrektur</b>: automatische Vorbewertung, Erwartungshorizont daneben, Zeilenkommentare, Zweitkorrektur, Notenschlüssel, Klausurspiegel, PDF und Excel, digitale Rückgabe.</li>
     <li><b>Nachteilsausgleich</b> je Person, der automatisch auf die Zeit angerechnet wird.</li>
@@ -67,7 +67,7 @@
       <td><ul class="tight"><li>Handy unter dem Tisch</li><li>zweiter Rechner</li><li>Zettel und Bücher</li><li>zweiter Monitor, auf den nur geschaut wird</li><li>Absprachen zwischen Schülern</li></ul></td>
     </tr></tbody>
   </table>
-  <p>Keine Bildschirmübertragung, keine Kamera, kein Mikrofon: Die Browserrichtlinie der Anwendung sperrt diese Zugriffe. Das Pult zeigt den Inhalt der Antworten („Mitlesen“) und das Ereignisprotokoll, aber nicht den Bildschirm.</p>
+  <p>Keine Kamera und kein Mikrofon: Die Browserrichtlinie der Anwendung sperrt diese Zugriffe. Den <b>Bildschirm</b> sehen Sie nur, wenn Sie in den Einstellungen die Bildschirmfreigabe verlangen (4.2). Dann übertragen die Rechner einzelne verkleinerte Standbilder, die nicht gespeichert werden (5.15). Ohne diese Einstellung zeigt das Pult den Inhalt der Antworten („Mitlesen“), die Live-Ansicht der Klausurseite und das Ereignisprotokoll, aber nicht den Bildschirm. Im Safe Exam Browser gibt es keine Bildschirmfreigabe.</p>
   <div class="box note"><span class="t">Ton beim Verstoß</span><p>Browser spielen Ton erst nach einer Nutzeraktion ab. Der Knopf <span class="ui">Bereit</span> im Warteraum schaltet den Ton auf dem Schülerrechner frei, der Knopf <span class="ui">Ton aktivieren</span> im Pult tut dasselbe für die Lehrkraft. Danach funktioniert das Signal auch, wenn das Fenster im Hintergrund ist. Der Technik-Check (Probe) testet genau das.</p></div>
 
   <h2 id="k1-6"><span class="num">1.6</span>Aufbau der Oberfläche</h2>

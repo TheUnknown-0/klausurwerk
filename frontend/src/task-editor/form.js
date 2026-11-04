@@ -6,6 +6,7 @@ import { h, icon } from '../lib/dom.js';
 import { taskEditor } from '../lib/widgets.js';
 import { createMarkdownField } from './md-field.js';
 import { testModelAnswer } from './run-test.js';
+import { testPointsWarning } from './warnings.js';
 import { button, labeled, numberInput, select, textInput, textarea } from './ui.js';
 
 const clone = (v) => JSON.parse(JSON.stringify(v ?? {}));
@@ -60,7 +61,7 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
     const typeHost = h('div', {});
     const modelHost = h('div', {});
     const testLog = h('pre', { class: 'te-run-log', hidden: true, 'aria-live': 'polite' });
-    const changed = () => onChange();
+    const changed = () => { updateTestWarning(); onChange(); };
 
     // ---------- Grunddaten ----------
     const titleInput = textInput(s.title, (v) => { s.title = v; changed(); }, { maxlength: 200, disabled: locked });
@@ -121,6 +122,12 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
 
     const pointsInput = numberInput(s.points, (v) => { s.points = v; changed(); }, { min: 0, max: 999, step: 0.5 });
     const pointsHint = h('div', { class: 'hint' });
+    const testWarn = h('div', { class: 'alert alert-warning te-test-warning', role: 'status', hidden: true });
+    function updateTestWarning() {
+        const msg = s.answer_type === 'code' ? testPointsWarning(s.points, typeInstance?.getValue?.().tests) : '';
+        testWarn.textContent = msg;
+        testWarn.hidden = msg === '';
+    }
     function updatePointsState() {
         const container = s.answer_type === '';
         pointsInput.disabled = locked || container || hasChildren;
@@ -185,7 +192,7 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
                 testLog.hidden = false;
                 testLog.textContent = 'Läuft ...';
                 const v = typeInstance?.getValue() ?? { config: {}, files: [] };
-                const result = await testModelAnswer({ config: v.config, files: v.files, model_answer: modelField.getValue() }, {
+                const result = await testModelAnswer({ config: v.config, files: v.files, tests: v.tests, model_answer: modelField.getValue() }, {
                     examId: boot.exam_id, settings: boot.settings, assets: boot.assets,
                 });
                 testLog.textContent = `${result.ok ? 'Alles in Ordnung.' : 'Hinweis:'}\n${result.lines.join('\n')}`;
@@ -205,6 +212,7 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
     mountType({ config: clone(task.config), solution: clone(task.solution), files: clone(task.files ?? []), tests: clone(task.tests ?? []) });
     renderModel();
     updatePointsState();
+    updateTestWarning();
 
     const root = h('div', {},
         locked ? h('div', { class: 'alert alert-info te-locked-note' },
@@ -217,6 +225,7 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
             h('div', { class: 'te-grid' },
                 h('div', {}, labeled('Antworttyp', typeSel), errBox('answer_type')),
                 h('div', {}, labeled('Punkte', pointsInput), pointsHint, errBox('points')),
+                testWarn,
                 labeled('Operator', operatorSel),
                 h('div', {}, labeled('Anforderungsbereich', afbSel), errBox('afb')),
             ),

@@ -12,7 +12,7 @@ Quellen und Werkzeuge für das Handbuch (Gesamtausgabe und drei Teilhefte als PD
 | `manual/build.py` | baut das PDF |
 | `teile_trennen.py` | baut die drei Teilhefte |
 | `kw.py` | Hilfen für die Aufnahmen (Playwright) |
-| `s10_admin.py` ... `s60_karten_probe.py` | Aufnahme-Skripte |
+| `s10_admin.py` ... `s60_karten_probe.py` | Aufnahme-Skripte (`s35_live.py`: Live-Wand und Löschen) |
 | `shots/` | Bildschirmfotos (1440 x 900, Faktor 1,25) |
 | `data/` | Beispiel-CSV und PDFs aus der Anwendung (Zugangskarten, Ergebnis) |
 
@@ -47,6 +47,7 @@ python s30b2_schueler.py                # Zuordnung und Reihenfolge
 python s30c_pult.py                     # Verstoß, Hand, Zeit, Toilette, Durchsage, Gerätewechsel
 python s30d2_pause.py                   # Replay im Detailfenster, Pause für alle
 python s30e_ende.py                     # Anfragen, Abgabe (Dialoge)
+python s35_live.py                      # Live-Wand: Freigabe, Wand, Fokus, Alarm; Löschen per Auswahl; frische Pult-Aufnahmen (eigene Klausurkopie)
 python s40_korrektur.py                 # Korrektur, Ergebnisse, Freigabe, Rückgabe
 python s50_typen.py && python s50b_diagramme.py   # Übung (Turtle, Robo) und Test mit allen Diagrammtypen
 python s60_karten_probe.py              # Zugangskarten-PDF und Technik-Check

@@ -104,6 +104,15 @@ export function neighbour(cells, current, dir) {
     return cells[i + dir] ?? null;
 }
 
+/**
+ * Ergebnis eines Schritts: { next } oder, am Rand der Reihenfolge, { next: null, edge: 'first'|'last' }.
+ * Am Rand wird trotzdem gespeichert (Enter im Punktefeld), nur gewechselt wird nicht.
+ */
+export function stepOutcome(cells, current, dir) {
+    const next = neighbour(cells, current, dir);
+    return next ? { next, edge: null } : { next: null, edge: dir > 0 ? 'last' : 'first' };
+}
+
 /** Nächste noch nicht endgültig bewertete Zelle hinter der aktuellen (ohne Umbruch), sonst null. */
 export function nextOpen(cells, current, statusOf, dir = 1) {
     const i = cells.findIndex((c) => c.pid === current.pid && c.tid === current.tid);

@@ -33,6 +33,7 @@ export function createTile(handlers) {
     refs.stateIcon = h('span', { class: 'pult-tile-state-icon', 'aria-hidden': 'true' });
     refs.stateText = h('span', { class: 'pult-tile-state-text' });
     refs.state = h('span', { class: 'pult-tile-state' }, refs.stateIcon, refs.stateText);
+    refs.reason = h('div', { class: 'pult-tile-reason', hidden: true });
     refs.icons = h('span', { class: 'pult-tile-icons' });
     refs.fullscreen = h('span', { class: 'pult-icon', title: 'Vollbild' }, icon('maximize'));
     refs.focus = h('span', { class: 'pult-icon', title: 'Fokus im Fenster' }, icon('eye'));
@@ -50,6 +51,7 @@ export function createTile(handlers) {
         h('div', { class: 'pult-tile-head' }, refs.name, refs.hand, refs.detail),
         refs.alarm,
         h('div', { class: 'pult-tile-row' }, refs.state),
+        refs.reason,
         h('div', { class: 'pult-tile-row' }, refs.progressText, refs.icons, refs.time),
         refs.progress,
         h('div', { class: 'pult-tile-row pult-tile-foot' }, refs.saved),
@@ -153,8 +155,13 @@ export function updateTile(el, p, view) {
         r.stateIcon._key = stateIconName;
         r.stateIcon.replaceChildren(icon(stateIconName));
     }
-    setText(r.stateText, p.state === 'locked' && p.lock_reason ? `${STATE_LABELS.locked}: ${p.lock_reason}` : (STATE_LABELS[p.state] ?? p.state));
-    r.state.title = r.stateText.textContent;
+    setText(r.stateText, STATE_LABELS[p.state] ?? p.state);
+    // Der Sperrgrund steht als eigene, umbrechende Zeile, nicht abgeschnitten im Stempel.
+    const reason = p.state === 'locked' && p.lock_reason ? String(p.lock_reason) : '';
+    setText(r.reason, reason);
+    r.reason.hidden = reason === '';
+    r.reason.title = reason;
+    r.state.title = reason ? `${r.stateText.textContent}: ${reason}` : r.stateText.textContent;
 
     const fullscreenKnown = 'fullscreen' in cs && p.state !== 'waiting';
     r.fullscreen.className = `pult-icon ${fullscreenKnown ? (cs.fullscreen ? 'ok' : 'bad') : 'unknown'}`;

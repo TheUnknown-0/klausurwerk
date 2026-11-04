@@ -237,6 +237,21 @@ export class Monitor {
         this.blur.reset();
     }
 
+    /**
+     * Nachprüfung nach einer Schonfrist (Auswahldialog der Bildschirmfreigabe): Hat die Seite
+     * jetzt keinen Fokus oder ist sie verdeckt, zählt das ab hier wie ein Fokusverlust.
+     */
+    recheckFocus() {
+        if (!this.o.isActive()) {
+            return;
+        }
+        if (document.visibilityState === 'hidden') {
+            this.violation('visibility_hidden', {});
+        } else if (!document.hasFocus()) {
+            this.blur.blur();
+        }
+    }
+
     violation(type, details) {
         if (!this.o.isActive()) {
             return;

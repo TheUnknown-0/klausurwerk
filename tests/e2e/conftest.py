@@ -26,7 +26,10 @@ def student(name: str) -> tuple[str, str]:
 def browser() -> Browser:
     with sync_playwright() as p:
         b = p.chromium.launch(headless=os.environ.get("KW_HEADED") != "1",
-                              args=["--autoplay-policy=no-user-gesture-required"])
+                              args=["--autoplay-policy=no-user-gesture-required",
+                                    # Fake-Bildschirmquelle für getDisplayMedia (Live-Wand): ganzer Bildschirm ohne Dialog
+                                    "--use-fake-ui-for-media-stream",
+                                    "--auto-select-desktop-capture-source=Entire screen"])
         yield b
         b.close()
 

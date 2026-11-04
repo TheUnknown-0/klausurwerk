@@ -6,7 +6,7 @@
 import { h, icon } from '../../lib/dom.js';
 import { createCodeEditor } from '../../lib/code-editor.js';
 import { registerTaskEditor } from '../../lib/widgets.js';
-import { button, checkbox, labeled, numberInput, select, textInput, textarea } from '../../task-editor/ui.js';
+import { button, checkbox, labeled, isDeleteKey, numberInput, rowSelection, select, textInput, textarea } from '../../task-editor/ui.js';
 
 const LANGS = [['java', 'Java'], ['python', 'Python'], ['sql', 'SQL']];
 const COMPARE = [['trim', 'Leerraum am Rand ignorieren'], ['exact', 'exakt'], ['ignore_whitespace', 'Leerraum ignorieren'], ['contains', 'enthält'], ['regex', 'regulärer Ausdruck']];
@@ -102,13 +102,38 @@ registerTaskEditor('code', {
         const fileBar = h('div', { class: 'cluster' });
         let fileEditor = null;
 
+        function deleteFile(i) {
+            const f = files[i];
+            if (f && String(f.content ?? '').trim() !== ''
+                && !window.confirm(`Die Datei "${f.filename}" samt Inhalt wirklich löschen? Das lässt sich nicht rückgängig machen.`)) {
+                return false;
+            }
+            files.splice(i, 1);
+            if (i < current) {
+                current -= 1;
+            }
+            current = Math.max(0, Math.min(current, files.length - 1));
+            renderFiles();
+            changed();
+
+            return true;
+        }
+
         function renderFiles() {
             datalist.replaceChildren(...files.map((f) => h('option', { value: f.filename })));
             tabs.replaceChildren();
             files.forEach((f, i) => {
                 tabs.append(h('button', {
                     type: 'button', class: 'btn btn-sm', role: 'tab', 'aria-selected': i === current ? 'true' : 'false',
-                    onclick: () => { current = i; renderFiles(); },
+                    onclick: () => { current = i; renderFiles(); tabs.children[i]?.focus?.(); },
+                    onkeydown: (ev) => {
+                        if (!locked && isDeleteKey(ev)) {
+                            ev.preventDefault();
+                            if (deleteFile(i)) {
+                                tabs.children[Math.min(i, files.length - 1)]?.focus?.();
+                            }
+                        }
+                    },
                 }, f.is_readonly ? [icon('lock'), f.filename] : f.filename));
             });
             if (!locked) {
@@ -141,12 +166,7 @@ registerTaskEditor('code', {
                 nameInput,
                 checkbox('schreibgeschützt', f.is_readonly, (v) => { f.is_readonly = v; renderFiles(); changed(); }, { disabled: locked }),
                 button('Als Startdatei', () => { state.main_file = f.filename; mainInput.value = f.filename; changed(); }, { disabled: locked }),
-                button('Datei löschen', () => {
-                    files.splice(current, 1);
-                    current = Math.max(0, current - 1);
-                    renderFiles();
-                    changed();
-                }, { disabled: locked, class: 'btn btn-sm btn-danger-ghost' }),
+                button('Datei löschen', () => deleteFile(current), { disabled: locked, class: 'btn btn-sm btn-danger-ghost', title: 'Gewählte Datei löschen (Entf auf dem Reiter)' }),
             );
             if (!fileEditor) {
                 fileEditor = createCodeEditor({
@@ -171,10 +191,21 @@ registerTaskEditor('code', {
 
         // ---------- Sichtbare Beispiele ----------
         const sampleBox = h('div', {});
+        const sampleSel = rowSelection({
+            label: 'Sichtbares Beispiel',
+            onDelete: (t, { viaKey }) => {
+                const i = state.sample_tests.indexOf(t);
+                state.sample_tests.splice(i, 1);
+                renderSamples();
+                sampleSel.select(state.sample_tests[Math.min(i, state.sample_tests.length - 1)] ?? null, { focus: viaKey });
+                changed();
+            },
+        });
         function renderSamples() {
             sampleBox.replaceChildren();
+            sampleSel.begin();
             state.sample_tests.forEach((t, i) => {
-                sampleBox.append(h('div', { class: 'te-test' },
+                const card = h('div', { class: 'te-test' },
                     h('div', { class: 'te-grid' },
                         labeled('Name', textInput(t.name, (v) => { t.name = v; changed(); }, { disabled: locked, maxlength: 100 })),
                         labeled('Vergleich', select(COMPARE, t.compare ?? 'trim', (v) => { t.compare = v; changed(); }, { disabled: locked })),
@@ -183,20 +214,34 @@ registerTaskEditor('code', {
                         labeled('Eingabe', textarea(t.input, (v) => { t.input = v; changed(); }, { rows: 2, disabled: locked })),
                         labeled('Erwartete Ausgabe', textarea(t.expected_output, (v) => { t.expected_output = v; changed(); }, { rows: 2, disabled: locked })),
                     ),
-                    button('Beispiel entfernen', () => { state.sample_tests.splice(i, 1); renderSamples(); changed(); }, { disabled: locked, class: 'btn btn-sm btn-danger-ghost' }),
-                ));
+                    button('Beispiel entfernen', () => { sampleSel.select(t); sampleSel.remove(false); }, { disabled: locked, class: 'btn btn-sm btn-danger-ghost' }),
+                );
+                sampleSel.bind(card, t, { canDelete: !locked, name: `Sichtbares Beispiel ${i + 1}` });
+                sampleBox.append(card);
             });
-            sampleBox.append(button([icon('plus'), 'Sichtbares Beispiel'], () => {
+            sampleSel.end();
+            sampleBox.append(h('div', { class: 'te-list-bar' }, button([icon('plus'), 'Sichtbares Beispiel'], () => {
                 state.sample_tests.push({ name: `Beispiel ${state.sample_tests.length + 1}`, input: '', expected_output: '', compare: 'trim' });
                 renderSamples();
                 changed();
-            }, { disabled: locked || state.sample_tests.length >= 20 }));
+            }, { disabled: locked || state.sample_tests.length >= 20 }), locked ? null : sampleSel.button));
         }
 
         // ---------- Versteckte Tests (immer bearbeitbar) ----------
         const testBox = h('div', {});
+        const testSel = rowSelection({
+            label: 'Versteckter Test',
+            onDelete: (t, { viaKey }) => {
+                const i = tests.indexOf(t);
+                tests.splice(i, 1);
+                renderTests();
+                testSel.select(tests[Math.min(i, tests.length - 1)] ?? null, { focus: viaKey });
+                changed();
+            },
+        });
         function renderTests() {
             testBox.replaceChildren();
+            testSel.begin();
             tests.forEach((t, i) => {
                 const typeOptions = TEST_TYPES[state.language] ?? TEST_TYPES.java;
                 const fields = [];
@@ -214,22 +259,25 @@ registerTaskEditor('code', {
                     fields.push(labeled(t.type === 'java_main' ? 'Testklasse (Exit-Code 0 = bestanden)' : 'Python-Code (assert ...)',
                         textarea(t.code ?? '', (v) => { t.code = v; changed(); }, { rows: 6 })));
                 }
-                testBox.append(h('div', { class: 'te-test' },
+                const card = h('div', { class: 'te-test' },
                     h('div', { class: 'te-grid' },
                         labeled('Name', textInput(t.name ?? '', (v) => { t.name = v; changed(); }, { maxlength: 100 })),
                         labeled('Typ', select(typeOptions, t.type, (v) => { t.type = v; renderTests(); changed(); })),
                         labeled('Punkte', numberInput(t.points ?? 1, (v) => { t.points = v; changed(); }, { min: 0, max: 999, step: 0.5 })),
                     ),
                     ...fields,
-                    button('Test entfernen', () => { tests.splice(i, 1); renderTests(); changed(); }, { class: 'btn btn-sm btn-danger-ghost' }),
-                ));
+                    button('Test entfernen', () => { testSel.select(t); testSel.remove(false); }, { class: 'btn btn-sm btn-danger-ghost' }),
+                );
+                testSel.bind(card, t, { name: `Versteckter Test ${i + 1}` });
+                testBox.append(card);
             });
-            testBox.append(button([icon('plus'), 'Versteckten Test hinzufügen'], () => {
+            testSel.end();
+            testBox.append(h('div', { class: 'te-list-bar' }, button([icon('plus'), 'Versteckten Test hinzufügen'], () => {
                 const type = (TEST_TYPES[state.language] ?? TEST_TYPES.java)[0][0];
                 tests.push({ name: `Test ${tests.length + 1}`, type, points: 1, input: '', expected_output: '', compare: 'trim' });
                 renderTests();
                 changed();
-            }, { disabled: tests.length >= 50 }));
+            }, { disabled: tests.length >= 50 }), testSel.button));
         }
 
         const root = h('div', { class: 'te-type-box' },

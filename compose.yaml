@@ -78,6 +78,7 @@ services:
       - "${APP_PORT:-9030}:80"
     environment:
       TZ: Europe/Berlin
+      LIVE_DIR: /run/klausurwerk-live
       DB_HOST: db
       DB_USER: ${DB_USER:-klausurwerk}
       DB_PASS: ${DB_PASS}
@@ -99,6 +100,10 @@ services:
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Klausurwerk}
     volumes:
       - uploads:/var/www/html/uploads
+    # Live-Wand: Live-Zustand und Bildschirm-Standbilder nur im Arbeitsspeicher, nie auf der
+    # Platte. www-data ist uid/gid 33. Beim Klausurende wird alles gelöscht.
+    tmpfs:
+      - /run/klausurwerk-live:size=64m,mode=0700,uid=33,gid=33
     # "default" muss ausdrücklich dabeistehen: sobald ein Service eigene
     # Netze nennt, fällt das implizite Standardnetz weg.
     networks:

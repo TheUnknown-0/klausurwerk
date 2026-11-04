@@ -6,7 +6,7 @@
 import { h, icon, toast } from '../lib/dom.js';
 import { bootData, post } from '../lib/api.js';
 import { createTaskForm } from './form.js';
-import { button } from './ui.js';
+import { button, isDeleteKey } from './ui.js';
 
 export function initTaskEditor() {
     const root = document.getElementById('task-editor-app');
@@ -52,6 +52,10 @@ export function initTaskEditor() {
 
     // ---------- Baum ----------
     function renderTree() {
+        // Fokus über das Neuzeichnen retten (Klick und Tastatur sollen in der Liste bleiben).
+        const active = document.activeElement;
+        const listHadFocus = !!active && treeList.contains(active);
+        const actionIndex = active && treeActions.contains(active) ? [...treeActions.children].indexOf(active.closest?.('button') ?? active) : -1;
         treeList.replaceChildren();
         for (const t of tasks) {
             const li = h('li', {
@@ -62,6 +66,15 @@ export function initTaskEditor() {
                     if (ev.key === 'Enter' || ev.key === ' ') {
                         ev.preventDefault();
                         select(t.id);
+                    } else if (isDeleteKey(ev) && !locked) {
+                        // Entf oder Rücktaste: die Aufgabe in der Liste löschen (Rückfrage bleibt).
+                        ev.preventDefault();
+                        if (t.id !== selectedId) {
+                            select(t.id);
+                        }
+                        if (selectedId === t.id) {
+                            remove();
+                        }
                     }
                 },
             },
@@ -87,10 +100,21 @@ export function initTaskEditor() {
                 button(icon('arrow-down'), () => move('down'), { disabled: !sel, 'aria-label': 'Nach unten' }),
                 button(icon('arrow-right'), () => move('indent'), { disabled: !sel, 'aria-label': 'Zur Teilaufgabe machen', title: 'Zur Teilaufgabe der vorherigen Aufgabe machen' }),
                 button(icon('arrow-left'), () => move('outdent'), { disabled: !sel, 'aria-label': 'Auf oberste Ebene', title: 'Auf die oberste Ebene holen' }),
-                button([icon('trash-2'), 'Löschen'], () => remove(), { disabled: !sel, class: 'btn btn-sm btn-danger-ghost' }),
+                button([icon('trash-2'), 'Löschen'], () => remove(), { disabled: !sel, class: 'btn btn-sm btn-danger-ghost', title: 'Gewählte Aufgabe löschen (Entf oder Rücktaste in der Liste)' }),
             );
         } else {
             treeActions.append(h('span', { class: 'text-sm text-soft' }, 'Struktur gesperrt (Klausur gestartet).'));
+        }
+
+        if (listHadFocus) {
+            treeList.querySelector('.te-node.active')?.focus?.({ preventScroll: true });
+        } else if (actionIndex >= 0) {
+            const again = treeActions.children[actionIndex];
+            if (again && !again.disabled) {
+                again.focus?.();
+            } else {
+                treeList.querySelector('.te-node.active')?.focus?.({ preventScroll: true });
+            }
         }
     }
 

@@ -7,11 +7,13 @@ import { createActions } from './actions.js';
 import { createAlarmList } from './alarms.js';
 import { createDetail } from './detail.js';
 import { createHeader } from './header.js';
+import { createLiveWall } from './livewall.js';
 import { createRequestList } from './requests.js';
 import { createSeatPlan } from './seatplan.js';
 import { createAlarmSound } from './sound.js';
 import { createStore, startPoller } from './store.js';
 import { createTimeline } from './timeline.js';
+import { storage } from './util.js';
 
 export function mountPult(root, boot) {
     const store = createStore(boot);
@@ -42,6 +44,7 @@ export function mountPult(root, boot) {
     const requests = createRequestList(store, actions, { onDetail });
     const timeline = createTimeline(store, { onDetail });
     const detail = createDetail(store, actions);
+    const wall = createLiveWall(store, { onDetail });
 
     // ---- Hinweise ----
     const connection = h('div', { class: 'alert alert-error pult-banner', role: 'alert', hidden: true });
@@ -71,7 +74,28 @@ export function mountPult(root, boot) {
     };
     sound.onChange(renderBanners);
 
-    const main = h('div', { class: 'pult-main' }, seat.el);
+    // Umschalter Sitzplan / Live-Wand (gemerkt im Browser).
+    let viewMode = storage.get('kw-pult-view') === 'wall' ? 'wall' : 'seat';
+    const switchButtons = {};
+    const switcher = h('div', { class: 'pult-viewswitch', role: 'group', 'aria-label': 'Ansicht des Pults' });
+    for (const [key, iconName, label] of [['seat', 'armchair', 'Sitzplan'], ['wall', 'layout-grid', 'Live-Wand']]) {
+        const btn = h('button', { type: 'button', class: 'pult-viewswitch-btn', onclick: () => setView(key) }, icon(iconName), ' ', label);
+        switchButtons[key] = btn;
+        switcher.append(btn);
+    }
+    function setView(mode, remember = true) {
+        viewMode = mode;
+        if (remember) storage.set('kw-pult-view', mode);
+        for (const [key, btn] of Object.entries(switchButtons)) {
+            btn.setAttribute('aria-pressed', key === mode ? 'true' : 'false');
+            btn.classList.toggle('is-active', key === mode);
+        }
+        seat.el.hidden = mode !== 'seat';
+        wall.setVisible(mode === 'wall');
+    }
+    setView(viewMode, false);
+
+    const main = h('div', { class: 'pult-main' }, switcher, seat.el, wall.el);
     const side = h('div', { class: 'pult-side' }, requests.el, timeline.el);
     const layout = h('div', { class: 'pult-layout' }, main, side);
     // Große Räume (mehr als 4 Spalten) bekommen die volle Breite, die Seitenspalte rutscht darunter.
@@ -91,6 +115,7 @@ export function mountPult(root, boot) {
             updateLayout();
             header.update();
             seat.update();
+            wall.update();
             requests.update();
             timeline.update();
             actionBar.update();
@@ -116,6 +141,7 @@ export function mountPult(root, boot) {
         if (!state.loaded) return;
         header.tick();
         seat.tick();
+        wall.tick();
         detail.tick();
     }, 1000);
 

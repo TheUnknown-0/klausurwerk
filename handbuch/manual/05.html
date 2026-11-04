@@ -57,7 +57,7 @@
     <figcaption><b>{fig}</b> Das Pult während der Klausur: Kennzahlen, Aktionsleiste, Sitzplan mit Kacheln, Anfragen, Ereignisse</figcaption>
   </figure>
   <h3>Kopfbereich</h3>
-  <p>Links Titel und Status („Läuft“), daneben die Restzeit der Grundzeit. Darunter die Knöpfe <span class="ui">Alle pausieren</span> (5.8), <span class="ui d">Klausur beenden</span> (5.14), <span class="ui">Durchsage an alle</span> (5.10), <span class="ui">Ton an</span> (Stummschalter für den Pult-Ton), <span class="ui">Vorschau</span> und <span class="ui">Klausur</span> (zurück zur Klausurseite). Fünf Kennzahlen zählen live: <b>Online</b>, <b>Arbeiten</b>, <b>Gesperrt</b>, <b>Abgegeben</b> und <b>Hände</b>.</p>
+  <p>Links Titel und Status („Läuft“), daneben die Restzeit der Grundzeit. Darunter die Knöpfe <span class="ui">Alle pausieren</span> (5.8), <span class="ui d">Klausur beenden</span> (5.14), <span class="ui">Durchsage an alle</span> (5.10), <span class="ui">Ton an</span> (Stummschalter für den Pult-Ton), <span class="ui">Vorschau</span> und <span class="ui">Klausur</span> (zurück zur Klausurseite). Nach dem Ende der Klausur steht links der Knopf <span class="ui p">Zur Korrektur</span> (5.14). Über dem Sitzplan wechselt ein Umschalter zwischen <span class="ui">Sitzplan</span> und <span class="ui">Live-Wand</span> (5.15). Fünf Kennzahlen zählen live: <b>Online</b>, <b>Arbeiten</b>, <b>Gesperrt</b>, <b>Abgegeben</b> und <b>Hände</b>.</p>
   <h3>Aktionsleiste</h3>
   <p>Unter den Kennzahlen steht die Aktionsleiste für die gewählten Kacheln („Keine Auswahl“ oder „n ausgewählt“). Die Knöpfe sind nach Aufgabe gruppiert: <b>Zugang</b> (<span class="ui">Freigeben</span>, <span class="ui">Sperren</span>, <span class="ui">Abwesend (Toilette)</span>), <b>Ablauf</b> (<span class="ui">Pause</span>, <span class="ui">Fortsetzen</span>), <b>Zeit</b> (<span class="ui">+5 min</span>, <span class="ui">+10 min</span>, <span class="ui">Zeit …</span>), <b>Abgabe</b> (<span class="ui">Abgeben</span>, <span class="ui">Abgabe zurücknehmen</span>) und <b>Mitteilung</b> (<span class="ui">Durchsage</span>). Knöpfe, die für die gewählten Personen gerade nicht passen, sind ausgegraut.</p>
   <h3>Eine Kachel</h3>
@@ -93,6 +93,7 @@
     <figcaption><b>{fig}</b> Alarm: roter Streifen, rote Kachel, Alarm im Ereignisprotokoll</figcaption>
   </figure>
   <div class="box warn"><span class="t">Ton aktivieren nicht vergessen</span><p>Browser spielen Ton erst nach einer Aktion ab. Klicken Sie einmal auf <span class="ui p">Ton aktivieren</span>, wenn Sie das Pult geöffnet haben. Mit <span class="ui">Ton an</span> schalten Sie den Ton stumm oder wieder ein. Ein Verstoß wird immer im Protokoll festgehalten, auch wenn der Ton aus war.</p></div>
+  <p><b>Alarme zur Bildschirmfreigabe</b> (nur wenn sie verlangt wird): „hat die Bildschirmfreigabe beendet“, „hat die Bildschirmfreigabe abgelehnt“ und „hat nur ein Fenster oder einen Tab freigegeben“. Sie lösen denselben Ton und denselben roten Streifen aus wie ein Verstoß, <b>sperren aber nie</b>: Die Person arbeitet weiter, und ihr Rechner bietet <span class="ui">Erneut freigeben</span> an (7.3 und 7.9).</p>
   <p>Kurze Fokusverluste unter der eingestellten Toleranz (Standard 300 Millisekunden) werden nur als Info protokolliert und lösen keinen Alarm aus. Alle Ereignisse und ihre Schwere stehen im Anhang C.</p>
 
   <h2 id="k5-6"><span class="num">5.6</span>Freigeben und Sperren</h2>
@@ -186,13 +187,41 @@
   </figure>
 
   <h2 id="k5-14"><span class="num">5.14</span>Klausur beenden</h2>
-  <p>Sind alle Abgaben bestätigt (Kennzahl „Abgegeben: 6/6“), klicken Sie auf <span class="ui d">Klausur beenden</span> und bestätigen im Dialog. Der Status wird „Beendet“; die Schüler sehen die Bestätigungsseite. Danach beginnen Sie die Korrektur (Kapitel 6). Beenden Sie die Klausur erst, wenn alle abgegeben haben: Nicht abgegebene Teilnahmen werden dann beim Beenden mit abgegeben, bleiben aber in der Korrektur als „ohne Abgabe“ gekennzeichnet, wenn sie nie abgegeben haben.</p>
+  <p>Sind alle Abgaben bestätigt (Kennzahl „Abgegeben: 6/6“), klicken Sie auf <span class="ui d">Klausur beenden</span> und bestätigen im Dialog. Der Status wird „Beendet“; die Schüler sehen die Bestätigungsseite. Danach beginnen Sie die Korrektur (Kapitel 6): Im Pult führt der Knopf <span class="ui p">Zur Korrektur</span> direkt dorthin (er erscheint, wenn Sie das Recht zur Korrektur haben, ab „Beendet“). Mit dem Beenden werden auch alle Live-Daten und Bildschirmbilder dieser Klausur vom Server gelöscht. Beenden Sie die Klausur erst, wenn alle abgegeben haben: Nicht abgegebene Teilnahmen werden dann beim Beenden mit abgegeben, bleiben aber in der Korrektur als „ohne Abgabe“ gekennzeichnet, wenn sie nie abgegeben haben.</p>
   <div class="figrow">
     <figure><img src="img/x-434-pult-alle-abgegeben.jpg" alt="Alle abgegeben"><figcaption><b>{fig}</b> Alle Abgaben sind bestätigt</figcaption></figure>
     <figure><img src="img/x-436-pult-beendet.jpg" alt="Beendet"><figcaption><b>{fig}</b> Die Klausur ist beendet</figcaption></figure>
   </div>
 
-  <h2 id="k5-15"><span class="num">5.15</span>Typische Situationen</h2>
+  <h2 id="k5-15"><span class="num">5.15</span>Live-Wand</h2>
+  <p>Die <b>Live-Wand</b> ist eine zweite Ansicht des Pults: Statt des Sitzplans sehen Sie je Person eine Karte, in alphabetischer Reihenfolge. Wechseln Sie mit dem Umschalter <span class="ui">Sitzplan</span> / <span class="ui">Live-Wand</span> über dem Sitzplan; das Pult merkt sich Ihre Wahl. Die Wand fragt nur ab, solange sie sichtbar und der Tab im Vordergrund ist.</p>
+  <figure>
+    <img src="img/x-441-pult-livewall.jpg" alt="Live-Wand">
+    <figcaption><b>{fig}</b> Die Live-Wand: je Person eine Karte mit Standbild des Bildschirms, Code-Ausschnitt um die Cursorzeile, Konsole und Alter der Daten</figcaption>
+  </figure>
+  <h3>Was eine Karte zeigt</h3>
+  <ul>
+    <li><b>Live-Ansicht der Klausurseite</b> (Schalter „Live-Ansicht der Klausurseite im Pult“, Standard an): die aktuelle Aufgabe, ein Code-Ausschnitt um die Cursorzeile (die Zeile ist markiert) und die letzten Konsolenzeilen. Das funktioniert auf jedem Rechner, auch im Safe Exam Browser.</li>
+    <li><b>Standbild des ganzen Bildschirms</b> (nur wenn „Bildschirmfreigabe verlangen“ an ist): etwa alle 5 Sekunden ein kleines Bild (480 Pixel breit). Ist beides an, zeigt die Karte das Bild und darunter eine kurze Fassung der Live-Ansicht. Eine Marke „Bildschirm“ oder „kein Bild“ zeigt, ob die Freigabe läuft.</li>
+    <li>Das <b>Alter</b> der Daten („vor 4 s“). Wird ein Stand zu alt, kennzeichnet die Karte ihn als „veraltet“.</li>
+    <li>Zustand und Alarm wie in der Kachel. Eine Karte mit Alarm ist rot umrandet.</li>
+  </ul>
+  <h3>Großansicht und Fokus</h3>
+  <p>Ein Klick auf eine Karte öffnet die <b>Großansicht</b>: das Bild groß, daneben Code und Konsole mit mehr Zeilen und der Knopf <span class="ui">Details und Antworten</span>. Solange sie offen ist, hat die Person den <b>Fokus</b>: Ihr Rechner schickt etwa <b>1 Bild pro Sekunde</b> in großer Auflösung (1280 Pixel breit) statt alle 5 Sekunden ein kleines. Das Pult erneuert den Fokus alle 10 Sekunden und hebt ihn auf, wenn Sie die Großansicht schließen (<span class="kbd">Esc</span>) oder die Seite verlassen. Es gibt immer nur eine Person im Fokus je Klausur; ein vergessener Fokus läuft nach 30 Sekunden von selbst ab.</p>
+  <figure>
+    <img src="img/x-442-pult-fokus.jpg" alt="Großansicht">
+    <figcaption><b>{fig}</b> Die Großansicht einer Person (Fokus): großes Bild, Marke „Ganzer Bildschirm“, Alter und Aufgabe</figcaption>
+  </figure>
+  <h3>Wenn die Freigabe endet oder fehlt</h3>
+  <p>Beendet eine Person die Freigabe, verweigert sie oder gibt sie nur ein Fenster oder einen Tab statt des ganzen Bildschirms frei, erscheint ein <b>Alarm</b> mit Ton (Anhang C). Es gibt <b>keine Sperre</b>: Die Person arbeitet weiter, bekommt einen Hinweis und kann die Freigabe jederzeit erneut erteilen. Entscheiden Sie selbst, ob Sie nachfragen. Im Safe Exam Browser wird die Freigabe ohne Alarm übersprungen; die Karte zeigt dort die Live-Ansicht.</p>
+  <figure>
+    <img src="img/x-443-pult-alarm-freigabe.jpg" alt="Alarm Freigabe beendet">
+    <figcaption><b>{fig}</b> Alarm „hat die Bildschirmfreigabe beendet“: roter Streifen und rote Karte, die Person bleibt „Arbeitet“</figcaption>
+  </figure>
+  <div class="box warn"><span class="t">Datenschutz: nichts wird gespeichert</span><p>Die Bilder und der Live-Zustand liegen <b>nur im Arbeitsspeicher</b> des Servers, jeweils nur der letzte Stand je Person, nie in der Datenbank und nie auf der Festplatte. Beim Beenden, Archivieren oder Löschen der Klausur werden sie gelöscht. Es gibt keine Aufzeichnung, kein Replay der Bilder und keinen Ton. Schüler sehen, solange übertragen wird, die Anzeige „Bildschirm wird übertragen“. Informieren Sie sie vorab (Vorlage: Anhang E). Eine Freigabe verlangen Sie nur, wenn Ihre Schule es erlaubt.</p></div>
+  <div class="box note"><span class="t">Wer die Live-Wand sehen darf</span><p>Wie das übrige Pult erfordert sie die Fähigkeit <code>monitor</code> an der Klausur (Anhang A). Schüler haben keinen Zugriff auf Bilder oder Live-Daten, auch nicht auf ihre eigenen.</p></div>
+
+  <h2 id="k5-16"><span class="num">5.16</span>Typische Situationen</h2>
   <h3>Der Rechner eines Schülers stürzt ab</h3>
   <ol class="steps">
     <li>Seine Kachel wird „offline“ (gestrichelter Rand, durchgestrichenes Kettenglied). Seine bis dahin gespeicherten Antworten sind sicher, der letzte lokale Stand liegt im Browser des Rechners.</li>
@@ -209,6 +238,8 @@
   <p>Ein Schüler hat aus Versehen ein Systemfenster angeklickt und ist gesperrt. Öffnen Sie sein Detailfenster, schauen Sie im Protokoll, was passiert ist (Zeit, Ereignis, Dauer), und geben Sie frei. Hat er nicht gegen Regeln verstoßen, ist es ein Fehlalarm; notieren Sie die Entscheidung. Bei vielen Fehlalarmen erhöhen Sie in den Klausureinstellungen die Toleranz für kurze Fokusverluste.</p>
   <h3>Ein Schüler wird beim Täuschen erwischt</h3>
   <p>Sperren Sie ihn mit <span class="ui">Sperren</span>, lesen Sie seine Antworten im Detailfenster mit und dokumentieren Sie den Vorfall nach den Regeln Ihrer Schule. Das Protokoll und das Replay liefern Belege, entscheiden müssen Sie selbst.</p>
+  <h3>Ich möchte sehen, woran jemand gerade arbeitet</h3>
+  <p>Öffnen Sie die Live-Wand und klicken Sie die Karte an. Sie sehen Aufgabe, Cursorzeile und Konsole sofort und, wenn verlangt, den Bildschirm. Für den vollständigen Stand und das Replay nutzen Sie <span class="ui">Details und Antworten</span> (5.12).</p>
   <h3>Eine Aufgabe ist fehlerhaft</h3>
   <p>Senden Sie eine <b>Durchsage</b> an alle. Texte der Aufgaben lassen sich im Editor noch ändern (nicht die Struktur). Punkte passen Sie später in der Korrektur an.</p>
 </section>

@@ -29,6 +29,9 @@ return static function (Router $r): void {
     $r->post('/api/klausur/{id}/anfrage', [StudentExamController::class, 'request']);
     $r->post('/api/klausur/{id}/datei', [StudentExamController::class, 'upload']);
     $r->post('/api/klausur/{id}/vorschaubild', [StudentExamController::class, 'previewImage']);
+    // Live-Wand (nur Arbeitsspeicher, siehe Services\LiveStore)
+    $r->post('/api/klausur/{id}/live', [StudentExamController::class, 'live']);
+    $r->post('/api/klausur/{id}/bildschirm', [StudentExamController::class, 'screen']);
 
     // Java-Ausführung (Runner)
     $r->post('/api/ausfuehren', [RunController::class, 'start']);

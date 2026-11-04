@@ -71,6 +71,8 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
             </div>
         <?php endif; ?>
         <?= $toggle(['toilet_pauses_clock'], 'Abwesenheit hält die Uhr an', 'Wer den Raum kurz verlässt (z. B. Toilette) und im Pult als abwesend markiert wird, behält die Zeit.') ?>
+        <?= $toggle(['live_view'], 'Live-Ansicht der Klausurseite im Pult', 'Das Pult zeigt je Person die aktuelle Aufgabe, einen Code-Ausschnitt um die Cursorzeile und die letzten Konsolenzeilen (Live-Wand). Funktioniert auch im Safe Exam Browser. Es wird nichts gespeichert, nur der jeweils letzte Stand liegt im Arbeitsspeicher und wird am Klausurende gelöscht.') ?>
+        <?= $toggle(['screen_share'], 'Bildschirmfreigabe verlangen (ganzer Bildschirm)', 'Der Browser fragt nach der Freigabe des ganzen Bildschirms; das Pult zeigt in der Live-Wand ein Standbild (etwa alle 5 Sekunden, bei Fokus 1 Bild pro Sekunde). Datenschutz: Das ist ein Eingriff in die Privatsphäre, teile den Schüler:innen vorab mit, dass der Bildschirm übertragen wird. Während der Übertragung sehen sie einen deutlichen Hinweis. Bilder werden nie gespeichert, nur das letzte liegt im Arbeitsspeicher und wird am Klausurende gelöscht. Beendet jemand die Freigabe oder gibt nur ein Fenster frei, gibt es einen Alarm im Pult, aber keine Sperre. Im Safe Exam Browser entfällt die Freigabe.') ?>
         <?= $toggle(['allow_self_submit'], 'Abgabe-Knopf anzeigen', 'Schüler:innen können die Abgabe anfragen; die Lehrkraft bestätigt sie im Pult.') ?>
     </section>
 

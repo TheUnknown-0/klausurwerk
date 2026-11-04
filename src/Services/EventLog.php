@@ -24,6 +24,11 @@ final class EventLog
         'devtools_suspected' => 'warning',
         'resize' => 'info',
         'reload' => 'warning',
+        // Bildschirmfreigabe (Live-Wand): nur Alarm im Pult, nie eine Sperre (nicht in VIOLATIONS).
+        'screen_share_started' => 'info',
+        'screen_share_stopped' => 'alarm',
+        'screen_share_denied' => 'alarm',
+        'screen_share_wrong_surface' => 'alarm',
     ];
 
     /** Verstöße, die bei lock_on_violation sperren (Typ => Grund für die Sperrmeldung). */

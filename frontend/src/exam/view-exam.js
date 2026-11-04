@@ -118,9 +118,13 @@ export class ExamView {
         this.submitBtn = btn('btn-primary submit-btn', 'Klausur abgeben', 'Abgeben', () => this.o.callbacks.onSubmit());
 
         const canAct = !this.o.preview;
+        // Live-Wand: solange der Bildschirm übertragen wird, immer sichtbar (Bildschirmfreigabe)
+        this.shareBadge = h('span', { class: 'share-badge', hidden: true, role: 'status' },
+            h('span', { class: 'share-dot', 'aria-hidden': 'true' }), icon('monitor'), 'Bildschirm wird übertragen');
         this.header = h('header', { class: 'exam-header' },
             this.navBtn,
             h('h1', { class: 'exam-title' }, boot.title ?? 'Klausur'),
+            this.shareBadge,
             this.clock,
             h('div', { class: 'exam-statusbar' }, this.saveEl, this.connEl),
             h('div', { class: 'exam-actions' },
@@ -549,6 +553,31 @@ export class ExamView {
         this.banners.set(key, el);
         this.bannerHost.append(el);
         return el;
+    }
+
+    /**
+     * Bildschirmfreigabe (Live-Wand): Anzeige im Kopf und, wenn die Freigabe fehlt, ein Banner mit Knopf.
+     * @param {string} status Zustand von ScreenShare (active, stopped, wrong, denied, idle ...)
+     * @param {{required: boolean, onRequest: () => void}} o required: Freigabe wird verlangt
+     */
+    setShare(status, { required, onRequest }) {
+        this.shareBadge.hidden = status !== 'active';
+        const missing = required && ['stopped', 'wrong', 'denied', 'idle', 'requesting'].includes(status);
+        if (!missing) {
+            this.clearBanner('share');
+            return;
+        }
+        const text = {
+            stopped: 'Die Bildschirmfreigabe wurde beendet. Die Lehrkraft wurde benachrichtigt. Du kannst weiterarbeiten und den Bildschirm erneut freigeben.',
+            wrong: 'Bitte den ganzen Bildschirm freigeben, nicht nur ein Fenster oder einen Tab.',
+            denied: 'Der Bildschirm ist nicht freigegeben. Du kannst weiterarbeiten und die Freigabe jederzeit nachholen.',
+            idle: 'Der Bildschirm ist nicht freigegeben (zum Beispiel nach dem Neuladen der Seite). Du kannst weiterarbeiten und die Freigabe nachholen.',
+            requesting: 'Warte auf deine Auswahl im Dialog des Browsers ...',
+        }[status];
+        const el = this.banner('share', text, { type: 'warning', dismissible: false });
+        const btn = h('button', { type: 'button', class: 'btn btn-sm', disabled: status === 'requesting' }, icon('monitor'), status === 'stopped' || status === 'idle' ? 'Erneut freigeben' : 'Bildschirm freigeben');
+        btn.addEventListener('click', onRequest);
+        el.append(btn);
     }
 
     clearBanner(key) {

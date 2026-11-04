@@ -53,6 +53,7 @@ export const TruthTableWidget = {
         const tracker = createTracker(ctx, () => clone(model), model, () => tablePng(config, model));
         const cells = new Map(); // "key|out" -> Button
         const rowEls = [];
+        let selectedCell = null; // "key|out" der zuletzt gewählten Zelle
 
         const root = h('div', { class: 'w-diagram w-truth', dataset: { mode: ctx.mode ?? 'exam', type: 'truth_table' } });
         const status = h('div', { class: 'sr-only', role: 'status', 'aria-live': 'polite' });
@@ -73,6 +74,17 @@ export const TruthTableWidget = {
             undoBtn.disabled = readOnly || !tracker.history.canUndo;
             redoBtn.disabled = readOnly || !tracker.history.canRedo;
             clearBtn.disabled = readOnly;
+            for (const [id, btn] of cells) {
+                btn.classList.toggle('is-selected', id === selectedCell);
+            }
+            const [selKey, selOut] = (selectedCell ?? '|').split('|');
+            const selectedValue = selectedCell ? (model.rows[selKey]?.[selOut] ?? '') : '';
+            deleteBtn.disabled = readOnly || selectedCell === null || isPrefilled(config, selKey, selOut) || selectedValue === '';
+        };
+
+        const selectCell = (key, out) => {
+            selectedCell = `${key}|${out}`;
+            refresh();
         };
 
         const setCell = (key, out, value, historyKey = null) => {
@@ -112,7 +124,9 @@ export const TruthTableWidget = {
                     ...outputs.map((out) => {
                         const btn = h('button', { type: 'button', class: 'w-truth-cell', tabindex: '0' });
                         cells.set(`${key}|${out}`, btn);
+                        btn.addEventListener('focus', () => selectCell(key, out));
                         btn.addEventListener('click', () => {
+                            selectedCell = `${key}|${out}`;
                             const cur = model.rows[key]?.[out] ?? '';
                             setCell(key, out, nextCell(cur));
                         });
@@ -165,6 +179,15 @@ export const TruthTableWidget = {
         };
         const undoBtn = smallButton(withIcon('undo-2', 'Rückgängig'), undo, { title: 'Rückgängig (Strg+Z)' });
         const redoBtn = smallButton(withIcon('redo-2', 'Wiederholen'), redo, { title: 'Wiederholen (Strg+Y)' });
+        const deleteBtn = smallButton(withIcon('trash-2', 'Löschen'), () => {
+            if (selectedCell === null) {
+                return;
+            }
+            const [k, o] = selectedCell.split('|');
+            setCell(k, o, '');
+            cells.get(selectedCell)?.focus?.();
+            status.textContent = 'Zelle geleert.';
+        }, { title: 'Gewählte Zelle leeren (Entf oder Rücktaste)', 'aria-label': 'Gewählte Zelle leeren', disabled: true });
         const clearBtn = smallButton('Alle Zellen leeren', () => {
             if (readOnly) {
                 return;
@@ -175,9 +198,9 @@ export const TruthTableWidget = {
             refresh();
             status.textContent = 'Alle Zellen geleert.';
         });
-        const bar = h('div', { class: 'dg-toolbar w-truth-bar', role: 'toolbar', 'aria-label': 'Werkzeuge der Wahrheitstabelle' }, undoBtn, redoBtn, clearBtn);
+        const bar = h('div', { class: 'dg-toolbar w-truth-bar', role: 'toolbar', 'aria-label': 'Werkzeuge der Wahrheitstabelle' }, deleteBtn, undoBtn, redoBtn, clearBtn);
         bar.hidden = readOnly;
-        const hint = h('p', { class: 'dg-hint' }, 'Klicke eine Zelle, um zwischen leer, 0 und 1 zu wechseln. Mit der Tastatur: 0 oder 1 tippen, Entf leert, Pfeiltasten wechseln die Zelle.');
+        const hint = h('p', { class: 'dg-hint' }, 'Klicke eine Zelle, um zwischen leer, 0 und 1 zu wechseln. Mit der Tastatur: 0 oder 1 tippen, Entf oder Rücktaste leeren die gewählte Zelle (auch der Knopf „Löschen“), Pfeiltasten wechseln die Zelle.');
         hint.hidden = readOnly;
 
         root.append(bar, hint, h('div', { class: 'dg-table-wrap' }, table), status);

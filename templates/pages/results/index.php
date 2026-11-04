@@ -88,7 +88,18 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
                     <option value="">Standard des Kurses<?= $exam['course_id'] === null ? ' (kein Kurs: bitte wählen)' : '' ?></option>
                     <?php foreach ($scales as $s): ?>
                         <option value="<?= e((string) $s['id']) ?>" <?= (int) ($exam['grading_scale_id'] ?? 0) === (int) $s['id'] ? 'selected' : '' ?>>
-                            <?= e($s['name']) ?> (<?= $s['type'] === 'points' ? 'Punkte' : 'Noten' ?><?= $s['grade_level'] !== null ? ', Klasse ' . e((string) $s['grade_level']) : '' ?>)
+                            <?php
+                            // Zusätze nur, wenn der Name sie nicht schon enthält ("Noten 1 bis 6 (Klasse 10)").
+                            $typeWord = $s['type'] === 'points' ? 'Punkte' : 'Noten';
+                            $extra = [];
+                            if (stripos((string) $s['name'], $typeWord) === false) {
+                                $extra[] = $typeWord;
+                            }
+                            if ($s['grade_level'] !== null && stripos((string) $s['name'], 'Klasse ' . (int) $s['grade_level']) === false) {
+                                $extra[] = 'Klasse ' . (int) $s['grade_level'];
+                            }
+                            ?>
+                            <?= e($s['name']) ?><?= $extra !== [] ? ' (' . e(implode(', ', $extra)) . ')' : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

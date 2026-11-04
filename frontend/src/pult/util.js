@@ -50,7 +50,14 @@ export const EVENT_LABELS = {
     device_change_requested: 'möchte das Gerät wechseln',
     time_added: 'Zeit geändert',
     request_rejected: 'Anfrage abgelehnt',
+    screen_share_started: 'teilt den Bildschirm',
+    screen_share_stopped: 'hat die Bildschirmfreigabe beendet',
+    screen_share_denied: 'hat die Bildschirmfreigabe nicht erteilt',
+    screen_share_wrong_surface: 'gibt nicht den ganzen Bildschirm frei',
 };
+
+/** Bildschirmfläche der Freigabe in Worten. */
+export const SURFACE_LABELS = { monitor: 'ganzer Bildschirm', window: 'nur ein Fenster', browser: 'nur ein Browser-Tab', unknown: 'unbekannte Fläche' };
 
 export const SEVERITY_LABELS = { alarm: 'Alarm', warning: 'Warnung', info: 'Info' };
 
@@ -96,6 +103,12 @@ export function describeEvent(event) {
             return `Fenstergröße ${d.w ?? '?'} x ${d.h ?? '?'}`;
         case 'connection_lost':
             return d.silent_ms ? `Verbindung verloren (seit ${Math.round(d.silent_ms / 1000)} s ohne Herzschlag)` : 'Verbindung verloren';
+        case 'screen_share_started':
+            return `${EVENT_LABELS[event.type]} (${SURFACE_LABELS[d.surface] ?? 'Fläche unbekannt'})`;
+        case 'screen_share_wrong_surface':
+            return `${EVENT_LABELS[event.type]} (${SURFACE_LABELS[d.surface] ?? 'Fläche unbekannt'})`;
+        case 'screen_share_denied':
+            return d.reason ? `${EVENT_LABELS[event.type]} (${d.reason})` : EVENT_LABELS[event.type];
         default:
             return EVENT_LABELS[event.type] ?? event.type;
     }
