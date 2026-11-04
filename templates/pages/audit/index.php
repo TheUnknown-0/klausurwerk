@@ -1,6 +1,6 @@
 <?php
 /**
- * Audit-Log — Übersicht mit Filtern und Pagination.
+ * Audit-Log, Übersicht mit Filtern und Pagination.
  * Erwartet: $rows, $filters, $severities, $page, $pages, $total, $criticalCount.
  */
 
@@ -124,7 +124,7 @@ $severityLabels = ['info' => 'Info', 'warning' => 'Warnung', 'critical' => 'Krit
                         <td><?= e($row['username'] ?? 'System') ?></td>
                         <td class="mono"><?= e($row['action']) ?></td>
                         <td><?= $severityBadge($row['severity']) ?></td>
-                        <td class="mono text-sm"><?= e($row['ip_address'] ?? '—') ?></td>
+                        <td class="mono text-sm"><?= e($row['ip_address'] ?? '-') ?></td>
                         <td class="text-sm text-soft"><?= e($row['details'] ?? '') ?></td>
                     </tr>
                 <?php endforeach; ?>

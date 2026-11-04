@@ -13,9 +13,9 @@ use PDOException;
  * Rechtevergabe: Berechtigungs-Matrix je Benutzer und Verwaltung der
  * Berechtigungsgruppen.
  *
- * Delegationsregel: Admins dürfen alles. Alle anderen (orga, teacher mit
+ * Delegationsregel: Admins dürfen alles. Alle anderen (Lehrkräfte mit
  * BERECHTIGUNGEN_VERGEBEN) dürfen ausschließlich Rechte bewegen, die sie
- * selbst besitzen — weder vergeben noch entziehen.
+ * selbst besitzen, weder vergeben noch entziehen.
  */
 final class PermissionsController extends Controller
 {
@@ -127,11 +127,11 @@ final class PermissionsController extends Controller
                 'permissions.change',
                 'warning',
                 sprintf(
-                    'Benutzer #%d "%s" — erteilt: %s | entzogen: %s',
+                    'Benutzer #%d "%s", erteilt: %s | entzogen: %s',
                     $userId,
                     (string) $target['username'],
-                    $result['granted'] === [] ? '—' : implode(', ', $result['granted']),
-                    $result['revoked'] === [] ? '—' : implode(', ', $result['revoked']),
+                    $result['granted'] === [] ? '-' : implode(', ', $result['granted']),
+                    $result['revoked'] === [] ? '-' : implode(', ', $result['revoked']),
                 ),
             );
         }
@@ -212,11 +212,11 @@ final class PermissionsController extends Controller
             $parts[] = 'entfernt: ' . implode(', ', $removed);
         }
         if ($parts !== []) {
-            $this->flash('success', 'Gruppen aktualisiert — ' . implode(' · ', $parts) . '.');
+            $this->flash('success', 'Gruppen aktualisiert, ' . implode(' · ', $parts) . '.');
             $this->ctx->audit->log(
                 'permissions.groups_assign',
                 'warning',
-                sprintf('Benutzer #%d "%s" — %s', $userId, (string) $target['username'], implode(' | ', $parts)),
+                sprintf('Benutzer #%d "%s", %s', $userId, (string) $target['username'], implode(' | ', $parts)),
             );
         }
         if ($denied !== []) {
@@ -384,11 +384,11 @@ final class PermissionsController extends Controller
             'permissions.group_update',
             'warning',
             sprintf(
-                'Gruppe #%d "%s" — hinzugefügt: %s | entfernt: %s',
+                'Gruppe #%d "%s", hinzugefügt: %s | entfernt: %s',
                 $groupId,
                 $name,
-                $applied['added'] === [] ? '—' : implode(', ', $applied['added']),
-                $applied['removed'] === [] ? '—' : implode(', ', $applied['removed']),
+                $applied['added'] === [] ? '-' : implode(', ', $applied['added']),
+                $applied['removed'] === [] ? '-' : implode(', ', $applied['removed']),
             ),
         );
         $this->flash('success', 'Die Berechtigungsgruppe wurde gespeichert.');
@@ -443,7 +443,7 @@ final class PermissionsController extends Controller
     }
 
     /**
-     * Benutzer, die granulare Rechte erhalten können (orga/teacher).
+     * Benutzer, die granulare Rechte erhalten können (Lehrkräfte).
      *
      * @return list<array<string, mixed>>
      */
@@ -511,7 +511,7 @@ final class PermissionsController extends Controller
 
     /**
      * Rechte-Auswahl aus dem Gruppenformular. Ein Nicht-Admin kann nur Rechte
-     * setzen oder entfernen, die er selbst besitzt — bereits enthaltene andere
+     * setzen oder entfernen, die er selbst besitzt, bereits enthaltene andere
      * Rechte bleiben unangetastet.
      *
      * @param list<string> $existing Bisherige Items der Gruppe

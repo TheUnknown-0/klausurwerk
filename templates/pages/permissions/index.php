@@ -19,7 +19,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
     <div class="page-title-group">
         <div class="page-eyebrow">Verwaltung</div>
         <h1 class="page-title">Berechtigungen</h1>
-        <p class="page-sub">Granulare Rechte für Orga-Team und Lehrkräfte.</p>
+        <p class="page-sub">Granulare Rechte für Lehrkräfte (Administrator:innen haben immer alle Rechte).</p>
     </div>
     <div class="page-actions">
         <a class="btn btn-ghost" href="<?= e($base . '/gruppen') ?>">🗂️ Berechtigungsgruppen</a>
@@ -31,20 +31,9 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
     <a class="tab" href="<?= e($base . '/gruppen') ?>">Gruppen</a>
 </div>
 
-<?php $permissionBlocks = page_blocks('admin-berechtigungen', [
-    'hinweis' => 'Hinweis zum Berechtigungskonzept',
-    'benutzerauswahl' => 'Benutzerauswahl',
-    'uebersicht' => 'Benutzerübersicht',
-    'konto' => 'Gewähltes Konto',
-    'gruppen' => 'Berechtigungsgruppen',
-    'rechte' => 'Rechte-Matrix',
-]); ?>
-<?php foreach ($permissionBlocks as $blockKey => $blockLabel): ?>
-<?= block_open($blockKey, $blockLabel) ?>
-<?php if ($blockKey === 'hinweis'): ?>
 <div class="alert alert-info">
     <strong>Berechtigungskonzept:</strong> Administratoren haben automatisch alle Rechte.
-    Schüler:innen bekommen keine granularen Rechte. Orga-Team und Lehrkräfte
+    Schüler:innen bekommen keine granularen Rechte. Lehrkräfte
     erhalten Rechte direkt, über Berechtigungsgruppen oder als Rollen-Standard. Voraussetzungen werden
     beim Erteilen automatisch mitgegeben, abhängige Rechte beim Entziehen mitgenommen.
     <?php if ($allowed !== null): ?>
@@ -52,13 +41,12 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
     <?php endif; ?>
 </div>
 
-<?php elseif ($blockKey === 'benutzerauswahl'): ?>
 <form class="card card-pad mb-2" method="get" action="<?= e($base) ?>">
     <div class="field">
         <label for="benutzer">Benutzer auswählen</label>
         <select id="benutzer" name="benutzer">
             <option value="">– bitte wählen –</option>
-            <?php foreach (['orga' => 'Orga-Team', 'teacher' => 'Lehrkräfte'] as $roleKey => $roleTitle): ?>
+            <?php foreach (['teacher' => 'Lehrkräfte'] as $roleKey => $roleTitle): ?>
                 <?php $inRole = array_filter($candidates, static fn (array $c): bool => (string) $c['role'] === $roleKey); ?>
                 <?php if ($inRole !== []): ?>
                     <optgroup label="<?= e($roleTitle) ?>">
@@ -73,13 +61,12 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
             <?php endforeach; ?>
         </select>
         <?php if ($candidates === []): ?>
-            <div class="hint">Es gibt noch keine Konten mit der Rolle Orga-Team oder Lehrkraft.</div>
+            <div class="hint">Es gibt noch keine Konten mit der Rolle Lehrkraft.</div>
         <?php endif; ?>
     </div>
     <button class="btn btn-primary" type="submit">Rechte anzeigen</button>
 </form>
 
-<?php elseif ($blockKey === 'uebersicht'): ?>
     <?php if ($selected === null && $candidates !== []): ?>
         <div class="table-wrap">
             <table class="data-table">
@@ -114,7 +101,6 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
         </div>
     <?php endif; ?>
 
-<?php elseif ($blockKey === 'konto'): ?>
     <?php if ($selected !== null): ?>
     <div class="card card-pad mb-2">
         <div class="cluster">
@@ -127,7 +113,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
         </div>
         <?php if ($isSelf): ?>
             <div class="alert alert-warning mb-0" style="margin-top:12px;">
-                Das ist dein eigenes Konto — eigene Berechtigungen kannst du nicht ändern.
+                Das ist dein eigenes Konto, eigene Berechtigungen kannst du nicht ändern.
             </div>
         <?php elseif (!$canGrant): ?>
             <div class="alert alert-info mb-0" style="margin-top:12px;">
@@ -137,7 +123,6 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
     </div>
     <?php endif; ?>
 
-<?php elseif ($blockKey === 'gruppen'): ?>
     <?php if ($selected !== null && $groups !== []): ?>
         <div class="card mb-2">
             <div class="card-header"><h3 style="margin:0;">Berechtigungsgruppen</h3></div>
@@ -154,7 +139,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
                                 <strong><?= e($group['name']) ?></strong>
                                 <span class="badge badge-info"><?= e((string) (int) $group['item_count']) ?> Rechte</span>
                                 <?php if (!empty($group['description'])): ?>
-                                    <span class="text-soft text-sm">— <?= e($group['description']) ?></span>
+                                    <span class="text-soft text-sm">(<?= e($group['description']) ?>)</span>
                                 <?php endif; ?>
                             </span>
                         </label>
@@ -169,7 +154,6 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
         </div>
     <?php endif; ?>
 
-<?php elseif ($blockKey === 'rechte'): ?>
     <?php if ($selected !== null): ?>
     <form method="post" action="<?= e($base . '/speichern') ?>" data-permission-form
           data-dependencies="<?= e((string) json_encode($dependencies, JSON_UNESCAPED_UNICODE)) ?>">
@@ -262,6 +246,3 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
         <?php endif; ?>
     </form>
     <?php endif; ?>
-<?php endif; ?>
-<?= block_close() ?>
-<?php endforeach; ?>

@@ -5,22 +5,29 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Permissions as P;
+use App\Services\EmailService;
+use App\Services\Mailer;
 use App\Services\Uploads;
 
 /**
- * Einstellungen der Anwendung: Schule/App, Logo, öffentliche Adresse,
- * Seitenpasswort (nur Admin) und Selbstbedienung für Schüler:innen.
+ * Einstellungen der Anwendung: Schule/App, Logo, öffentliche Adresse, Anmeldecode für Lehrkräfte,
+ * Takt von Herzschlag und Pult, Seitenpasswort (nur Admin) und Test-Mail.
  *
- * Einzige Instanz (kein Mandantenbezug) — alle Werte liegen als
- * Key/Value in der settings-Tabelle (siehe Services\Settings).
+ * Alle Werte liegen als Key/Value in der settings-Tabelle (siehe Services\Settings).
  */
 final class SettingsController extends Controller
 {
+    public const HEARTBEAT_DEFAULT = 2000;
+    public const PULT_POLL_DEFAULT = 1500;
+    public const INTERVAL_MIN = 500;
+    public const INTERVAL_MAX = 30000;
+
     /** GET /admin/einstellungen */
     public function index(array $params): string
     {
         $this->requirePermission(P::EINSTELLUNGEN_SEHEN);
         $settings = $this->ctx->settings;
+        $user = $this->ctx->auth->user();
 
         return $this->render('pages/settings/index', [
             'title' => 'Einstellungen',
@@ -30,12 +37,20 @@ final class SettingsController extends Controller
             'publicBaseUrl' => (string) ($settings->get('public_base_url') ?? ''),
             'baseIsGuessed' => $this->ctx->baseIsGuessed(),
             'guessedBase' => $this->ctx->publicBase(),
+            'staffTwoFactor' => $settings->getBool('staff_two_factor', true),
+            'mailConfigured' => $this->mailConfigured(),
+            'heartbeatMs' => $settings->getInt('heartbeat_ms', self::HEARTBEAT_DEFAULT),
+            'pultPollMs' => $settings->getInt('pult_poll_ms', self::PULT_POLL_DEFAULT),
+            'intervalMin' => self::INTERVAL_MIN,
+            'intervalMax' => self::INTERVAL_MAX,
             'sitePasswordEnabled' => $settings->getBool('site_password_enabled'),
             'sitePasswordSet' => $settings->get('site_password') !== null,
-            'studentSelfService' => $settings->getBool('student_self_service', true),
+            'testMailDefault' => (string) ($user['email'] ?? ''),
             'canEdit' => $this->ctx->auth->can(P::EINSTELLUNGEN_BEARBEITEN),
             'isAdmin' => $this->ctx->auth->isAdmin(),
             'minPasswordLength' => AuthController::MIN_PASSWORD_LENGTH,
+            'pageScripts' => ['settings.js'],
+            'pageStyles' => ['admin.css'],
         ]);
     }
 
@@ -50,6 +65,8 @@ final class SettingsController extends Controller
         $schoolName = trim((string) ($_POST['school_name'] ?? ''));
         $appName = trim((string) ($_POST['app_name'] ?? ''));
         $publicBaseUrl = trim((string) ($_POST['public_base_url'] ?? ''));
+        $heartbeat = $this->interval($_POST['heartbeat_ms'] ?? '');
+        $pultPoll = $this->interval($_POST['pult_poll_ms'] ?? '');
 
         if (mb_strlen($schoolName) > 200 || mb_strlen($appName) > 100) {
             $this->flash('error', 'Schulname oder App-Name ist zu lang.');
@@ -64,30 +81,43 @@ final class SettingsController extends Controller
             }
             $publicBaseUrl = rtrim($publicBaseUrl, '/');
         }
+        if ($heartbeat === null || $pultPoll === null) {
+            $this->flash('error', sprintf(
+                'Herzschlag und Pult-Abruf brauchen einen Wert zwischen %d und %d Millisekunden.',
+                self::INTERVAL_MIN,
+                self::INTERVAL_MAX,
+            ));
+            $this->redirect($back);
+        }
 
         $changes = [];
-        if ($schoolName !== (string) ($settings->get('school_name') ?? '')) {
-            $changes[] = 'Schulname';
-        }
-        if ($appName !== (string) ($settings->get('app_name') ?? '')) {
-            $changes[] = 'App-Name';
-        }
-        if ($publicBaseUrl !== (string) ($settings->get('public_base_url') ?? '')) {
-            $changes[] = 'Öffentliche Adresse';
+        $compare = [
+            'Schulname' => [(string) ($settings->get('school_name') ?? ''), $schoolName],
+            'App-Name' => [(string) ($settings->get('app_name') ?? ''), $appName],
+            'Öffentliche Adresse' => [(string) ($settings->get('public_base_url') ?? ''), $publicBaseUrl],
+            'Herzschlag' => [(string) $settings->getInt('heartbeat_ms', self::HEARTBEAT_DEFAULT), (string) $heartbeat],
+            'Pult-Abruf' => [(string) $settings->getInt('pult_poll_ms', self::PULT_POLL_DEFAULT), (string) $pultPoll],
+        ];
+        foreach ($compare as $label => [$before, $after]) {
+            if ($before !== $after) {
+                $changes[] = $label;
+            }
         }
 
         $settings->set('school_name', $schoolName !== '' ? $schoolName : null);
         $settings->set('app_name', $appName !== '' ? $appName : null);
         $settings->set('public_base_url', $publicBaseUrl !== '' ? $publicBaseUrl : null);
+        $settings->set('heartbeat_ms', (string) $heartbeat);
+        $settings->set('pult_poll_ms', (string) $pultPoll);
 
-        $selfService = ($_POST['student_self_service'] ?? '') === '1';
-        if ($selfService !== $settings->getBool('student_self_service', true)) {
-            $changes[] = 'Selbstbedienung: ' . ($selfService ? 'aktiviert' : 'deaktiviert');
+        $twoFactor = ($_POST['staff_two_factor'] ?? '') === '1';
+        if ($twoFactor !== $settings->getBool('staff_two_factor', true)) {
+            $changes[] = 'Anmeldecode für Lehrkräfte: ' . ($twoFactor ? 'an' : 'aus');
         }
-        $settings->set('student_self_service', $selfService ? '1' : '0');
+        $settings->set('staff_two_factor', $twoFactor ? '1' : '0');
 
-        // Seitenpasswort ist sicherheitskritisch für die gesamte Anwendung —
-        // nur Administrator:innen dürfen es setzen oder den Schutz umschalten.
+        // Das Seitenpasswort schützt die gesamte Anwendung: nur Administrator:innen.
+        $critical = false;
         if ($this->ctx->auth->isAdmin()) {
             $newPassword = (string) ($_POST['site_password'] ?? '');
             if ($newPassword !== '') {
@@ -98,6 +128,7 @@ final class SettingsController extends Controller
                 }
                 $settings->set('site_password', password_hash($newPassword, PASSWORD_DEFAULT));
                 $changes[] = 'Seitenpasswort geändert';
+                $critical = true;
             }
 
             $enabled = ($_POST['site_password_enabled'] ?? '') === '1';
@@ -107,20 +138,21 @@ final class SettingsController extends Controller
             }
             if ($enabled !== $settings->getBool('site_password_enabled')) {
                 $changes[] = 'Seitenpasswort-Schutz: ' . ($enabled ? 'aktiviert' : 'deaktiviert');
+                $critical = true;
             }
             $settings->set('site_password_enabled', $enabled ? '1' : '0');
         }
 
         $this->ctx->audit->log(
             'einstellungen.speichern',
-            in_array('Seitenpasswort geändert', $changes, true) ? 'warning' : 'info',
+            $critical ? 'warning' : 'info',
             $changes === [] ? 'Keine Änderung' : implode(', ', $changes),
         );
         $this->flash('success', 'Die Einstellungen wurden gespeichert.');
         $this->redirect($back);
     }
 
-    /** POST /admin/einstellungen/logo — Schullogo hochladen oder entfernen. */
+    /** POST /admin/einstellungen/logo: Schullogo hochladen oder entfernen. */
     public function saveLogo(array $params): string
     {
         $this->requirePermission(P::EINSTELLUNGEN_BEARBEITEN);
@@ -154,5 +186,54 @@ final class SettingsController extends Controller
         $this->ctx->audit->log('einstellungen.logo', 'info', $stored['original_name']);
         $this->flash('success', 'Logo gespeichert.');
         $this->redirect($back);
+    }
+
+    /** POST /admin/einstellungen/testmail: Test-Mail an die angegebene Adresse senden. */
+    public function sendTestMail(array $params): string
+    {
+        $this->requirePermission(P::EINSTELLUNGEN_BEARBEITEN);
+        $this->requireCsrf();
+        $back = $this->ctx->url('/admin/einstellungen');
+
+        $to = trim((string) ($_POST['test_email'] ?? ''));
+        if ($to === '' || filter_var($to, FILTER_VALIDATE_EMAIL) === false) {
+            $this->flash('error', 'Bitte eine gültige E-Mail-Adresse für die Test-Mail angeben.');
+            $this->redirect($back);
+        }
+        if (!$this->mailConfigured()) {
+            $this->flash('error', 'Der Mailserver ist nicht eingerichtet (MAIL_HOST und MAIL_FROM_ADDRESS in der .env).');
+            $this->redirect($back);
+        }
+
+        $result = (new EmailService($this->ctx->db, new Mailer($this->ctx->config['mail']), $this->ctx->view))->sendTest($to);
+        $this->ctx->audit->log('einstellungen.testmail', $result['success'] ? 'info' : 'warning', ($result['success'] ? 'Gesendet an ' : 'Fehlgeschlagen an ') . $to);
+
+        if ($result['success']) {
+            $this->flash('success', 'Die Test-Mail wurde an ' . $to . ' gesendet.');
+        } else {
+            $this->flash('error', 'Die Test-Mail ging nicht raus: ' . (string) $result['error']);
+        }
+        $this->redirect($back);
+    }
+
+    // ---------- Helfer ----------
+
+    private function mailConfigured(): bool
+    {
+        $mail = $this->ctx->config['mail'] ?? [];
+
+        return (string) ($mail['host'] ?? '') !== '' && (string) ($mail['from_address'] ?? '') !== '';
+    }
+
+    /** Millisekunden-Wert im erlaubten Bereich oder null. */
+    private function interval(mixed $raw): ?int
+    {
+        $raw = trim((string) $raw);
+        if ($raw === '' || !ctype_digit($raw)) {
+            return null;
+        }
+        $value = (int) $raw;
+
+        return $value >= self::INTERVAL_MIN && $value <= self::INTERVAL_MAX ? $value : null;
     }
 }

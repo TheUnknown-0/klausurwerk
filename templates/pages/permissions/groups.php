@@ -26,13 +26,6 @@ $base = $ctx->url('/admin/berechtigungen');
     <a class="tab active" href="<?= e($base . '/gruppen') ?>">Gruppen</a>
 </div>
 
-<?php $groupBlocks = page_blocks('admin-berechtigungsgruppen', [
-    'keine-gruppen' => 'Hinweis: noch keine Gruppen',
-    'gruppenliste' => 'Gruppenliste',
-]); ?>
-<?php foreach ($groupBlocks as $blockKey => $blockLabel): ?>
-<?= block_open($blockKey, $blockLabel) ?>
-<?php if ($blockKey === 'keine-gruppen'): ?>
     <?php if ($groups === []): ?>
     <div class="empty-state">
         <div class="empty-icon">🗂️</div>
@@ -43,7 +36,6 @@ $base = $ctx->url('/admin/berechtigungen');
     </div>
     <?php endif; ?>
 
-<?php elseif ($blockKey === 'gruppenliste'): ?>
     <?php if ($groups !== []): ?>
     <div class="stack">
         <?php foreach ($groups as $group): ?>
@@ -81,6 +73,3 @@ $base = $ctx->url('/admin/berechtigungen');
         <?php endforeach; ?>
     </div>
     <?php endif; ?>
-<?php endif; ?>
-<?= block_close() ?>
-<?php endforeach; ?>

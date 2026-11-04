@@ -28,13 +28,6 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
       data-dependencies="<?= e((string) json_encode($dependencies, JSON_UNESCAPED_UNICODE)) ?>">
     <?= $csrf->field() ?>
 
-<?php $groupFormBlocks = page_blocks('admin-gruppen-formular', [
-    'stammdaten' => 'Name, Beschreibung & Filter',
-    'rechte' => 'Rechte-Auswahl',
-]); ?>
-<?php foreach ($groupFormBlocks as $blockKey => $blockLabel): ?>
-<?= block_open($blockKey, $blockLabel) ?>
-<?php if ($blockKey === 'stammdaten'): ?>
     <div class="card card-pad mb-2">
         <div class="form-grid">
             <div class="field">
@@ -55,7 +48,6 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
         </div>
     </div>
 
-<?php elseif ($blockKey === 'rechte'): ?>
     <?php foreach ($catalog as $groupName => $entries): ?>
         <div class="card mb-2" data-permission-card>
             <div class="card-header">
@@ -87,9 +79,6 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
             </div>
         </div>
     <?php endforeach; ?>
-<?php endif; ?>
-<?= block_close() ?>
-<?php endforeach; ?>
 
     <div class="cluster">
         <button class="btn btn-primary" type="submit"><?= $isNew ? 'Gruppe anlegen' : 'Änderungen speichern' ?></button>

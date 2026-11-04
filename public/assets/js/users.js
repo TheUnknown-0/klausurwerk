@@ -1,111 +1,146 @@
 /**
- * Benutzerverwaltung: Benutzerformular (Rolle → Ausschlusskriterien-Bereich,
- * Kriterium → Notizfeld, Passwort generieren → Passwortfeld) sowie die
- * Passwort-zurücksetzen-Modals der Benutzerliste.
- * Konventionen (siehe templates/pages/users/{index,form}.php):
- *   [data-user-form]                    → Benutzerformular
- *   [data-role-select]                  → Rollen-Auswahl
- *   [data-criteria-section]             → Kriterien-Block (nur Rolle student)
- *   [data-criteria-placeholder]         → Hinweistext (nur Rolle ≠ student)
- *   [data-criterion-toggle="id"]        → Kriterien-Checkbox
- *   [data-criterion-note="id"]          → zugehöriges Notizfeld
- *   [data-generate-toggle]              → „Passwort generieren“-Checkbox
- *   [data-password-field]               → Passwortfeld-Wrapper (Anlegen)
- *   [data-reset-action] / [data-reset-name] auf Buttons der Benutzerliste
- *   [data-reset-form]                   → Formular im Passwort-Reset-Modal
- *   [data-reset-target]                 → Namensanzeige im Modal
- *   [data-copy-target="id"]             → Button kopiert den Wert des Feldes #id
+ * Benutzerverwaltung und Zugangskarten (Seiten-JS, ohne Bundler).
+ *
+ * Benutzerformular ([data-user-form]):
+ *   - [data-role-select]      → blendet [data-role-section="student|staff"] passend zur Rolle ein
+ *   - [data-username-input]   → Vorschlag vorname.nachname von der API, solange nicht von Hand geändert
+ * Kartenseite ([data-cards-form]):
+ *   - [data-course-jump]      → Kurs wechseln (lädt die Seite mit ?kurs=ID)
+ *   - [data-toggle-all]       → alle Häkchen der Auswahl umschalten
+ *   - [data-card-pick]        → Auswahl aus der Suche bleibt über Suchläufe erhalten
  */
 (function () {
     'use strict';
 
     // ---------- Benutzerformular ----------
-    var form = document.querySelector('[data-user-form]');
-    if (form) {
-        var roleSelect = form.querySelector('[data-role-select]');
-        var criteriaSection = form.querySelector('[data-criteria-section]');
-        var criteriaPlaceholder = form.querySelector('[data-criteria-placeholder]');
-        var nameFields = form.querySelectorAll('[data-name-field]');
-        var nameLabels = form.querySelectorAll('[data-name-label]');
-        var nameHint = form.querySelector('[data-name-hint]');
+    var userForm = document.querySelector('[data-user-form]');
+    if (userForm) {
+        var roleSelect = userForm.querySelector('[data-role-select]');
+        var sections = userForm.querySelectorAll('[data-role-section]');
 
-        function applyRole() {
-            if (!roleSelect) { return; }
-            var isStudent = roleSelect.value === 'student';
-            if (criteriaSection) { criteriaSection.hidden = !isStudent; }
-            if (criteriaPlaceholder) { criteriaPlaceholder.hidden = isStudent; }
-
-            // Lehrkräfte und Admins: Vorname ODER Nachname genügt — das andere Feld bleibt optional.
-            var namesOptional = roleSelect.value === 'teacher' || roleSelect.value === 'admin';
-            nameFields.forEach(function (field) { field.required = !namesOptional; });
-            nameLabels.forEach(function (label) {
-                label.textContent = label.textContent.replace(/\s*\*$/, '') + (namesOptional ? '' : ' *');
+        var applyRole = function () {
+            var role = roleSelect ? roleSelect.value : 'student';
+            var key = role === 'student' ? 'student' : 'staff';
+            sections.forEach(function (section) {
+                section.hidden = section.getAttribute('data-role-section') !== key;
             });
-            if (nameHint) { nameHint.hidden = !namesOptional; }
+            updateSuggestion();
+        };
+
+        var usernameInput = userForm.querySelector('[data-username-input]');
+        var hint = userForm.querySelector('[data-username-hint]');
+        var touched = usernameInput ? usernameInput.value !== '' : true;
+        var auto = userForm.getAttribute('data-username-auto') === '1';
+        var timer = null;
+        var controller = null;
+
+        if (usernameInput) {
+            usernameInput.addEventListener('input', function () { touched = usernameInput.value !== ''; });
         }
 
+        function updateSuggestion() {
+            if (!auto || touched || !usernameInput) { return; }
+            var role = roleSelect ? roleSelect.value : 'student';
+            if (role !== 'student') { return; }
+            var first = userForm.querySelector('#firstname').value.trim();
+            var last = userForm.querySelector('#lastname').value.trim();
+            if (first === '' && last === '') { return; }
+
+            window.clearTimeout(timer);
+            timer = window.setTimeout(function () {
+                if (controller) { controller.abort(); }
+                controller = new AbortController();
+                var url = userForm.getAttribute('data-suggest-url')
+                    + '?vorname=' + encodeURIComponent(first) + '&nachname=' + encodeURIComponent(last);
+                fetch(url, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                }).then(function (res) { return res.ok ? res.json() : null; }).then(function (data) {
+                    if (data && data.success && data.username && !touched) {
+                        usernameInput.value = data.username;
+                        if (hint) { hint.textContent = 'Vorschlag aus dem Namen. Du kannst ihn ändern.'; }
+                    }
+                }).catch(function () { /* Vorschlag ist nur Komfort */ });
+            }, 300);
+        }
+
+        userForm.querySelectorAll('[data-name-part]').forEach(function (input) {
+            input.addEventListener('input', updateSuggestion);
+        });
         if (roleSelect) {
             roleSelect.addEventListener('change', applyRole);
-            applyRole();
         }
-
-        form.addEventListener('change', function (ev) {
-            var box = ev.target.closest('[data-criterion-toggle]');
-            if (box) {
-                var id = box.getAttribute('data-criterion-toggle');
-                var note = form.querySelector('[data-criterion-note="' + id + '"]');
-                if (note) { note.hidden = !box.checked; }
-            }
-        });
-
-        var generateToggle = form.querySelector('[data-generate-toggle]');
-        var passwordField = form.querySelector('[data-password-field]');
-        function applyGenerate() {
-            if (!generateToggle || !passwordField) { return; }
-            passwordField.hidden = generateToggle.checked;
-        }
-        if (generateToggle) {
-            generateToggle.addEventListener('change', applyGenerate);
-            applyGenerate();
-        }
+        applyRole();
     }
 
-    // ---------- Passwort-Reset-Modal (Benutzerliste) ----------
-    document.addEventListener('click', function (ev) {
-        var button = ev.target.closest('[data-reset-action]');
-        if (!button) { return; }
-
-        var modal = document.getElementById('modal-passwort');
-        if (!modal) { return; }
-        var resetForm = modal.querySelector('[data-reset-form]');
-        var target = modal.querySelector('[data-reset-target]');
-        if (resetForm) { resetForm.setAttribute('action', button.getAttribute('data-reset-action') || ''); }
-        if (target) { target.textContent = button.getAttribute('data-reset-name') || '—'; }
-    });
-
-    // ---------- Passwort kopieren / markieren ----------
-    document.addEventListener('click', function (ev) {
-        var button = ev.target.closest('[data-copy-target]');
-        if (!button) { return; }
-
-        var field = document.getElementById(button.getAttribute('data-copy-target'));
-        if (!field) { return; }
-        field.select();
-        field.setSelectionRange(0, field.value.length);
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(field.value).then(function () {
-                BM.flash('success', 'Passwort kopiert.');
-            }, function () {
-                /* Zwischenablage evtl. blockiert — Text bleibt markiert */
+    // ---------- Zugangskarten ----------
+    var cardsForm = document.querySelector('[data-cards-form]');
+    if (cardsForm) {
+        var jump = document.querySelector('[data-course-jump]');
+        if (jump) {
+            jump.addEventListener('change', function () {
+                var base = jump.getAttribute('data-base');
+                window.location.href = jump.value ? base + '?kurs=' + encodeURIComponent(jump.value) : base;
             });
         }
-    });
 
-    document.addEventListener('focus', function (ev) {
-        var field = ev.target;
-        if (field.matches && field.matches('input[readonly].mono')) {
-            field.select();
-        }
-    }, true);
+        document.querySelectorAll('[data-toggle-all]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var boxes = cardsForm.querySelectorAll(button.getAttribute('data-toggle-all'));
+                var anyUnchecked = Array.prototype.some.call(boxes, function (box) { return !box.checked; });
+                boxes.forEach(function (box) { box.checked = anyUnchecked; });
+            });
+        });
+
+        // Auswahl aus der Suche: bleibt erhalten, wenn die Trefferliste neu geladen wird.
+        var picked = new Map();
+        var chips = document.querySelector('[data-card-selection]');
+        var hidden = document.querySelector('[data-card-hidden]');
+        var results = document.querySelector('[data-live-target="cards-search"]');
+
+        var render = function () {
+            if (!chips || !hidden) { return; }
+            chips.textContent = '';
+            hidden.textContent = '';
+            picked.forEach(function (label, id) {
+                var chip = document.createElement('span');
+                chip.className = 'badge badge-primary';
+                chip.textContent = label;
+                chips.appendChild(chip);
+
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'user_ids[]';
+                input.value = id;
+                hidden.appendChild(input);
+            });
+            if (picked.size === 0) {
+                var none = document.createElement('span');
+                none.className = 'text-sm text-faint';
+                none.textContent = 'Noch niemand aus der Suche ausgewählt.';
+                chips.appendChild(none);
+            }
+        };
+
+        var restore = function () {
+            if (!results) { return; }
+            results.querySelectorAll('[data-card-pick]').forEach(function (box) {
+                if (picked.has(box.value)) { box.checked = true; }
+            });
+        };
+
+        document.addEventListener('change', function (event) {
+            var box = event.target;
+            if (!results || !box.matches || !box.matches('[data-card-pick]') || !results.contains(box)) { return; }
+            if (box.checked) {
+                picked.set(box.value, box.getAttribute('data-label') || box.value);
+            } else {
+                picked.delete(box.value);
+            }
+            render();
+        });
+        document.addEventListener('live-search:updated', restore);
+        render();
+    }
 })();

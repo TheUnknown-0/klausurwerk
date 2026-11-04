@@ -74,7 +74,7 @@ final class PermissionService
 
     /**
      * Effektive Rechte: direkt + über Gruppen + Rollen-Standards.
-     * (admin hat laut Auth implizit alle Rechte — das wird
+     * (admin hat laut Auth implizit alle Rechte, das wird
      * hier bewusst NICHT aufgelöst, die Anzeige weist gesondert darauf hin.)
      *
      * @return list<string>

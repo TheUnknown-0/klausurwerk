@@ -1,156 +1,162 @@
 <?php
 /**
  * Einstellungen der Anwendung.
- * Erwartet: $schoolName, $appName, $logo, $publicBaseUrl, $baseIsGuessed,
- * $guessedBase, $sitePasswordEnabled, $sitePasswordSet, $studentSelfService,
- * $canEdit, $isAdmin, $minPasswordLength.
+ * Erwartet: $schoolName, $appName, $logo, $publicBaseUrl, $baseIsGuessed, $guessedBase,
+ * $staffTwoFactor, $mailConfigured, $heartbeatMs, $pultPollMs, $intervalMin, $intervalMax,
+ * $sitePasswordEnabled, $sitePasswordSet, $testMailDefault, $canEdit, $isAdmin, $minPasswordLength
  */
-$settingsBlocks = page_blocks('admin-einstellungen', [
-    'allgemein' => 'Schule & App',
-    'logo' => 'Logo',
-    'zugang' => 'Zugang & Selbstbedienung',
-]);
+
+$disabled = $canEdit ? '' : ' disabled';
 ?>
 <div class="page-header">
     <div class="page-title-group">
         <div class="page-eyebrow">Verwaltung</div>
-        <h1 class="page-title">⚙️ Einstellungen</h1>
-        <p class="page-sub">Grundlegende Angaben zur Anwendung — gelten für alle Aktionstage.</p>
+        <h1 class="page-title">Einstellungen</h1>
+        <p class="page-sub">Angaben zur Schule, Anmeldung und Takt der Live-Ansichten.</p>
     </div>
 </div>
 
-<?php foreach ($settingsBlocks as $blockKey => $blockLabel): ?>
-<?= block_open($blockKey, $blockLabel) ?>
-<?php if ($blockKey === 'allgemein'): ?>
-    <div class="card card-pad mb-2">
-        <form method="post" action="<?= e($ctx->url('/admin/einstellungen')) ?>">
-            <?= $csrf->field() ?>
-            <div class="form-grid">
-                <div class="field">
-                    <label for="school_name">Schulname</label>
-                    <input class="input" type="text" id="school_name" name="school_name" maxlength="200"
-                           value="<?= e($schoolName) ?>" <?= $canEdit ? '' : 'disabled' ?>>
-                    <div class="hint">Erscheint z. B. auf Zugangsdaten- und Druck-PDFs.</div>
-                </div>
-                <div class="field">
-                    <label for="app_name">App-Name</label>
-                    <input class="input" type="text" id="app_name" name="app_name" maxlength="100"
-                           placeholder="Gartenarbeitstag" value="<?= e($appName) ?>" <?= $canEdit ? '' : 'disabled' ?>>
-                    <div class="hint">Titel in Sidebar und Browser-Tab (Standard: „Gartenarbeitstag“).</div>
-                </div>
-                <div class="field">
-                    <label for="public_base_url">Öffentliche Adresse</label>
-                    <input class="input" type="url" id="public_base_url" name="public_base_url" maxlength="255"
-                           placeholder="https://gartenarbeitstag.beispiel-schule.de" value="<?= e($publicBaseUrl) ?>"
-                           <?= $canEdit ? '' : 'disabled' ?>>
-                    <div class="hint">
-                        Für Links in PDFs und Zugangsdaten. Leer lassen, um die Adresse aus dem jeweiligen Aufruf zu
-                        übernehmen<?= $baseIsGuessed ? ' (derzeit vermutet: ' . e($guessedBase) . ')' : '' ?>.
-                    </div>
-                </div>
-            </div>
-            <?php if ($canEdit): ?>
-                <input type="hidden" name="student_self_service" value="<?= $studentSelfService ? '1' : '0' ?>">
-                <?php if ($isAdmin): ?>
-                    <input type="hidden" name="site_password_enabled" value="<?= $sitePasswordEnabled ? '1' : '0' ?>">
-                <?php endif; ?>
-                <button class="btn btn-primary" type="submit">Speichern</button>
-            <?php endif; ?>
-        </form>
-    </div>
+<?php if (!$canEdit): ?>
+    <div class="alert alert-info">Du darfst die Einstellungen ansehen, aber nicht ändern.</div>
+<?php endif; ?>
 
-<?php elseif ($blockKey === 'logo'): ?>
-    <div class="card card-pad mb-2">
-        <?php if (!empty($logo)): ?>
-            <div class="cluster mb-2">
-                <img class="brand-logo" style="width:64px;height:64px;"
-                     src="<?= e($ctx->url('/medien/logos/' . $logo)) ?>" alt="Aktuelles Schullogo">
-                <?php if ($canEdit): ?>
-                    <form method="post" action="<?= e($ctx->url('/admin/einstellungen/logo')) ?>">
-                        <?= $csrf->field() ?>
-                        <input type="hidden" name="remove" value="1">
-                        <button class="btn btn-sm btn-danger-ghost" type="submit">Entfernen</button>
-                    </form>
-                <?php endif; ?>
-            </div>
-        <?php else: ?>
-            <p class="text-soft text-sm">Noch kein Logo hinterlegt — es wird ein Platzhalter angezeigt.</p>
-        <?php endif; ?>
-        <?php if ($canEdit): ?>
-            <form method="post" action="<?= e($ctx->url('/admin/einstellungen/logo')) ?>" enctype="multipart/form-data">
-                <?= $csrf->field() ?>
-                <div class="field">
-                    <label for="logo">Neues Logo (PNG, JPG, WebP oder SVG, max. 2 MB)</label>
-                    <input class="input" type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.webp,.svg" required>
-                </div>
-                <button class="btn btn-primary" type="submit">Logo hochladen</button>
-            </form>
-        <?php endif; ?>
-    </div>
-
-<?php elseif ($blockKey === 'zugang'): ?>
-    <div class="grid-2">
-        <div class="card card-pad">
-            <h3 class="mt-0">Selbstbedienung</h3>
-            <p class="text-sm text-soft">
-                Legt fest, ob Schüler:innen sich selbst in Stände einschreiben bzw. Wünsche abgeben dürfen.
-                Ist die Selbstbedienung deaktiviert, übernimmt die Orga alle Einschreibungen.
-            </p>
+<div class="card card-pad mb-2 max-w-lg">
+    <h3 class="mt-0">Schullogo</h3>
+    <?php if (!empty($logo)): ?>
+        <div class="cluster mb-2">
+            <img class="brand-logo logo-preview" src="<?= e($ctx->url('/medien/logos/' . $logo)) ?>" alt="Aktuelles Schullogo" data-logo-current>
             <?php if ($canEdit): ?>
-                <form method="post" action="<?= e($ctx->url('/admin/einstellungen')) ?>">
+                <form method="post" action="<?= e($ctx->url('/admin/einstellungen/logo')) ?>" data-confirm="Logo entfernen?">
                     <?= $csrf->field() ?>
-                    <input type="hidden" name="school_name" value="<?= e($schoolName) ?>">
-                    <input type="hidden" name="app_name" value="<?= e($appName) ?>">
-                    <input type="hidden" name="public_base_url" value="<?= e($publicBaseUrl) ?>">
-                    <label class="checkbox-row">
-                        <input type="checkbox" name="student_self_service" value="1" <?= $studentSelfService ? 'checked' : '' ?>>
-                        <span>Schüler:innen dürfen sich selbst einschreiben</span>
-                    </label>
-                    <button class="btn btn-primary btn-sm mt-2" type="submit">Speichern</button>
+                    <input type="hidden" name="remove" value="1">
+                    <button class="btn btn-sm btn-danger-ghost" type="submit">Entfernen</button>
                 </form>
-            <?php else: ?>
-                <span class="badge <?= $studentSelfService ? 'badge-success' : '' ?>">
-                    <?= $studentSelfService ? 'Aktiviert' : 'Deaktiviert' ?>
-                </span>
             <?php endif; ?>
         </div>
+    <?php else: ?>
+        <p class="text-soft text-sm">Noch kein Logo hinterlegt, es wird ein Platzhalter angezeigt.</p>
+    <?php endif; ?>
+    <?php if ($canEdit): ?>
+        <form method="post" action="<?= e($ctx->url('/admin/einstellungen/logo')) ?>" enctype="multipart/form-data" class="stack">
+            <?= $csrf->field() ?>
+            <div class="field mb-0">
+                <label for="logo">Neues Logo (PNG, JPG, WebP oder SVG, höchstens 2 MB)</label>
+                <input class="input" type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.webp,.svg" required data-logo-input>
+            </div>
+            <img class="logo-preview" alt="Vorschau des neuen Logos" data-logo-preview hidden>
+            <div><button class="btn btn-primary" type="submit">Logo hochladen</button></div>
+        </form>
+    <?php endif; ?>
+</div>
 
-        <div class="card card-pad">
+<form method="post" action="<?= e($ctx->url('/admin/einstellungen')) ?>">
+    <?= $csrf->field() ?>
+
+    <div class="card card-pad mb-2 max-w-lg">
+        <h3 class="mt-0">Schule und Anwendung</h3>
+        <div class="form-grid">
+            <div class="field">
+                <label for="school_name">Schulname</label>
+                <input class="input" type="text" id="school_name" name="school_name" maxlength="200" value="<?= e($schoolName) ?>"<?= $disabled ?>>
+                <div class="hint">Steht auf Zugangskarten und PDF-Ausdrucken.</div>
+            </div>
+            <div class="field">
+                <label for="app_name">Name der Anwendung</label>
+                <input class="input" type="text" id="app_name" name="app_name" maxlength="100" value="<?= e($appName) ?>" placeholder="Klausurwerk"<?= $disabled ?>>
+                <div class="hint">Titel in Seitenleiste und Browser-Tab (Standard: Klausurwerk).</div>
+            </div>
+        </div>
+        <div class="field">
+            <label for="public_base_url">Öffentliche Adresse</label>
+            <input class="input" type="url" id="public_base_url" name="public_base_url" maxlength="255" value="<?= e($publicBaseUrl) ?>"
+                   placeholder="https://klausuren.meine-schule.de"<?= $disabled ?>>
+            <div class="hint">
+                Wird für den QR-Code auf den Zugangskarten genutzt (Adresse/login).
+                <?php if ($baseIsGuessed): ?>
+                    Nicht hinterlegt: aktuell wird <code><?= e($guessedBase) ?></code> verwendet, das ist die Adresse dieses Aufrufs.
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-pad mb-2 max-w-lg">
+        <h3 class="mt-0">Anmeldung von Lehrkräften</h3>
+        <label class="checkbox-row">
+            <input type="checkbox" name="staff_two_factor" value="1"<?= $staffTwoFactor ? ' checked' : '' ?><?= $disabled ?>>
+            <span>Anmeldecode per E-Mail für Lehrkräfte und Admins (zweiter Faktor)</span>
+        </label>
+        <?php if ($mailConfigured): ?>
+            <p class="text-sm text-soft"><span class="badge badge-success">Mailserver eingerichtet</span> Der Code wird nach dem Passwort per E-Mail verschickt. Konten ohne E-Mail-Adresse melden sich ohne Code an.</p>
+        <?php else: ?>
+            <div class="alert alert-warning mb-0">
+                <div>
+                    <strong>Kein Mailserver eingerichtet.</strong>
+                    Der Anmeldecode ist nur wirksam, wenn <code>MAIL_HOST</code> und <code>MAIL_FROM_ADDRESS</code> in der Konfiguration (.env) gesetzt sind.
+                    Bis dahin melden sich Lehrkräfte nur mit Passwort an.
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <div class="card card-pad mb-2 max-w-lg">
+        <h3 class="mt-0">Takt der Live-Ansichten</h3>
+        <div class="form-grid">
+            <div class="field">
+                <label for="heartbeat_ms">Herzschlag der Schüleransicht (ms)</label>
+                <input class="input w-narrow" type="number" id="heartbeat_ms" name="heartbeat_ms" required
+                       min="<?= e((string) $intervalMin) ?>" max="<?= e((string) $intervalMax) ?>" step="100"
+                       value="<?= e((string) $heartbeatMs) ?>"<?= $disabled ?> data-default="2000">
+                <div class="hint">Wie oft ein Gerät dem Server meldet, dass es da ist (Standard 2000). Kleiner = schneller sichtbar, mehr Last.</div>
+            </div>
+            <div class="field">
+                <label for="pult_poll_ms">Abruf im Pult (ms)</label>
+                <input class="input w-narrow" type="number" id="pult_poll_ms" name="pult_poll_ms" required
+                       min="<?= e((string) $intervalMin) ?>" max="<?= e((string) $intervalMax) ?>" step="100"
+                       value="<?= e((string) $pultPollMs) ?>"<?= $disabled ?> data-default="1500">
+                <div class="hint">Wie oft das Pult den Stand der Klasse abfragt (Standard 1500).</div>
+            </div>
+        </div>
+        <?php if ($canEdit): ?>
+            <button class="btn btn-sm btn-ghost" type="button" data-reset-intervals>Auf Standard zurücksetzen</button>
+        <?php endif; ?>
+    </div>
+
+    <?php if ($isAdmin): ?>
+        <div class="card card-pad mb-2 max-w-lg">
             <h3 class="mt-0">Seitenpasswort</h3>
             <p class="text-sm text-soft">
-                Zusätzlicher Zugangscode für die gesamte Anwendung (z. B. bei Betrieb im offenen Schulnetz) —
-                unabhängig vom persönlichen Login. Nur Administrator:innen können ihn ändern.
+                Optionaler Vorhang vor der gesamten Anwendung: Wer die Adresse kennt, braucht trotzdem erst dieses gemeinsame Passwort.
+                Nur Administrator:innen können es ändern.
             </p>
-            <?php if ($isAdmin): ?>
-                <form method="post" action="<?= e($ctx->url('/admin/einstellungen')) ?>">
-                    <?= $csrf->field() ?>
-                    <input type="hidden" name="school_name" value="<?= e($schoolName) ?>">
-                    <input type="hidden" name="app_name" value="<?= e($appName) ?>">
-                    <input type="hidden" name="public_base_url" value="<?= e($publicBaseUrl) ?>">
-                    <input type="hidden" name="student_self_service" value="<?= $studentSelfService ? '1' : '0' ?>">
-                    <div class="field">
-                        <label for="site_password">Neues Seitenpasswort setzen</label>
-                        <input class="input" type="password" id="site_password" name="site_password"
-                               minlength="<?= e((string) $minPasswordLength) ?>" autocomplete="new-password">
-                        <div class="hint">
-                            Leer lassen, um das bestehende Passwort zu behalten.
-                            <?= $sitePasswordSet ? 'Es ist aktuell eines gesetzt.' : 'Es ist aktuell keines gesetzt.' ?>
-                        </div>
-                    </div>
-                    <label class="checkbox-row">
-                        <input type="checkbox" name="site_password_enabled" value="1" <?= $sitePasswordEnabled ? 'checked' : '' ?>>
-                        <span>Seitenpasswort-Schutz aktiv</span>
-                    </label>
-                    <button class="btn btn-primary btn-sm mt-2" type="submit">Speichern</button>
-                </form>
-            <?php else: ?>
-                <span class="badge <?= $sitePasswordEnabled ? 'badge-success' : '' ?>">
-                    <?= $sitePasswordEnabled ? 'Aktiv' : 'Nicht aktiv' ?>
-                </span>
-                <div class="hint">Nur Administrator:innen können das Seitenpasswort ändern.</div>
-            <?php endif; ?>
+            <div class="field">
+                <label for="site_password"><?= $sitePasswordSet ? 'Neues Seitenpasswort (leer = unverändert)' : 'Seitenpasswort festlegen' ?></label>
+                <input class="input" type="password" id="site_password" name="site_password" autocomplete="new-password"
+                       minlength="<?= e((string) $minPasswordLength) ?>">
+                <div class="hint">Mindestens <?= e((string) $minPasswordLength) ?> Zeichen.</div>
+            </div>
+            <label class="checkbox-row">
+                <input type="checkbox" name="site_password_enabled" value="1"<?= $sitePasswordEnabled ? ' checked' : '' ?>>
+                <span>Seitenpasswort aktivieren</span>
+            </label>
         </div>
-    </div>
+    <?php endif; ?>
+
+    <?php if ($canEdit): ?>
+        <div class="cluster mb-2">
+            <button class="btn btn-primary" type="submit">Einstellungen speichern</button>
+        </div>
+    <?php endif; ?>
+</form>
+
+<?php if ($canEdit): ?>
+    <form class="card card-pad max-w-lg" method="post" action="<?= e($ctx->url('/admin/einstellungen/testmail')) ?>">
+        <?= $csrf->field() ?>
+        <h3 class="mt-0">Test-Mail</h3>
+        <p class="text-sm text-soft">Prüft, ob der E-Mail-Versand funktioniert.</p>
+        <div class="field">
+            <label for="test_email">Empfängeradresse</label>
+            <input class="input" type="email" id="test_email" name="test_email" required value="<?= e($testMailDefault) ?>"<?= $mailConfigured ? '' : ' disabled' ?>>
+        </div>
+        <button class="btn btn-ghost" type="submit"<?= $mailConfigured ? '' : ' disabled title="Kein Mailserver eingerichtet"' ?>>Test-Mail senden</button>
+    </form>
 <?php endif; ?>
-<?= block_close() ?>
-<?php endforeach; ?>
