@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 /**
- * Safe Exam Browser: .seb-Datei (unverschlüsselte XML-plist) und Config Key.
+ * Safe Exam Browser: .seb-Datei (XML-plist, auf Wunsch verschlüsselt über SebEncryption) und Config Key.
  *
  * Config Key nach https://safeexambrowser.org/developer/seb-config-key.html :
  *  1. originatorVersion und leere Dictionaries entfernen,
@@ -19,7 +19,7 @@ namespace App\Services;
  * muss dem Wert von X-SafeExamBrowser-ConfigKeyHash entsprechen. Dieselbe Formel gilt mit dem
  * Browser Exam Key (BEK) für X-SafeExamBrowser-RequestHash (siehe SebGuard).
  *
- * Wichtig: Der Config Key lässt sich aus der (unverschlüsselten) .seb-Datei berechnen. Wer die
+ * Wichtig: Der Config Key lässt sich aus der .seb-Datei berechnen (bei einer verschlüsselten Datei mit deren Passwort). Wer die
  * Datei hat, kann den Header auch ohne SEB erzeugen. Der Config Key schützt daher nur gegen
  * Versehen; echte Prüfung verlangt zusätzlich den BEK.
  *

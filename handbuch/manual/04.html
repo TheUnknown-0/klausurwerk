@@ -173,6 +173,7 @@ for (int i = 0; i &lt; feld.length; i++) { ... }
     <li>Prüfen Sie unter <span class="nav">Verwaltung › Einstellungen</span>, dass die <b>Öffentliche Adresse</b> stimmt. Sonst verwendet die Datei die Adresse Ihres Browsers.</li>
     <li>Auf der Klausurseite <span class="ui">SEB-Datei</span> öffnen. Dort stehen <b>Start-Adresse</b> (<code>…/klausur/ID</code>) und <b>Beenden-Adresse</b> (<code>…/seb-beenden</code>).</li>
     <li>Optional ein <b>Passwort zum Beenden von SEB</b> setzen. Es wird nur als SHA-256-Hash in der Datei abgelegt. Notieren Sie es, es lässt sich nicht wiederherstellen. Leer heißt: SEB lässt sich ohne Passwort beenden.</li>
+    <li>Optional ein <b>Passwort für die Datei</b> setzen. Dann ist die .seb-Datei verschlüsselt (AES-256, Format von SEB). SEB fragt beim Öffnen nach dem Passwort, ohne Passwort lassen sich die Einstellungen weder lesen noch ändern. Klausurwerk speichert dieses Passwort nicht. Probieren Sie eine verschlüsselte Datei vorher mit Ihrer SEB-Version aus. Leer heißt: unverschlüsselte Datei, die SEB ohne Rückfrage öffnet.</li>
     <li><span class="ui p">.seb-Datei herunterladen</span>. Verteilen Sie die Datei an die Schülerrechner (oder öffnen Sie sie dort); SEB startet im Kiosk-Modus und lädt die Klausur.</li>
     <li>In den Klausureinstellungen den Schalter <b>Nur mit Safe Exam Browser</b> aktivieren. Der Server prüft dann bei jeder Anfrage den Config-Key-Hash und lehnt alles andere ab (Ereignis „SEB fehlt“ im Pult).</li>
   </ol>

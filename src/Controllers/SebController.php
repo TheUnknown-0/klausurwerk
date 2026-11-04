@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Services\ExamAccess;
 use App\Services\SebConfig;
+use App\Services\SebEncryption;
 
 /** SEB-Konfigurationsdatei (.seb) für eine Klausur erzeugen. */
 final class SebController extends Controller
@@ -37,8 +38,9 @@ final class SebController extends Controller
         $password = (string) ($in['quit_password'] ?? '');
         $manualKey = strtolower(trim((string) ($in['manual_key'] ?? '')));
         $bek = strtolower(trim((string) ($in['browser_exam_key'] ?? '')));
+        $settingsPassword = (string) ($in['settings_password'] ?? '');
 
-        if (mb_strlen($password) > 100) {
+        if (mb_strlen($password) > 100 || mb_strlen($settingsPassword) > 100) {
             $this->flash('error', 'Das Passwort ist zu lang (höchstens 100 Zeichen).');
             $this->redirect($this->ctx->url('/klausuren/' . $id . '/seb'));
         }
@@ -58,14 +60,17 @@ final class SebController extends Controller
             [$key, $password !== '' ? hash('sha256', $password) : null, $bek !== '' ? $bek : null, $id],
         );
         $this->ctx->exams->forget($id);
-        $this->ctx->audit->log('seb_datei', 'info', 'SEB-Datei für Klausur #' . $id . ' erzeugt' . ($bek !== '' ? ' (mit Browser Exam Key).' : ' (ohne Browser Exam Key).'));
+        $this->ctx->audit->log('seb_datei', 'info', 'SEB-Datei für Klausur #' . $id . ' erzeugt'
+            . ($bek !== '' ? ' (mit Browser Exam Key' : ' (ohne Browser Exam Key')
+            . ($settingsPassword !== '' ? ', verschlüsselt).' : ').'));
+        $body = $settingsPassword !== '' ? SebEncryption::encrypt($built['xml'], $settingsPassword) : $built['xml'];
 
         $name = 'klausur-' . $id . '.seb';
         header('Content-Type: application/x-seb');
         header('Content-Disposition: attachment; filename="' . $name . '"');
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: no-store');
-        echo $built['xml'];
+        echo $body;
         exit;
     }
 }

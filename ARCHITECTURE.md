@@ -91,7 +91,7 @@ Zwei Ebenen, nie vermischen:
 
 ## Safe Exam Browser
 
-`Services\SebGuard` prüft bei `require_seb` den Config Key (`X-SafeExamBrowser-ConfigKeyHash`). Der Config Key folgt aus der `.seb`-Datei und schützt daher nur gegen Versehen. Ist zusätzlich der Browser Exam Key hinterlegt (`exams.seb_browser_exam_key`), wird auch `X-SafeExamBrowser-RequestHash` geprüft; das ist der eigentliche Echtheitsnachweis.
+`Services\SebGuard` prüft bei `require_seb` den Config Key (`X-SafeExamBrowser-ConfigKeyHash`). Der Config Key folgt aus der `.seb`-Datei und schützt daher nur gegen Versehen. Ist zusätzlich der Browser Exam Key hinterlegt (`exams.seb_browser_exam_key`), wird auch `X-SafeExamBrowser-RequestHash` geprüft; das ist der eigentliche Echtheitsnachweis. Optional verschlüsselt `Services\SebEncryption` die Datei mit einem Dateipasswort (Präfix `pswd`, RNCryptor v2 wie SEB für Windows: PBKDF2-HMAC-SHA1 mit 10000 Durchläufen, AES-256-CBC, HMAC-SHA256 über den ganzen Block); das Passwort wird nicht gespeichert.
 
 ## Zustände einer Teilnahme
 

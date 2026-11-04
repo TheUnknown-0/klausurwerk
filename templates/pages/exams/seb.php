@@ -28,6 +28,11 @@ $id = (int) $exam['id'];
         <input class="input" type="text" id="quit_password" name="quit_password" maxlength="100" autocomplete="off" aria-describedby="qp-h">
         <div class="hint" id="qp-h">Wird nur als SHA-256-Hash in der Datei abgelegt. Leer lassen: SEB lässt sich dann ohne Passwort beenden. Notiere das Passwort, es lässt sich nicht wiederherstellen.</div>
     </div>
+    <div class="field">
+        <label for="settings_password">Passwort für die Datei (optional)</label>
+        <input class="input" type="text" id="settings_password" name="settings_password" maxlength="100" autocomplete="off" aria-describedby="sp-h">
+        <div class="hint" id="sp-h">Verschlüsselt die .seb-Datei (AES-256). SEB fragt beim Öffnen nach diesem Passwort, ohne Passwort lassen sich die Einstellungen nicht lesen oder ändern. Leer lassen: unverschlüsselte Datei, die SEB ohne Rückfrage öffnet. Das Passwort wird nicht gespeichert. Probiere eine verschlüsselte Datei vor der Klausur mit eurer SEB-Version aus.</div>
+    </div>
     <details class="field">
         <summary>Erweitert: Config Key manuell festlegen</summary>
         <label for="manual_key">Config Key (64 Zeichen, Hex)</label>
