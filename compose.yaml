@@ -1,0 +1,146 @@
+services:
+  db:
+    image: mariadb:11.4
+    container_name: klausurwerk-db
+    # Ohne Restart-Policy startet die Datenbank nach einem Host-Neustart nicht
+    # wieder mit, die App liefe dann ins Leere.
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Berlin
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MYSQL_DATABASE: ${DB_NAME:-klausurwerk}
+      MYSQL_USER: ${DB_USER:-klausurwerk}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Führt Java-Code (und versteckte Tests) abgeschottet aus. Hängt nur am
+  # internen Netz "runner_net" ohne Internetzugang; von außen nicht erreichbar.
+  runner:
+    build:
+      context: ./runner
+      pull: true
+    image: ${RUNNER_IMAGE:-klausurwerk-runner}
+    container_name: klausurwerk-runner
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Berlin
+      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      RUNNER_MAX_PARALLEL: ${RUNNER_MAX_PARALLEL:-4}
+      RUNNER_MAX_SECONDS: ${RUNNER_MAX_SECONDS:-10}
+      RUNNER_MAX_MEMORY_MB: ${RUNNER_MAX_MEMORY_MB:-256}
+    networks:
+      - runner_net
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+      - /work:size=512m,mode=1777
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 512
+    mem_limit: ${RUNNER_MEM_LIMIT:-2g}
+    cpus: ${RUNNER_CPUS:-2}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=3).read()==b'ok' else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  app:
+    build:
+      context: .
+      # Basis-Image bei jedem Build frisch holen, sonst kommen
+      # Sicherheits-Releases von PHP nie auf dem Server an.
+      pull: true
+    image: ${APP_IMAGE:-klausurwerk-app}
+    container_name: klausurwerk-app
+    ports:
+      - "${APP_PORT:-9030}:80"
+    environment:
+      TZ: Europe/Berlin
+      DB_HOST: db
+      DB_USER: ${DB_USER:-klausurwerk}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME:-klausurwerk}
+      APP_ENV: ${APP_ENV:-production}
+      BASE_URL: ${BASE_URL:-/}
+      DB_WAIT_TIMEOUT: ${DB_WAIT_TIMEOUT:-120}
+      # Nur diese Adressen dürfen X-Forwarded-For setzen. Leer = niemand.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+      RUNNER_URL: http://runner:8080
+      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      # E-Mail-Versand (Anmeldecodes). Leer = Versand deaktiviert.
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASS: ${MAIL_PASS:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Klausurwerk}
+    volumes:
+      - uploads:/var/www/html/uploads
+    # "default" muss ausdrücklich dabeistehen: sobald ein Service eigene
+    # Netze nennt, fällt das implizite Standardnetz weg.
+    networks:
+      - default
+      - runner_net
+      - proxy_network
+    depends_on:
+      db:
+        condition: service_healthy
+      runner:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/healthz') === 'ok' ? 0 : 1);"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: klausurwerk-phpmyadmin
+    profiles: ["tools"]
+    restart: unless-stopped
+    ports:
+      - "${PMA_PORT:-8092}:80"
+    environment:
+      PMA_HOST: db
+    depends_on:
+      - db
+
+networks:
+  # Wird vom Reverse-Proxy bereitgestellt und liegt außerhalb dieses
+  # Projekts; Compose legt es nicht an, es muss vorher existieren.
+  proxy_network:
+    external: true
+  # Intern: kein Weg ins Internet für den Runner.
+  runner_net:
+    internal: true
+
+volumes:
+  db_data:
+  uploads:

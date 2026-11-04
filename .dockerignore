@@ -1,0 +1,12 @@
+.git
+.env
+.idea
+.vscode
+uploads/*
+frontend/node_modules
+public/assets/build
+public/assets/vendor
+tests/e2e/node_modules
+.phpunit.cache
+tools/phpunit.phar
+*.log
