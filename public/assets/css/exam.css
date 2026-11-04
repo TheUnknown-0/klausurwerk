@@ -81,7 +81,7 @@ html.exam-root, .exam-body { height: 100%; }
   padding: 10px 22px; background: var(--surface); border-bottom: 1px solid var(--border-strong);
   box-shadow: 0 3px 0 -2px var(--rule-line);
 }
-.exam-title { margin: 0; flex: 1 1 200px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.3rem; font-weight: 600; letter-spacing: -.005em; }
+.exam-title { margin: 0; flex: 1 1 200px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.3rem; font-weight: 600; letter-spacing: -.005em; line-height: 1.45; padding-top: .1em; }
 .exam-clock {
   display: flex; flex-direction: column; align-items: center; line-height: 1; min-width: 140px; padding: 2px 22px;
   border-left: 1px solid var(--rule-line); border-right: 1px solid var(--rule-line);
