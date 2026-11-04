@@ -95,10 +95,12 @@ Teilnahme nicht `waiting`); vorher 409. Vorschau (Lehrkraft): immer.
   ],
   "answers": { "102": { "content": { … }, "version": 7, "flagged": false } },
   "materials": [ { "id": 5, "name": "Aufgabenblatt.pdf", "url": "/klausur/12/material/5", "is_aid": true, "mime": "application/pdf" } ],
+  "operators": [ { "name": "erläutern", "afb": "II", "description": "…" } ],
   "last_seq": 340
 }
 ```
 `config` ist `TaskType::studentConfig()` (gemischt, mit gerenderten `text_html`-Feldern für Optionen).
+`operators` nur, wenn `settings.aids.operators` aktiv ist (sonst leere Liste).
 
 ### 1.4 `POST /api/klausur/{id}/puls` (Herzschlag, alle 2 s)
 
