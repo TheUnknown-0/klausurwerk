@@ -1,0 +1,725 @@
+{
+ "comment": "Gemeinsame Testfälle für world.js, robo.py und Robo.java. Codes: v l r a b s. Erzeugt mit frontend/.tmp/gen-vectors.mjs",
+ "cases": [
+  {
+   "name": "Geradeaus",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "vvv",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 5,
+     "rows": 3,
+     "robo": {
+      "x": 3,
+      "y": 0,
+      "dir": "E"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [],
+     "targets": [],
+     "basket": 0
+    }
+   }
+  },
+  {
+   "name": "Drehen im Kreis",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "rrrr",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 5,
+     "rows": 3,
+     "robo": {
+      "x": 0,
+      "y": 0,
+      "dir": "E"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [],
+     "targets": [],
+     "basket": 0
+    }
+   }
+  },
+  {
+   "name": "Links drehen",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "l",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 5,
+     "rows": 3,
+     "robo": {
+      "x": 0,
+      "y": 0,
+      "dir": "N"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [],
+     "targets": [],
+     "basket": 0
+    }
+   }
+  },
+  {
+   "name": "Bogen",
+   "world": {
+    "cols": 5,
+    "rows": 5,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "vrvrvlv",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 5,
+     "rows": 5,
+     "robo": {
+      "x": 0,
+      "y": 2,
+      "dir": "S"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [],
+     "targets": [],
+     "basket": 0
+    }
+   }
+  },
+  {
+   "name": "Wand",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [
+     [
+      2,
+      0
+     ]
+    ],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "vv",
+   "expect": {
+    "ok": false,
+    "index": 1,
+    "message": "Robo ist gegen eine Wand gelaufen."
+   }
+  },
+  {
+   "name": "Rand",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "N"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "v",
+   "expect": {
+    "ok": false,
+    "index": 0,
+    "message": "Robo ist gegen den Rand der Welt gelaufen."
+   }
+  },
+  {
+   "name": "Kiste im Weg",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [
+     [
+      1,
+      0
+     ]
+    ],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "v",
+   "expect": {
+    "ok": false,
+    "index": 0,
+    "message": "Robo ist gegen eine Kiste gelaufen. Mit schieben() kann er sie wegschieben."
+   }
+  },
+  {
+   "name": "Kiste schieben",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [
+     [
+      1,
+      0
+     ]
+    ],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "ss",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 5,
+     "rows": 3,
+     "robo": {
+      "x": 2,
+      "y": 0,
+      "dir": "E"
+     },
+     "walls": [],
+     "boxes": [
+      [
+       3,
+       0
+      ]
+     ],
+     "screws": [],
+     "targets": [],
+     "basket": 0
+    }
+   }
+  },
+  {
+   "name": "Kiste blockiert durch Kiste",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [
+     [
+      1,
+      0
+     ],
+     [
+      2,
+      0
+     ]
+    ],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "s",
+   "expect": {
+    "ok": false,
+    "index": 0,
+    "message": "Die Kiste lässt sich nicht schieben, dahinter ist kein freies Feld."
+   }
+  },
+  {
+   "name": "Kiste vor Wand",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [
+     [
+      2,
+      0
+     ]
+    ],
+    "boxes": [
+     [
+      1,
+      0
+     ]
+    ],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "s",
+   "expect": {
+    "ok": false,
+    "index": 0,
+    "message": "Die Kiste lässt sich nicht schieben, dahinter ist kein freies Feld."
+   }
+  },
+  {
+   "name": "Kiste am Rand",
+   "world": {
+    "cols": 2,
+    "rows": 2,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [
+     [
+      1,
+      0
+     ]
+    ],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "s",
+   "expect": {
+    "ok": false,
+    "index": 0,
+    "message": "Die Kiste lässt sich nicht schieben, dahinter ist kein freies Feld."
+   }
+  },
+  {
+   "name": "Schieben ohne Kiste",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "s",
+   "expect": {
+    "ok": false,
+    "index": 0,
+    "message": "Vor Robo steht keine Kiste, die er schieben könnte."
+   }
+  },
+  {
+   "name": "Schrauben einsammeln",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [
+     {
+      "x": 1,
+      "y": 0,
+      "count": 2
+     }
+    ],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "vaa",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 5,
+     "rows": 3,
+     "robo": {
+      "x": 1,
+      "y": 0,
+      "dir": "E"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [],
+     "targets": [],
+     "basket": 2
+    }
+   }
+  },
+  {
+   "name": "Zu viele Schrauben",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [
+     {
+      "x": 1,
+      "y": 0,
+      "count": 2
+     }
+    ],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "vaaa",
+   "expect": {
+    "ok": false,
+    "index": 3,
+    "message": "Hier liegt keine Schraube, die Robo aufheben kann."
+   }
+  },
+  {
+   "name": "Ablegen",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [
+     {
+      "x": 0,
+      "y": 0,
+      "count": 1
+     }
+    ],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "ab",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 5,
+     "rows": 3,
+     "robo": {
+      "x": 0,
+      "y": 0,
+      "dir": "E"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [
+      {
+       "x": 0,
+       "y": 0,
+       "count": 1
+      }
+     ],
+     "targets": [],
+     "basket": 0
+    }
+   }
+  },
+  {
+   "name": "Ablegen ohne Korb",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "b",
+   "expect": {
+    "ok": false,
+    "index": 0,
+    "message": "Der Korb ist leer, Robo hat nichts zum Ablegen."
+   }
+  },
+  {
+   "name": "Mehrfach ablegen",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [
+     {
+      "x": 0,
+      "y": 0,
+      "count": 1
+     }
+    ],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "abb",
+   "expect": {
+    "ok": false,
+    "index": 2,
+    "message": "Der Korb ist leer, Robo hat nichts zum Ablegen."
+   }
+  },
+  {
+   "name": "Schrauben unterwegs",
+   "world": {
+    "cols": 5,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [
+     {
+      "x": 1,
+      "y": 0,
+      "count": 1
+     },
+     {
+      "x": 2,
+      "y": 0,
+      "count": 3
+     }
+    ],
+    "targets": [
+     [
+      4,
+      0
+     ]
+    ],
+    "basket": 0
+   },
+   "codes": "vavaavvb",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 5,
+     "rows": 3,
+     "robo": {
+      "x": 4,
+      "y": 0,
+      "dir": "E"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [
+      {
+       "x": 2,
+       "y": 0,
+       "count": 1
+      },
+      {
+       "x": 4,
+       "y": 0,
+       "count": 1
+      }
+     ],
+     "targets": [
+      [
+       4,
+       0
+      ]
+     ],
+     "basket": 2
+    }
+   }
+  },
+  {
+   "name": "Korb vorgegeben",
+   "world": {
+    "cols": 3,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 2
+   },
+   "codes": "bvb",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 3,
+     "rows": 3,
+     "robo": {
+      "x": 1,
+      "y": 0,
+      "dir": "E"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [
+      {
+       "x": 0,
+       "y": 0,
+       "count": 1
+      },
+      {
+       "x": 1,
+       "y": 0,
+       "count": 1
+      }
+     ],
+     "targets": [],
+     "basket": 0
+    }
+   }
+  },
+  {
+   "name": "Limit",
+   "world": {
+    "cols": 3,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll",
+   "expect": {
+    "ok": false,
+    "index": 10000,
+    "message": "Robo hat mehr als 10000 Befehle ausgeführt. Läuft eine Endlosschleife?"
+   }
+  },
+  {
+   "name": "Genau am Limit",
+   "world": {
+    "cols": 3,
+    "rows": 3,
+    "robo": {
+     "x": 0,
+     "y": 0,
+     "dir": "E"
+    },
+    "walls": [],
+    "boxes": [],
+    "screws": [],
+    "targets": [],
+    "basket": 0
+   },
+   "codes": "llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll",
+   "expect": {
+    "ok": true,
+    "world": {
+     "cols": 3,
+     "rows": 3,
+     "robo": {
+      "x": 0,
+      "y": 0,
+      "dir": "E"
+     },
+     "walls": [],
+     "boxes": [],
+     "screws": [],
+     "targets": [],
+     "basket": 0
+    }
+   }
+  }
+ ]
+}

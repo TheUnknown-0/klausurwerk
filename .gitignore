@@ -14,3 +14,5 @@ tests/e2e/node_modules/
 tests/e2e/test-results/
 tests/e2e/playwright-report/
 .tmp-build/
+tests/e2e/shots/
+tests/e2e/__pycache__/

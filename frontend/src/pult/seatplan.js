@@ -147,7 +147,7 @@ export function createSeatPlan(store, handlers) {
             return;
         }
         grid.className = 'pult-grid is-room';
-        grid.style.gridTemplateColumns = `repeat(${room.cols}, minmax(150px, 1fr))`;
+        grid.style.gridTemplateColumns = `repeat(${room.cols}, minmax(132px, 1fr))`;
         for (let row = 0; row < room.rows; row++) {
             for (let col = 0; col < room.cols; col++) {
                 const cell = h('div', { class: 'pult-cell', dataset: { col, row }, 'aria-label': `Platz Spalte ${col + 1}, Reihe ${row + 1}` });

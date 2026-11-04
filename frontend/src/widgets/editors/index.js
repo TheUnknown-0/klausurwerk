@@ -8,3 +8,4 @@ import './matching.js';
 import './ordering.js';
 import './gaps.js';
 import './code.js';
+import './diagrams/index.js';

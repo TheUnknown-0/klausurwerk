@@ -180,7 +180,7 @@ export class Autosave {
             }
             const batch = this.outbox.prepareBatch(MAX_BATCH);
             this.setStatus({ kind: 'saving' });
-            const res = await this.post(`${this.apiBase}/speichern`, { items: batch.items, contents: batch.contents }, { timeoutMs: 20000 });
+            const res = await this.post(`${this.apiBase}/speichern`, { items: batch.items, contents: batch.contents, client_now_ms: Date.now() }, { timeoutMs: 20000 });
             if (this.destroyed) {
                 return false;
             }
@@ -255,7 +255,7 @@ export class Autosave {
             return;
         }
         const batch = this.outbox.prepareBatch(MAX_BATCH);
-        const body = { items: batch.items, contents: batch.contents };
+        const body = { items: batch.items, contents: batch.contents, client_now_ms: Date.now() };
         try {
             if (JSON.stringify(body).length < 60000) {
                 this.post(`${this.apiBase}/speichern`, body, { keepalive: true, timeoutMs: 5000 });

@@ -523,7 +523,7 @@ export class ExamApp {
             console.warn('Laufzeit nicht verfügbar', err);
             runtime = { canRun: () => false, run() { throw new Error('Ausführung ist nicht verfügbar.'); } };
         }
-        this.env = { examId: this.boot.exam_id, settings: this.settings, runtime };
+        this.env = { examId: this.boot.exam_id, examMode: this.boot.mode, settings: this.settings, runtime };
 
         this.monitor = new Monitor({
             examId: this.boot.exam_id,

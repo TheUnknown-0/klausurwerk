@@ -248,7 +248,7 @@ html.exam-root, .exam-body { height: 100%; }
   font-family: var(--font-mono); font-size: max(14px, var(--exam-fs)); line-height: 2.1;
   background: var(--editor-bg); color: var(--editor-ink); padding: 14px 16px; border-radius: var(--radius); overflow: auto; tab-size: 4;
 }
-.w-gap { font: inherit; padding: 2px 6px; border-radius: 6px; border: 2px solid var(--border-strong); background: var(--surface); color: var(--ink); vertical-align: baseline; }
+.w-gap { display: inline-block; width: auto; min-height: 0; font: inherit; padding: 2px 6px; border-radius: 6px; border: 2px solid var(--border-strong); background: var(--surface); color: var(--ink); vertical-align: baseline; }
 .w-gap-input { font-family: var(--font-mono); text-align: center; box-sizing: content-box; }
 .w-gaps.is-code .w-gap { background: rgba(255, 255, 255, .08); color: var(--editor-ink); border-color: var(--editor-faint); }
 .w-gap:focus { border-color: var(--accent); }

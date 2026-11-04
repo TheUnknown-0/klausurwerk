@@ -188,28 +188,7 @@ final class RunController extends Controller
         if (!class_exists(RunnerClient::class)) {
             throw new HttpException(503, 'Die Code-Ausführung ist nicht eingerichtet.');
         }
-        $config = (array) ($this->ctx->config['runner'] ?? []);
-        if (method_exists(RunnerClient::class, 'fromConfig')) {
-            return RunnerClient::fromConfig($config);
-        }
-
-        // Konstruktorargumente nach Namen und Typ füllen (Runner-Modul legt die Signatur fest).
-        $ctor = (new \ReflectionClass(RunnerClient::class))->getConstructor();
-        $args = [];
-        foreach ($ctor?->getParameters() ?? [] as $param) {
-            $name = strtolower($param->getName());
-            $type = $param->getType() instanceof \ReflectionNamedType ? $param->getType()->getName() : '';
-            $args[] = match (true) {
-                $type === 'array' => $config,
-                str_contains($name, 'url') => $config['url'] ?? 'http://runner:8080',
-                str_contains($name, 'token') => $config['token'] ?? '',
-                str_contains($name, 'timeout') => $config['timeout_seconds'] ?? 20,
-                $param->isDefaultValueAvailable() => $param->getDefaultValue(),
-                default => null,
-            };
-        }
-
-        return new RunnerClient(...$args);
+        return new RunnerClient((array) ($this->ctx->config['runner'] ?? []));
     }
 
     /**

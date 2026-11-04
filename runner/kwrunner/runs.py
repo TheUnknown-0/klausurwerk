@@ -8,6 +8,7 @@ import time
 
 from . import javatools
 from .config import Config
+from .modules._guifilter import GuiView
 from .sandbox import Limits, Proc, RunnerError, clean_env, make_private_dir, remove_tree
 from .workspace import clamp_limits, validate_files, write_files
 
@@ -21,6 +22,7 @@ class Run:
         self.state = "queued"
         self.proc: Proc | None = None
         self.own_chunks: list[dict] = []
+        self.gui_view: GuiView | None = None  # nur bei gui: true (kw.gui, siehe modules/_guifilter.py)
         self.compile_errors: list[dict] = []
         self.compile_ok: bool | None = None
         self.exit_code: int | None = None
@@ -103,7 +105,8 @@ class RunManager:
             run = Run(run_id)
             self.runs[run_id] = run
         job = dict(language=language, mode=mode, files=files, main_file=main_file, home=home, cls=cls,
-                   stdin=stdin if stdin else None, seconds=seconds, memory=memory)
+                   stdin=stdin if stdin else None, seconds=seconds, memory=memory,
+                   gui=bool(body.get("gui")) and language == "java")
         threading.Thread(target=self._execute, args=(run, job), daemon=True).start()
         return run_id
 
@@ -153,7 +156,7 @@ class RunManager:
         # Mit vorgegebener Eingabe wartet nichts auf Menschen: kurze Wandzeit.
         wall = cfg.interactive_seconds if interactive else seconds + 5
         return Limits(cpu_seconds=seconds, wall_seconds=wall, rss_mb=javatools.rss_limit_mb(job["memory"]),
-                      max_output=cfg.max_output_bytes, max_threads=cfg.max_threads,
+                      max_output=cfg.max_output_bytes * (4 if job.get("gui") else 1), max_threads=cfg.max_threads,
                       max_disk=cfg.max_disk_bytes, fsize=cfg.fsize_bytes)
 
     def _run_java(self, run: Run, job: dict, work: str, home_dir: str, tmp: str) -> None:
@@ -195,6 +198,8 @@ class RunManager:
                     stdin_data=None if interactive else stdin.encode("utf-8", "replace"),
                     interactive=interactive, watch_dirs=(work, home_dir))
         run.proc = proc
+        if job.get("gui"):
+            run.gui_view = GuiView()
         proc.start()
         while not proc.wait(0.25):
             if run.cancelled:
@@ -213,6 +218,29 @@ class RunManager:
         offset = max(0, offset)
         finished = run.finished  # zuerst lesen: ist es True, ist die Ausgabe vollständig
         proc = run.proc
+        view = run.gui_view
+        if view is not None and proc is not None:
+            # GUI-Lauf: Frames aus der Ausgabe ziehen (modules/_guifilter.py), ein gemeinsamer Offset.
+            with run.lock:
+                with proc.lock:
+                    raw = list(proc.chunks)
+                view.update(raw)
+                if finished:
+                    view.close(run.own_chunks)
+                output, frames, total = view.slice(offset)
+            return {
+                "output": output,
+                "offset": total,
+                "finished": finished,
+                "status": run.state,
+                "exit_code": run.exit_code if finished else None,
+                "timed_out": run.timed_out if finished else False,
+                "killed_reason": run.reason if finished else None,
+                "compile_ok": run.compile_ok,
+                "compile_errors": run.compile_errors,
+                "message": run.message,
+                "gui_frames": frames,
+            }
         total = 0
         chunks: list[dict] = []
         if proc is not None:

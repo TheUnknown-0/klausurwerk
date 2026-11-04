@@ -39,6 +39,10 @@ if ($path !== '/' && str_ends_with($path, '/')) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+// HEAD wie GET behandeln (Monitoring, Link-Prüfer); Apache verwirft den Körper.
+if ($method === 'HEAD') {
+    $method = 'GET';
+}
 $isApi = str_contains($path, '/api/')
     || str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');
 

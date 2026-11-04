@@ -321,3 +321,36 @@ Basis `http://runner:8080`, Header `X-Runner-Token: <RUNNER_TOKEN>`.
 | POST | `/robo` | Robo-Programm in Testwelt ausführen (Stufe 4): `{ "language", "files", "main_file", "world", "goal" }` → `{ "ok", "trace": [...], "final_world": {...}, "message" }` |
 
 Läufe ohne Abruf für 60 s werden beendet und verworfen.
+
+---
+
+## 6. Ergänzungen aus der Umsetzung (verbindlich)
+
+**Schüleransicht**
+- `POST /bereit` nimmt optional `{ "details": { fullscreen_ok, sound_ok, latency_ms, seb, screen, window, dpr } }` (Technik-Check) und speichert es im Ereignis `ready`.
+- `POST /puls` liefert zusätzlich `state_since_ms` und `submitted_at_ms`.
+- `POST /speichern` nimmt `client_now_ms` (Date.now() des Clients). Der Server berechnet daraus den Offset für Offline-Schritte. Die Antwort enthält zusätzlich `rejected` (Liste verworfener Schritte mit Grund).
+- In der Vorschau (`preview: true`) ruft die Schüleransicht nur `/inhalt` und `/api/ausfuehren` auf.
+- `ctx.env` der Widgets enthält `examMode` (`exam` | `practice` | `probe`). Beispieltests zeigt das Code-Widget nur in `practice` und in der Vorschau.
+- Seiten mit Antwort-Widgets binden `exam.css` und `code.css` ein.
+
+**Pult**
+- Aktion `reject_release` (Freigabe-Anfrage ablehnen, Person bleibt gesperrt).
+- `exam.base_ends_at_ms`, `exam.base_remaining_ms` (Uhr ohne persönliche Zuschläge), `participants[].state_since_ms`, `participants[].ready`, `participants[].username`.
+- `GET /antworten/{pid}?tasks=0` liefert nur die Antworten ohne Aufgabenbaum.
+- Übergang `device_pending` → `submitted` ist erlaubt (Abgabe durch die Lehrkraft).
+- Sitzplätze (`room_positions.col`, `.row`) sind **nullbasiert** (0 bis cols-1 bzw. rows-1).
+
+**Personensuche**
+- `GET /api/benutzer/suche?q=&role=teacher|student&course_id=` (Lehrkräfte/Admins, höchstens 20 Treffer):
+  `{ "success": true, "users": [ { "id", "name", "username", "role", "kurse": [ { "id", "name" } ] } ] }`.
+  `role=teacher` liefert Lehrkräfte und Admins.
+- `GET /api/benutzer/benutzername?vorname=&nachname=` → `{ "success": true, "username": "mia.muster2" }`.
+
+**Runner**
+- `GET /runs/{id}` liefert zusätzlich `status` (`queued`, `compiling`, `running`, `finished`), `compile_ok`, `message`, `killed_reason`. `output[].stream` kennt neben `stdout`/`stderr` auch `system` (Hinweise des Runners, z. B. Zeitlimit). `compile_errors[]` hat zusätzlich `detail`.
+- `POST /runs`: `stdin` null oder leer = interaktiv (harte Wandzeit 120 s), sonst vorgegeben, danach EOF.
+- `POST /tests`: optional `reveal` (bool, Standard false; nur für Lehrkräfte-Ansichten true: dann enthalten Meldungen erwartete Ausgaben) und `limits.total_seconds` (Gesamtbudget, höchstens 300).
+- Erweiterungen: `runner/kwrunner/modules/<name>.py` mit `register(registry, ctx)`; Bibliotheken in `runner/libs/java` (Klassenpfad) und `runner/libs/python` (sys.path).
+
+**SQL-Beispieltests** vergleichen die letzte Ergebnistabelle als Text: Werte je Zeile mit `|` getrennt, `NULL` als `NULL`, keine Kopfzeile.

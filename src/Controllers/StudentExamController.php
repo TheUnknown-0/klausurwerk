@@ -109,7 +109,7 @@ final class StudentExamController extends Controller
             'title' => (string) $exam['title'],
             'boot' => $boot,
             'bundles' => ['exam.js'],
-            'pageStyles' => ['exam.css'],
+            'pageStyles' => ['exam.css', 'code.css', 'diagrams.css'],
         ], 'exam');
     }
 
@@ -233,8 +233,10 @@ final class StudentExamController extends Controller
         $nowMs = ExamClock::nowMs();
         $pid = (int) $p['id'];
         if ($p['ready_at'] === null) {
+            // Ergebnis des Technik-Checks (Probe) bzw. Client-Angaben, bereinigt.
+            $details = $this->cleanDetails($this->jsonInput()['details'] ?? null);
             $this->ctx->db->run('UPDATE participations SET ready_at = ? WHERE id = ?', [ExamClock::toDb($nowMs), $pid]);
-            $this->svc()->events()->log((int) $exam['id'], $pid, 'ready', 'info', [], null, null, $nowMs);
+            $this->svc()->events()->log((int) $exam['id'], $pid, 'ready', 'info', $details, null, null, $nowMs);
         }
         $state = (string) $p['state'];
         // Wer nach dem Start dazukommt, wird mit "Bereit" aktiv (die Uhr läuft seit dem Start).
@@ -340,6 +342,8 @@ final class StudentExamController extends Controller
             'exam_status' => (string) $exam['status'],
             'state' => $state,
             'lock_reason' => $lockReason,
+            'state_since_ms' => $p['state_changed_at'] !== null ? ExamClock::toMs((string) $p['state_changed_at']) : null,
+            'submitted_at_ms' => $p['submitted_at'] !== null ? ExamClock::toMs((string) $p['submitted_at']) : null,
             'clock' => [
                 'started' => $clock['started'],
                 'ends_at_ms' => $clock['ends_at_ms'],

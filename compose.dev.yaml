@@ -1,0 +1,10 @@
+# Entwicklung: Quelltext live in den App-Container einblenden.
+#   docker compose -f compose.yaml -f compose.dev.yaml up -d
+# Frontend danach lokal bauen: cd frontend && node build.mjs (oder --watch).
+services:
+  app:
+    environment:
+      APP_ENV: development
+    volumes:
+      - .:/var/www/html
+      - uploads:/var/www/html/uploads
