@@ -1,0 +1,131 @@
+<div class="aid-doc" lang="de">
+<h2>SQL-Spickzettel (SQLite)</h2>
+<p>Reihenfolge der Klauseln in einer Abfrage: <code>SELECT</code>, <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>ORDER BY</code>, <code>LIMIT</code>. Anweisungen enden mit einem Semikolon. Texte stehen in einfachen Anführungszeichen: <code>'Berlin'</code>.</p>
+
+<h3>SELECT</h3>
+<pre>SELECT spalte1, spalte2 FROM tabelle;
+SELECT * FROM tabelle;
+SELECT DISTINCT stadt FROM schueler;          -- Duplikate entfernen
+SELECT name AS schuelername FROM schueler;    -- Alias
+SELECT name, punkte * 2 AS doppelt FROM test; -- berechnete Spalte
+SELECT vorname || ' ' || nachname FROM person; -- Texte verketten</pre>
+
+<h3>WHERE</h3>
+<table>
+<tr><th>Bedingung</th><th>Beispiel / Bedeutung</th></tr>
+<tr><td><code>=</code>, <code>&lt;&gt;</code> (auch <code>!=</code>), <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code></td><td><code>WHERE alter &gt;= 16</code></td></tr>
+<tr><td><code>AND</code>, <code>OR</code>, <code>NOT</code></td><td><code>WHERE klasse = '10a' AND punkte &gt; 50</code> (AND bindet stärker als OR; im Zweifel Klammern setzen)</td></tr>
+<tr><td><code>BETWEEN a AND b</code></td><td>Grenzen eingeschlossen: <code>WHERE punkte BETWEEN 10 AND 20</code></td></tr>
+<tr><td><code>IN (...)</code></td><td><code>WHERE stadt IN ('Berlin', 'Potsdam')</code></td></tr>
+<tr><td><code>LIKE</code></td><td><code>%</code> = beliebig viele Zeichen, <code>_</code> = genau ein Zeichen: <code>WHERE name LIKE 'M%'</code></td></tr>
+<tr><td><code>IS NULL</code>, <code>IS NOT NULL</code></td><td>fehlende Werte prüfen (nicht mit <code>= NULL</code>!)</td></tr>
+</table>
+
+<h3>ORDER BY und LIMIT</h3>
+<pre>SELECT name, punkte FROM test ORDER BY punkte DESC, name ASC;  -- ASC ist Standard
+SELECT * FROM test ORDER BY punkte DESC LIMIT 3;                -- die 3 besten
+SELECT * FROM test LIMIT 10 OFFSET 20;                          -- ab dem 21. Datensatz</pre>
+
+<h3>Aggregatfunktionen</h3>
+<table>
+<tr><th>Funktion</th><th>Beschreibung</th></tr>
+<tr><td><code>COUNT(*)</code></td><td>Anzahl der Zeilen</td></tr>
+<tr><td><code>COUNT(spalte)</code></td><td>Anzahl der Zeilen, in denen <code>spalte</code> nicht NULL ist</td></tr>
+<tr><td><code>COUNT(DISTINCT spalte)</code></td><td>Anzahl verschiedener Werte</td></tr>
+<tr><td><code>SUM(spalte)</code>, <code>AVG(spalte)</code></td><td>Summe bzw. Mittelwert (NULL-Werte werden ignoriert)</td></tr>
+<tr><td><code>MIN(spalte)</code>, <code>MAX(spalte)</code></td><td>kleinster bzw. größter Wert</td></tr>
+</table>
+
+<h3>GROUP BY und HAVING</h3>
+<p><code>GROUP BY</code> fasst Zeilen mit gleichem Wert zu Gruppen zusammen. <code>WHERE</code> filtert Zeilen <em>vor</em> dem Gruppieren, <code>HAVING</code> filtert Gruppen <em>danach</em> und darf Aggregatfunktionen enthalten.</p>
+<pre>SELECT klasse, COUNT(*) AS anzahl, AVG(punkte) AS schnitt
+FROM schueler
+WHERE aktiv = 1
+GROUP BY klasse
+HAVING COUNT(*) &gt; 5
+ORDER BY schnitt DESC;</pre>
+<p>Alle Spalten im <code>SELECT</code>, die nicht aggregiert sind, gehören in das <code>GROUP BY</code>.</p>
+
+<h3>JOIN-Arten</h3>
+<pre>SELECT s.name, k.bezeichnung
+FROM schueler s
+INNER JOIN kurs k ON s.kurs_id = k.id;</pre>
+<table>
+<tr><th>Art</th><th>Ergebnis</th></tr>
+<tr><td><code>INNER JOIN</code> (oder nur <code>JOIN</code>)</td><td>nur Zeilen, zu denen es in beiden Tabellen einen Partner gibt</td></tr>
+<tr><td><code>LEFT JOIN</code> (<code>LEFT OUTER JOIN</code>)</td><td>alle Zeilen der linken Tabelle; ohne Partner stehen in den Spalten der rechten Tabelle NULL-Werte</td></tr>
+<tr><td><code>RIGHT JOIN</code></td><td>alle Zeilen der rechten Tabelle (in SQLite erst ab Version 3.39; sonst Tabellen vertauschen und <code>LEFT JOIN</code> nutzen)</td></tr>
+<tr><td><code>FULL OUTER JOIN</code></td><td>alle Zeilen beider Tabellen (ebenfalls erst ab SQLite 3.39)</td></tr>
+<tr><td><code>CROSS JOIN</code></td><td>kartesisches Produkt: jede Zeile mit jeder</td></tr>
+</table>
+<p>Ohne Bedingung entsteht ein kartesisches Produkt. Mehrere Tabellen werden mit weiteren <code>JOIN ... ON ...</code> angehängt. Gleiche Spaltennamen werden mit <code>tabelle.spalte</code> bzw. dem Alias unterschieden. Zeilen ohne Partner finden: <code>LEFT JOIN ... WHERE rechts.id IS NULL</code>.</p>
+
+<h3>Unterabfragen</h3>
+<pre>-- als Wert (liefert genau eine Zahl)
+SELECT name FROM schueler WHERE punkte &gt; (SELECT AVG(punkte) FROM schueler);
+
+-- als Liste mit IN
+SELECT name FROM schueler WHERE kurs_id IN (SELECT id FROM kurs WHERE fach = 'Informatik');
+
+-- mit EXISTS
+SELECT k.bezeichnung FROM kurs k
+WHERE EXISTS (SELECT 1 FROM schueler s WHERE s.kurs_id = k.id);
+
+-- als Tabelle in FROM
+SELECT t.klasse, t.schnitt FROM (SELECT klasse, AVG(punkte) AS schnitt FROM schueler GROUP BY klasse) AS t;</pre>
+<p>Mengenoperationen: <code>UNION</code> (ohne Duplikate), <code>UNION ALL</code>, <code>INTERSECT</code>, <code>EXCEPT</code>. Beide Abfragen brauchen gleich viele Spalten.</p>
+
+<h3>INSERT, UPDATE, DELETE</h3>
+<pre>INSERT INTO schueler (name, klasse, punkte) VALUES ('Mia', '10a', 12);
+INSERT INTO schueler VALUES (NULL, 'Ben', '10b', 9, 2);   -- alle Spalten in Tabellenreihenfolge
+
+UPDATE schueler SET punkte = punkte + 1 WHERE klasse = '10a';
+
+DELETE FROM schueler WHERE id = 7;</pre>
+<p>Ohne <code>WHERE</code> betreffen <code>UPDATE</code> und <code>DELETE</code> alle Zeilen der Tabelle.</p>
+
+<h3>CREATE TABLE mit Schlüsseln</h3>
+<pre>CREATE TABLE kurs (
+    id          INTEGER PRIMARY KEY,
+    bezeichnung TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE schueler (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    name    TEXT NOT NULL,
+    klasse  TEXT,
+    punkte  INTEGER DEFAULT 0 CHECK (punkte &gt;= 0),
+    kurs_id INTEGER,
+    FOREIGN KEY (kurs_id) REFERENCES kurs(id)
+);
+
+-- zusammengesetzter Primärschlüssel
+CREATE TABLE belegung (
+    schueler_id INTEGER,
+    kurs_id     INTEGER,
+    PRIMARY KEY (schueler_id, kurs_id)
+);
+
+DROP TABLE schueler;
+ALTER TABLE schueler ADD COLUMN geburtstag TEXT;</pre>
+<table>
+<tr><th>Begriff</th><th>Bedeutung</th></tr>
+<tr><td><code>PRIMARY KEY</code></td><td>Primärschlüssel: eindeutig und nicht NULL</td></tr>
+<tr><td><code>FOREIGN KEY ... REFERENCES</code></td><td>Fremdschlüssel: verweist auf den Primärschlüssel einer anderen Tabelle</td></tr>
+<tr><td><code>NOT NULL</code>, <code>UNIQUE</code>, <code>DEFAULT</code>, <code>CHECK</code></td><td>kein NULL, eindeutig, Standardwert, Bedingung an den Wert</td></tr>
+</table>
+
+<h3>SQLite-Besonderheiten</h3>
+<ul>
+<li><strong>Datentypen:</strong> Spalten haben nur einen Typbezug (<code>INTEGER</code>, <code>REAL</code>, <code>TEXT</code>, <code>BLOB</code>, <code>NUMERIC</code>); SQLite prüft Typen nur schwach und speichert auch einen Text in einer <code>INTEGER</code>-Spalte, wenn er sich nicht umwandeln lässt. Es gibt keinen eigenen Datentyp für Wahrheitswerte (0 und 1) und für Datum/Uhrzeit (als Text, z. B. <code>'2025-03-14'</code>).</li>
+<li><strong>Automatische Nummern:</strong> Eine Spalte <code>INTEGER PRIMARY KEY</code> zählt beim Einfügen von selbst hoch (<code>AUTOINCREMENT</code> verhindert zusätzlich die Wiederverwendung gelöschter Nummern).</li>
+<li><strong>Fremdschlüssel</strong> werden nur geprüft, wenn <code>PRAGMA foreign_keys = ON;</code> gesetzt ist.</li>
+<li><strong>Ganzzahldivision:</strong> <code>7 / 2</code> ergibt <code>3</code>; für <code>3.5</code> schreibe <code>7 / 2.0</code>.</li>
+<li><strong>Texte verketten</strong> mit <code>||</code> (nicht mit <code>+</code>). <code>LIKE</code> ignoriert Groß-/Kleinschreibung bei ASCII-Buchstaben.</li>
+<li><strong>Zeilen begrenzen</strong> mit <code>LIMIT</code> (es gibt kein <code>TOP</code>).</li>
+<li><strong>Nützliche Funktionen:</strong> <code>COALESCE(a, b)</code> / <code>IFNULL(a, b)</code> (Ersatzwert für NULL), <code>LENGTH(text)</code>, <code>UPPER(text)</code>, <code>LOWER(text)</code>, <code>SUBSTR(text, start, laenge)</code> (Start ab 1), <code>ROUND(x, stellen)</code>, <code>ABS(x)</code>, <code>date('now')</code>, <code>strftime('%Y', datum)</code>.</li>
+<li><strong>Fallunterscheidung:</strong> <code>CASE WHEN punkte &gt;= 10 THEN 'bestanden' ELSE 'nicht bestanden' END</code></li>
+<li><strong>Tabellen und Aufbau anzeigen:</strong> <code>SELECT name FROM sqlite_master WHERE type = 'table';</code> und <code>PRAGMA table_info(tabelle);</code></li>
+<li><strong>Kommentare:</strong> <code>-- bis Zeilenende</code> und <code>/* mehrzeilig */</code></li>
+</ul>
+</div>

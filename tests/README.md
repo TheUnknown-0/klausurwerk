@@ -1,25 +1,48 @@
 # Tests
 
-- `Unit/` — ohne Datenbank (Rechtekatalog, Routen-Guards über statische Analyse der Controller).
-- `Integration/` — gegen eine eigene Datenbank `gartenarbeitstag_test`. Das Schema wird pro
-  Testlauf aus `migrations/` aufgebaut; jeder Test läuft in einer Transaktion, die am Ende
-  zurückgerollt wird.
+| Ebene | Ort | Läuft gegen |
+|---|---|---|
+| Unit (PHP) | `tests/Unit/` | nichts (keine Datenbank) |
+| Integration (PHP) | `tests/Integration/` | eigene Test-Datenbank `klausurwerk_test` |
+| Frontend-Logik | `frontend/test/*.test.js` | Node (`node --test`) |
+| Runner | `runner/tests/` | einzeln gestarteter Runner-Container |
+| Ende-zu-Ende | `tests/e2e/` | laufender Compose-Stack (Playwright) |
 
-## Ausführen (Docker)
+## PHP
+
+Nur Docker ist nötig; `tools/dev.sh` baut das Testimage (`tests/Dockerfile`, php:8.3-cli mit
+pdo_mysql, gd, zip) und startet bei Bedarf die Test-Datenbank (Container `klausurwerk-testdb`).
 
 ```bash
-# einmalig: Test-Image bauen
-docker build -t gartenarbeitstag-test tests
-
-# Stack (mindestens die Datenbank) muss laufen
-docker compose up -d db
-
-docker run --rm --network gartenarbeitstag_default \
-  -v "D:/Schule/StuB/BSO/WebApp/gartenarbeitstag:/app" -w /app \
-  -e TEST_DB_HOST=db -e TEST_DB_USER=root -e TEST_DB_PASS="<DB_ROOT_PASS aus .env>" \
-  gartenarbeitstag-test php tools/phpunit.phar
+tools/dev.sh lint             # Syntaxprüfung aller PHP-Dateien
+tools/dev.sh unit             # nur Unit-Tests
+tools/dev.sh test             # alles
+tools/dev.sh test ExamClock   # nur Tests, deren Name passt
+TEST_DB_NAME=klausurwerk_test_x tools/dev.sh test   # eigene Test-DB (parallel arbeiten)
 ```
 
-Nur Unit-Tests (ohne DB): `… php tools/phpunit.phar --testsuite Unit`.
+Jeder Integrationstest läuft in einer Transaktion, die am Ende zurückgerollt wird. Das Schema
+wird einmal je Lauf aus `migrations/` aufgebaut.
 
-`tools/phpunit.phar` ist nicht versioniert — bei Bedarf von https://phar.phpunit.de/ laden.
+PHPUnit liegt als PHAR unter `tools/phpunit.phar` (nicht im Repo):
+
+```bash
+curl -L -o tools/phpunit.phar https://phar.phpunit.de/phpunit-11.phar
+```
+
+## Frontend
+
+```bash
+cd frontend
+npm ci
+npm test            # Logik-Tests
+node build.mjs      # Bundles + Laufzeiten nach public/assets/build und public/assets/vendor
+```
+
+## Runner
+
+Siehe `runner/README.md`.
+
+## Ende-zu-Ende
+
+Siehe `tests/e2e/README.md`.

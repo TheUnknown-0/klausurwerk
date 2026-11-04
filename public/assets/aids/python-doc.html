@@ -1,0 +1,125 @@
+<div class="aid-doc" lang="de">
+<h2>Python-Dokumentation (Auszug)</h2>
+
+<h3>Eingebaute Funktionen</h3>
+<table>
+<tr><th>Funktion</th><th>Beschreibung</th></tr>
+<tr><td><code>print(*werte, sep=' ', end='\n')</code></td><td>gibt Werte aus, getrennt durch <code>sep</code>, am Ende <code>end</code></td></tr>
+<tr><td><code>input(text='')</code></td><td>zeigt <code>text</code> an und liest eine Zeile als <code>str</code></td></tr>
+<tr><td><code>len(x)</code></td><td>Anzahl der Elemente bzw. Zeichen</td></tr>
+<tr><td><code>range(stop)</code>, <code>range(start, stop, schritt=1)</code></td><td>Zahlenfolge von <code>start</code> bis <em>vor</em> <code>stop</code></td></tr>
+<tr><td><code>int(x)</code>, <code>float(x)</code>, <code>str(x)</code>, <code>bool(x)</code></td><td>Typumwandlung (<code>int("12")</code>, <code>ValueError</code> bei ungültigem Text)</td></tr>
+<tr><td><code>list(x)</code>, <code>tuple(x)</code>, <code>set(x)</code>, <code>dict(...)</code></td><td>erzeugt Liste, Tupel, Menge bzw. Dictionary</td></tr>
+<tr><td><code>abs(x)</code></td><td>Betrag</td></tr>
+<tr><td><code>round(x, stellen=0)</code></td><td>rundet (bei genau .5 zur geraden Zahl)</td></tr>
+<tr><td><code>min(...)</code>, <code>max(...)</code>, <code>sum(iterable)</code></td><td>kleinster, größter Wert bzw. Summe</td></tr>
+<tr><td><code>sorted(iterable, key=None, reverse=False)</code></td><td>neue sortierte Liste, das Original bleibt unverändert</td></tr>
+<tr><td><code>reversed(seq)</code></td><td>Iterator in umgekehrter Reihenfolge</td></tr>
+<tr><td><code>enumerate(iterable, start=0)</code></td><td>Paare <code>(Index, Element)</code></td></tr>
+<tr><td><code>zip(a, b, ...)</code></td><td>fasst Elemente gleicher Position zu Tupeln zusammen</td></tr>
+<tr><td><code>map(f, iterable)</code>, <code>filter(f, iterable)</code></td><td>wendet <code>f</code> an bzw. behält Elemente, für die <code>f</code> wahr ist</td></tr>
+<tr><td><code>any(iterable)</code>, <code>all(iterable)</code></td><td>mindestens ein bzw. alle Elemente wahr?</td></tr>
+<tr><td><code>divmod(a, b)</code>, <code>pow(a, b)</code></td><td>(a // b, a % b) bzw. a hoch b</td></tr>
+<tr><td><code>chr(n)</code>, <code>ord(c)</code></td><td>Zeichen zu Zahlcode bzw. Zahlcode zu Zeichen</td></tr>
+<tr><td><code>type(x)</code>, <code>isinstance(x, typ)</code></td><td>Typ ermitteln bzw. Typ prüfen</td></tr>
+<tr><td><code>bin(n)</code>, <code>hex(n)</code></td><td>Zahl als Text in Dual- bzw. Hexadezimalschreibweise</td></tr>
+</table>
+<p>Operatoren: <code>//</code> ganzzahlige Division, <code>%</code> Rest, <code>**</code> Potenz, <code>and</code> <code>or</code> <code>not</code>, <code>in</code> / <code>not in</code> Enthaltensein, <code>is</code> Identität. Einrückung bestimmt die Blöcke.</p>
+
+<h3>Zeichenketten (str)</h3>
+<p>Unveränderlich; Index ab 0, negative Indizes zählen von hinten (<code>s[-1]</code> ist das letzte Zeichen). Ausschnitte: <code>s[von:bis]</code> (ohne <code>bis</code>), <code>s[::-1]</code> kehrt um.</p>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>s.upper()</code>, <code>s.lower()</code></td><td>Groß- bzw. Kleinschreibung</td></tr>
+<tr><td><code>s.capitalize()</code>, <code>s.title()</code></td><td>erster Buchstabe bzw. jedes Wort groß</td></tr>
+<tr><td><code>s.strip()</code>, <code>s.lstrip()</code>, <code>s.rstrip()</code></td><td>Leerraum an beiden Enden, links bzw. rechts entfernen</td></tr>
+<tr><td><code>s.split(trenner=None)</code></td><td>Liste der Teile; ohne Argument an Leerraum</td></tr>
+<tr><td><code>trenner.join(liste)</code></td><td>fügt Strings mit Trenner zusammen</td></tr>
+<tr><td><code>s.replace(alt, neu)</code></td><td>ersetzt alle Vorkommen</td></tr>
+<tr><td><code>s.find(t)</code>, <code>s.index(t)</code></td><td>Position des ersten Vorkommens; <code>find</code> liefert -1, <code>index</code> löst <code>ValueError</code> aus</td></tr>
+<tr><td><code>s.count(t)</code></td><td>Anzahl der (nicht überlappenden) Vorkommen</td></tr>
+<tr><td><code>s.startswith(t)</code>, <code>s.endswith(t)</code></td><td>Anfang bzw. Ende prüfen</td></tr>
+<tr><td><code>s.isdigit()</code>, <code>s.isalpha()</code>, <code>s.isalnum()</code></td><td>nur Ziffern / Buchstaben / beides?</td></tr>
+<tr><td><code>s.format(...)</code></td><td>Platzhalter <code>{}</code> füllen; kürzer mit f-String: <code>f"{name}: {wert:.2f}"</code></td></tr>
+</table>
+
+<h3>Listen (list)</h3>
+<p>Veränderlich, Index ab 0. Ausschnitte wie bei Strings. Listenfassung: <code>[x*x for x in range(5) if x != 2]</code></p>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>l.append(x)</code></td><td>hängt <code>x</code> hinten an</td></tr>
+<tr><td><code>l.extend(iterable)</code></td><td>hängt alle Elemente an</td></tr>
+<tr><td><code>l.insert(i, x)</code></td><td>fügt <code>x</code> vor Position <code>i</code> ein</td></tr>
+<tr><td><code>l.remove(x)</code></td><td>entfernt das erste Vorkommen von <code>x</code> (<code>ValueError</code>, wenn es fehlt)</td></tr>
+<tr><td><code>l.pop(i=-1)</code></td><td>entfernt das Element an Position <code>i</code> (Standard: letztes) und liefert es</td></tr>
+<tr><td><code>l.index(x)</code></td><td>Position des ersten Vorkommens (<code>ValueError</code>, wenn es fehlt)</td></tr>
+<tr><td><code>l.count(x)</code></td><td>Anzahl der Vorkommen</td></tr>
+<tr><td><code>l.sort(key=None, reverse=False)</code></td><td>sortiert die Liste selbst, liefert <code>None</code></td></tr>
+<tr><td><code>l.reverse()</code></td><td>kehrt die Liste selbst um</td></tr>
+<tr><td><code>l.copy()</code></td><td>flache Kopie</td></tr>
+<tr><td><code>l.clear()</code></td><td>leert die Liste</td></tr>
+<tr><td><code>del l[i]</code></td><td>löscht das Element an Position <code>i</code></td></tr>
+</table>
+
+<h3>Dictionaries (dict)</h3>
+<p>Schlüssel-Wert-Paare; Schlüssel sind eindeutig und unveränderlich (z. B. Zahlen, Strings, Tupel). Zugriff <code>d[k]</code> löst <code>KeyError</code> aus, wenn <code>k</code> fehlt.</p>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>d.get(k, standard=None)</code></td><td>Wert oder <code>standard</code>, wenn der Schlüssel fehlt</td></tr>
+<tr><td><code>d.keys()</code>, <code>d.values()</code>, <code>d.items()</code></td><td>Schlüssel, Werte bzw. (Schlüssel, Wert)-Paare</td></tr>
+<tr><td><code>d.pop(k, standard)</code></td><td>entfernt den Eintrag und liefert den Wert</td></tr>
+<tr><td><code>d.update(anderes)</code></td><td>übernimmt Einträge aus einem anderen Dictionary</td></tr>
+<tr><td><code>d.setdefault(k, standard)</code></td><td>liefert den Wert; legt ihn mit <code>standard</code> an, wenn <code>k</code> fehlt</td></tr>
+<tr><td><code>k in d</code></td><td>Schlüssel vorhanden?</td></tr>
+<tr><td><code>del d[k]</code></td><td>löscht den Eintrag</td></tr>
+</table>
+<pre>for name, punkte in d.items():
+    print(name, punkte)</pre>
+
+<h3>Modul math (<code>import math</code>)</h3>
+<table>
+<tr><th>Name</th><th>Beschreibung</th></tr>
+<tr><td><code>math.pi</code>, <code>math.e</code></td><td>Konstanten π und e</td></tr>
+<tr><td><code>math.sqrt(x)</code></td><td>Quadratwurzel</td></tr>
+<tr><td><code>math.floor(x)</code>, <code>math.ceil(x)</code>, <code>math.trunc(x)</code></td><td>abrunden, aufrunden, Nachkommastellen abschneiden (Ergebnis <code>int</code>)</td></tr>
+<tr><td><code>math.sin(x)</code>, <code>math.cos(x)</code>, <code>math.tan(x)</code></td><td>Winkelfunktionen, Winkel im Bogenmaß</td></tr>
+<tr><td><code>math.radians(grad)</code>, <code>math.degrees(rad)</code></td><td>Umrechnung zwischen Grad und Bogenmaß</td></tr>
+<tr><td><code>math.log(x, basis=e)</code>, <code>math.log10(x)</code>, <code>math.log2(x)</code></td><td>Logarithmen</td></tr>
+<tr><td><code>math.exp(x)</code></td><td>e hoch x</td></tr>
+<tr><td><code>math.factorial(n)</code>, <code>math.gcd(a, b)</code></td><td>Fakultät bzw. größter gemeinsamer Teiler</td></tr>
+<tr><td><code>math.hypot(x, y)</code>, <code>math.fabs(x)</code></td><td>Länge der Hypotenuse bzw. Betrag als <code>float</code></td></tr>
+<tr><td><code>math.isclose(a, b)</code></td><td>nahezu gleich (für Kommazahlen)</td></tr>
+</table>
+
+<h3>Modul random (<code>import random</code>)</h3>
+<table>
+<tr><th>Funktion</th><th>Beschreibung</th></tr>
+<tr><td><code>random.random()</code></td><td>Zufallszahl von 0,0 (einschließlich) bis 1,0 (ausschließlich)</td></tr>
+<tr><td><code>random.randint(a, b)</code></td><td>ganze Zufallszahl von <code>a</code> bis <code>b</code>, beide einschließlich</td></tr>
+<tr><td><code>random.randrange(start, stop, schritt=1)</code></td><td>wie <code>range</code>, <code>stop</code> ausgeschlossen</td></tr>
+<tr><td><code>random.uniform(a, b)</code></td><td>Kommazahl zwischen <code>a</code> und <code>b</code></td></tr>
+<tr><td><code>random.choice(seq)</code></td><td>zufälliges Element einer Folge</td></tr>
+<tr><td><code>random.shuffle(liste)</code></td><td>mischt die Liste selbst</td></tr>
+<tr><td><code>random.sample(folge, k)</code></td><td>k verschiedene zufällige Elemente</td></tr>
+<tr><td><code>random.seed(wert)</code></td><td>legt den Startwert fest (reproduzierbare Folge)</td></tr>
+</table>
+
+<h3>Kontrollstrukturen und Funktionen</h3>
+<pre>if x &gt; 0:
+    ...
+elif x == 0:
+    ...
+else:
+    ...
+
+for i in range(10): ...
+while bedingung: ...
+
+def quadrat(x):
+    return x * x
+
+try:
+    zahl = int(eingabe)
+except ValueError:
+    print("keine Zahl")</pre>
+</div>

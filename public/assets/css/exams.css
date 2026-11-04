@@ -1,0 +1,98 @@
+/* Klausuren und Aufgaben: Listen, Einstellungen, Aufgaben-Editor. Akzent Indigo aus app.css. */
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.label-like { font-weight: 700; font-size: .9rem; margin-bottom: 6px; padding: 0; }
+fieldset.field { border: 0; padding: 0; margin-left: 0; margin-right: 0; min-width: 0; }
+.mb-2 { margin-bottom: 16px; }
+.mt-2 { margin-top: 16px; }
+
+/* ---------- Übersicht ---------- */
+.exam-grid { align-items: start; }
+.exam-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.exam-facts dt { color: var(--ink-faint); font-size: .85rem; }
+.exam-facts dd { margin: 0; overflow-wrap: anywhere; }
+.card-title { margin: 0 0 10px; font-size: 1.05rem; }
+.card-header .card-title { margin: 0; }
+.outline-list { list-style: none; margin: 0; padding: 4px 0; }
+.outline-item { display: flex; align-items: center; gap: 10px; padding: 7px 18px; border-bottom: 1px solid var(--border); }
+.outline-item:last-child { border-bottom: 0; }
+.outline-item.depth-1 { padding-left: 44px; }
+.outline-num { min-width: 2.2em; font-weight: 800; color: var(--primary); }
+.outline-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.outline-points { color: var(--ink-soft); white-space: nowrap; }
+
+.setting-row { margin-bottom: 12px; }
+.setting-row .hint { margin-left: 26px; }
+.code-box { display: inline-flex; gap: 10px; align-items: baseline; padding: 8px 14px; margin: 4px 0 12px; border: 1px dashed var(--border); border-radius: 8px; }
+.code-value { font-size: 1.5rem; letter-spacing: .25em; }
+
+/* Lehrkräfte-Suche */
+.staff-add { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 14px; }
+.staff-add .field { flex: 1 1 260px; position: relative; margin-bottom: 0; }
+.staff-results {
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 20; margin: 2px 0 0; padding: 4px; list-style: none;
+  background: var(--surface, #fff); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgb(0 0 0 / .15);
+}
+.staff-results li { padding: 8px 10px; border-radius: 6px; cursor: pointer; }
+.staff-results li:hover, .staff-results li[aria-selected="true"] { background: var(--primary-soft); }
+
+.archive-hit header { margin-bottom: 6px; }
+.archive-snippet { color: var(--ink-soft); margin: 4px 0 10px; overflow-wrap: anywhere; }
+
+/* ---------- Aufgaben-Editor ---------- */
+.task-editor { display: grid; grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .task-editor { grid-template-columns: 1fr; } }
+
+.te-tree { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; padding: 12px; }
+@media (max-width: 900px) { .te-tree { position: static; max-height: 360px; } }
+.te-tree h2 { margin: 0 0 8px; font-size: 1rem; }
+.te-tree-list { list-style: none; margin: 0; padding: 0; }
+.te-node { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+.te-node.depth-1 { margin-left: 22px; }
+.te-node:hover { background: var(--primary-soft); }
+.te-node.active { background: var(--primary-soft); border-color: var(--primary); }
+.te-node:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.te-num { font-weight: 800; color: var(--primary); min-width: 2em; }
+.te-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.te-pts { color: var(--ink-soft); font-size: .8rem; white-space: nowrap; }
+.te-tree-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.te-total { margin-top: 10px; font-weight: 700; }
+
+.te-main { padding: 18px; min-width: 0; }
+.te-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; position: sticky; top: 0; z-index: 5; background: var(--surface, var(--bg)); padding: 8px 0; }
+.te-status { color: var(--ink-soft); font-size: .88rem; }
+.te-status.dirty { color: var(--warning); font-weight: 700; }
+.te-section { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
+.te-section > h3 { margin: 0 0 10px; font-size: 1rem; }
+.te-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 16px; }
+.field.has-error input, .field.has-error select, .field.has-error textarea { border-color: var(--danger); }
+.te-error { color: var(--danger); font-weight: 700; font-size: .85rem; margin-top: 4px; }
+.te-errors:empty { display: none; }
+
+.te-md { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 1200px) { .te-md { grid-template-columns: 1fr; } }
+.te-cm { height: 260px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--editor-bg); }
+.te-cm.tall { height: 360px; }
+.te-cm.short { height: 150px; }
+.te-cm .cm-editor { height: 100%; }
+.te-preview { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; height: 260px; overflow: auto; background: var(--surface, #fff); }
+.te-preview img { max-width: 100%; }
+.te-preview:empty::before { content: "Vorschau"; color: var(--ink-faint); }
+.te-mat { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+
+.te-items { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+.te-item { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: start; padding: 8px; border: 1px solid var(--border); border-radius: 8px; }
+.te-item textarea, .te-item input[type="text"] { width: 100%; }
+.te-item-actions { display: flex; gap: 4px; }
+.te-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.te-tabs button[aria-selected="true"] { background: var(--primary); color: var(--on-primary, #fff); border-color: var(--primary); }
+.te-type-box { border: 1px dashed var(--border); border-radius: 10px; padding: 12px; }
+.te-test { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+.te-test textarea { font-family: var(--font-mono); font-size: .85rem; width: 100%; }
+.te-run-log { white-space: pre-wrap; font-family: var(--font-mono); font-size: .85rem; background: var(--editor-bg); color: var(--editor-ink); padding: 10px; border-radius: 8px; max-height: 240px; overflow: auto; }
+.te-empty { text-align: center; padding: 40px 12px; color: var(--ink-soft); }
+.te-locked-note { margin-bottom: 14px; }
+.te-gap-row { display: grid; grid-template-columns: 5em 1fr; gap: 8px; align-items: start; border: 1px solid var(--border); border-radius: 8px; padding: 8px; margin-bottom: 8px; }

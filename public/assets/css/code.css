@@ -1,0 +1,206 @@
+/* Code-Widget: Editor mit Dateitabs, Werkzeugleiste und Ausgabebereich.
+   Einbinden über 'pageStyles' => ['code.css'] (Schüleransicht, Pult, Korrektur, Vorschau). */
+
+.cw {
+  --cw-border: var(--border);
+  display: flex; flex-direction: column;
+  height: 100%; min-height: 440px; min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--cw-border); border-radius: var(--radius);
+  overflow: hidden;
+}
+.cw [hidden] { display: none !important; }
+.cw .sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- Werkzeugleiste ---------- */
+.cw-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--cw-border);
+}
+.cw-toolbar .btn { white-space: nowrap; }
+.cw-run { min-width: 108px; }
+.cw-spacer { flex: 1 1 auto; }
+.cw-status { font-size: .84rem; color: var(--ink-soft); min-height: 1.2em; }
+.cw-status[data-kind="ok"] { color: var(--success); font-weight: 600; }
+.cw-status[data-kind="error"] { color: var(--danger); font-weight: 600; }
+.cw-status[data-kind="warn"] { color: var(--warning); font-weight: 600; }
+.cw-status[data-kind="busy"]::before {
+  content: ''; display: inline-block; width: .7em; height: .7em; margin-right: .45em;
+  border: 2px solid var(--accent); border-right-color: transparent; border-radius: 50%;
+  animation: cw-spin .8s linear infinite; vertical-align: -1px;
+}
+@keyframes cw-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .cw-status[data-kind="busy"]::before { animation: none; border-right-color: var(--accent); }
+}
+
+/* Eingabe vorab (Notlösung ohne Cross-Origin-Isolation) */
+.cw-stdin { padding: 8px 10px; border-bottom: 1px solid var(--cw-border); background: var(--accent-soft); }
+.cw-stdin label { display: block; font-weight: 700; font-size: .84rem; margin-bottom: 4px; }
+.cw-stdin textarea { min-height: 64px; font-family: var(--font-mono); font-size: .88rem; width: 100%; }
+.cw-stdin .hint { margin: 4px 0 0; font-size: .78rem; color: var(--ink-soft); }
+
+/* ---------- Dateitabs ---------- */
+.cw-filebar {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 8px;
+  background: var(--editor-gutter); padding: 6px 8px 0;
+  overflow-x: auto;
+}
+.cw-filetabs { display: flex; gap: 2px; min-width: 0; }
+.cw-filetab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border: 0; cursor: pointer;
+  font-family: var(--font-mono); font-size: .84rem; white-space: nowrap;
+  color: var(--editor-faint); background: transparent;
+  border-radius: 8px 8px 0 0;
+}
+.cw-filetab:hover { color: var(--editor-ink); background: rgba(255, 255, 255, .06); }
+.cw-filetab.is-active { color: var(--editor-ink); background: var(--editor-bg); font-weight: 600; box-shadow: inset 0 2px 0 var(--accent); }
+.cw-filetab:focus-visible { outline: 2px solid #a5b4fc; outline-offset: -2px; }
+.cw-filetab.is-readonly { font-style: italic; }
+.cw-lock { font-size: .75rem; }
+.cw-filetools { display: flex; gap: 6px; padding-bottom: 4px; flex: 0 0 auto; }
+.cw-filebtn { padding: 3px 10px; font-size: .78rem; }
+
+.cw-fileform { padding: 8px 10px; background: var(--surface-2); border-bottom: 1px solid var(--cw-border); }
+.cw-form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cw-form-row label { font-weight: 700; font-size: .84rem; }
+.cw-form-row .input { width: 14rem; max-width: 100%; padding: 5px 10px; font-family: var(--font-mono); }
+.cw-form-error { flex-basis: 100%; font-size: .82rem; min-height: 0; }
+.cw-form-error:empty { display: none; }
+
+/* ---------- Editor ---------- */
+.cw-editors { flex: 1 1 0; min-height: 120px; position: relative; background: var(--editor-bg); }
+.cw-editor-pane { position: absolute; inset: 0; overflow: hidden; }
+.cw-editor-pane .cm-editor { height: 100%; }
+.cw-editor-pane .cm-scroller { overflow: auto; }
+.cw-editor-pane .cm-focused { outline: none; }
+
+/* ---------- Trennlinie ---------- */
+.cw-resizer {
+  flex: 0 0 10px; cursor: row-resize; touch-action: none;
+  background: var(--surface-2);
+  border-top: 1px solid var(--cw-border); border-bottom: 1px solid var(--cw-border);
+  position: relative;
+}
+.cw-resizer::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 4px; margin: -2px 0 0 -22px;
+  border-radius: 2px; background: var(--ink-faint); opacity: .6;
+}
+.cw-resizer:hover, .cw-resizer.is-dragging { background: var(--accent-soft); }
+.cw-resizer:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ---------- Ausgabebereich ---------- */
+.cw-output { flex: 0 0 auto; display: flex; flex-direction: column; min-height: 90px; background: var(--surface); }
+.cw-out-tabs { display: flex; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--cw-border); overflow-x: auto; flex: 0 0 auto; }
+.cw-out-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: .84rem; color: var(--ink-soft); white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.cw-out-tab:hover { color: var(--ink); }
+.cw-out-tab.is-active { color: var(--accent-ink); font-weight: 700; border-bottom-color: var(--accent); }
+.cw-out-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
+.cw-out-count {
+  min-width: 1.4em; padding: 0 6px; border-radius: 999px; text-align: center;
+  font-size: .72rem; font-weight: 700; background: var(--danger-soft); color: var(--danger);
+}
+.cw-out-body { flex: 1 1 0; min-height: 0; position: relative; }
+.cw-out-pane { position: absolute; inset: 0; overflow: auto; padding: 10px 12px; }
+.cw-pane-console { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ---------- Konsole ---------- */
+.cw-console { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: var(--editor-bg); color: var(--editor-ink); }
+.cw-console-scroll {
+  flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 12px;
+  font-family: var(--font-mono); font-size: .88rem; line-height: 1.5;
+}
+.cw-console-scroll:focus-visible { outline: 2px solid #a5b4fc; outline-offset: -2px; }
+.cw-console-note { color: var(--editor-faint); font-style: italic; margin-bottom: 4px; font-size: .8rem; }
+.cw-line { white-space: pre-wrap; word-break: break-word; min-height: 1.5em; }
+.cw-s-stderr { color: #fca5a5; }
+.cw-s-stdin { color: #86efac; }
+.cw-s-system { color: var(--editor-faint); font-style: italic; }
+.cw-console-input {
+  display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
+  padding: 6px 10px; background: var(--editor-gutter); border-top: 1px solid rgba(255, 255, 255, .08);
+}
+.cw-console-label { font-size: .78rem; color: var(--editor-faint); font-weight: 700; }
+.cw-console-field {
+  flex: 1 1 auto; min-width: 0; padding: 5px 10px;
+  font-family: var(--font-mono); font-size: .9rem;
+  color: var(--editor-ink); background: var(--editor-bg);
+  border: 1px solid rgba(255, 255, 255, .18); border-radius: 8px;
+}
+.cw-console-field:focus { outline: 2px solid #a5b4fc; outline-offset: 0; border-color: transparent; }
+.cw-console.is-waiting .cw-console-input { background: rgba(129, 140, 248, .22); }
+.cw-console.is-waiting .cw-console-label::after { content: ' (Programm wartet)'; color: #c7d2fe; }
+
+/* ---------- SQL-Ergebnisse, Schema ---------- */
+.cw-res { margin-bottom: 14px; }
+.cw-res-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; margin-bottom: 6px; }
+.cw-res-no { font-weight: 700; font-size: .82rem; color: var(--accent-ink); }
+.cw-res-sql { font-size: .8rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.cw-res-wrap { max-height: 320px; overflow: auto; }
+.cw-res-table { font-size: .85rem; }
+.cw-res-table th { position: sticky; top: 0; background: var(--surface-2); z-index: 1; white-space: nowrap; }
+.cw-res-table td { font-family: var(--font-mono); white-space: pre-wrap; }
+.cw-res-table td.is-null { color: var(--ink-faint); font-style: italic; }
+.cw-res-table td.is-num { text-align: right; font-variant-numeric: tabular-nums; }
+.cw-res-msg { margin: 6px 0 0; font-size: .84rem; color: var(--ink-soft); }
+.cw-res-msg.is-warn { color: var(--warning); font-weight: 600; }
+.cw-res-hint { margin-top: 4px; font-size: .86rem; }
+.cw-schema-table { margin-bottom: 14px; }
+.cw-schema-table h4 { margin: 0 0 6px; font-family: var(--font-mono); font-size: .95rem; }
+.cw-schema-cols { list-style: none; margin: 0; padding: 0; }
+.cw-schema-cols li { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 3px 0; font-size: .86rem; }
+.cw-col-type { color: var(--ink-faint); font-family: var(--font-mono); font-size: .8rem; }
+
+/* ---------- Zeichnung, Bilder ---------- */
+.cw-turtle { display: flex; justify-content: center; }
+.cw-turtle-canvas {
+  width: 100%; max-width: 640px; height: auto; aspect-ratio: 4 / 3;
+  background: #fff; border: 1px solid var(--cw-border); border-radius: var(--radius-sm);
+}
+.cw-figure { margin: 0 0 14px; }
+.cw-figure img { max-width: 100%; height: auto; background: #fff; border: 1px solid var(--cw-border); border-radius: var(--radius-sm); }
+.cw-figure figcaption { font-size: .8rem; color: var(--ink-faint); margin-top: 4px; }
+
+/* ---------- Probleme, Beispieltests ---------- */
+.cw-problems { list-style: none; margin: 0; padding: 0; }
+.cw-problem {
+  display: flex; flex-wrap: wrap; gap: 4px 12px; width: 100%; text-align: left;
+  padding: 7px 10px; margin-bottom: 4px; cursor: pointer; font: inherit; color: var(--ink);
+  background: var(--danger-soft); border: 1px solid transparent; border-left: 4px solid var(--danger); border-radius: 6px;
+}
+.cw-problem.is-warning { background: var(--warning-soft); border-left-color: var(--warning); }
+.cw-problem:hover { border-color: var(--border-strong); }
+.cw-problem:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cw-problem-loc { font-family: var(--font-mono); font-size: .82rem; font-weight: 600; }
+.cw-problem-msg { white-space: pre-wrap; font-size: .88rem; }
+.cw-tests-sum { font-weight: 700; margin: 0 0 10px; }
+.cw-tests-sum.is-ok { color: var(--success); }
+.cw-tests-sum.is-fail { color: var(--danger); }
+.cw-test { padding: 8px 10px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid var(--border-strong); background: var(--surface-2); }
+.cw-test.is-ok { border-left-color: var(--success); background: var(--success-soft); }
+.cw-test.is-fail { border-left-color: var(--danger); background: var(--danger-soft); }
+.cw-test-head { display: flex; gap: 8px; align-items: center; }
+.cw-test-diff { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.cw-test-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); }
+.cw-test-diff pre { margin: 2px 0 0; padding: 6px 8px; background: var(--editor-bg); color: var(--editor-ink); border-radius: 6px; font-size: .82rem; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow: auto; }
+
+/* ---------- Mobil ---------- */
+@media (max-width: 720px) {
+  .cw { min-height: 520px; border-radius: 0; }
+  .cw-toolbar { gap: 6px; padding: 6px 8px; }
+  .cw-spacer { display: none; }
+  .cw-status { flex-basis: 100%; }
+  .cw-test-diff { grid-template-columns: 1fr; }
+  .cw-resizer { flex-basis: 16px; }
+}

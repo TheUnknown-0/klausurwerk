@@ -1,0 +1,147 @@
+<div class="aid-doc" lang="de">
+<h2>Java-API (Auszug)</h2>
+<p>Die wichtigsten Klassen und Methoden. <code>java.lang</code> (String, Math, Integer, System) ist immer verfügbar; <code>Scanner</code>, <code>ArrayList</code>, <code>HashMap</code> und <code>Arrays</code> brauchen einen <code>import</code> aus <code>java.util</code>.</p>
+
+<h3>String</h3>
+<p>Zeichenketten sind unveränderlich: Methoden liefern ein neues Objekt. Zeichen werden ab Index 0 gezählt.</p>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>int length()</code></td><td>Anzahl der Zeichen</td></tr>
+<tr><td><code>char charAt(int index)</code></td><td>Zeichen an der Stelle <code>index</code> (0 bis length()-1)</td></tr>
+<tr><td><code>String substring(int von)</code></td><td>Teilstring ab <code>von</code> bis zum Ende</td></tr>
+<tr><td><code>String substring(int von, int bis)</code></td><td>Teilstring von <code>von</code> bis <em>vor</em> <code>bis</code></td></tr>
+<tr><td><code>int indexOf(String s)</code></td><td>Index des ersten Vorkommens, -1 wenn nicht enthalten (auch mit <code>char</code>)</td></tr>
+<tr><td><code>int lastIndexOf(String s)</code></td><td>Index des letzten Vorkommens, -1 wenn nicht enthalten</td></tr>
+<tr><td><code>boolean equals(Object o)</code></td><td>inhaltlicher Vergleich (nicht <code>==</code> verwenden)</td></tr>
+<tr><td><code>boolean equalsIgnoreCase(String s)</code></td><td>Vergleich ohne Beachtung der Groß-/Kleinschreibung</td></tr>
+<tr><td><code>int compareTo(String s)</code></td><td>lexikographischer Vergleich: negativ (kleiner), 0 (gleich), positiv (größer)</td></tr>
+<tr><td><code>boolean contains(CharSequence s)</code></td><td>true, wenn <code>s</code> enthalten ist</td></tr>
+<tr><td><code>boolean startsWith(String s)</code> / <code>endsWith(String s)</code></td><td>Anfang bzw. Ende prüfen</td></tr>
+<tr><td><code>boolean isEmpty()</code> / <code>isBlank()</code></td><td>Länge 0 bzw. nur Leerraum</td></tr>
+<tr><td><code>String toUpperCase()</code> / <code>toLowerCase()</code></td><td>Groß- bzw. Kleinschreibung</td></tr>
+<tr><td><code>String trim()</code> / <code>strip()</code></td><td>Leerraum am Anfang und Ende entfernen</td></tr>
+<tr><td><code>String replace(CharSequence alt, CharSequence neu)</code></td><td>ersetzt alle Vorkommen (auch mit <code>char</code>)</td></tr>
+<tr><td><code>String[] split(String regex)</code></td><td>zerlegt an Trennmustern, z. B. <code>split(" ")</code></td></tr>
+<tr><td><code>char[] toCharArray()</code></td><td>Zeichen als Feld</td></tr>
+<tr><td><code>String repeat(int n)</code></td><td>n-fache Wiederholung</td></tr>
+<tr><td><code>static String valueOf(x)</code></td><td>wandelt einen Wert in einen String um</td></tr>
+<tr><td><code>static String format(String fmt, Object... args)</code></td><td>formatierter String wie <code>printf</code></td></tr>
+<tr><td><code>static String join(CharSequence trenner, CharSequence... teile)</code></td><td>fügt Teile mit Trenner zusammen</td></tr>
+</table>
+
+<h3>Math</h3>
+<table>
+<tr><th>Methode / Konstante</th><th>Beschreibung</th></tr>
+<tr><td><code>Math.abs(x)</code></td><td>Betrag (int, long, float, double)</td></tr>
+<tr><td><code>Math.max(a, b)</code> / <code>Math.min(a, b)</code></td><td>größerer bzw. kleinerer Wert</td></tr>
+<tr><td><code>double Math.pow(double a, double b)</code></td><td>a hoch b</td></tr>
+<tr><td><code>double Math.sqrt(double a)</code></td><td>Quadratwurzel (NaN bei negativem Argument)</td></tr>
+<tr><td><code>double Math.cbrt(double a)</code></td><td>dritte Wurzel</td></tr>
+<tr><td><code>long Math.round(double a)</code></td><td>auf ganze Zahl runden (ab .5 auf)</td></tr>
+<tr><td><code>double Math.floor(double a)</code> / <code>Math.ceil(double a)</code></td><td>abrunden bzw. aufrunden (Ergebnis ist ein double)</td></tr>
+<tr><td><code>double Math.random()</code></td><td>Zufallszahl im Bereich 0,0 (einschließlich) bis 1,0 (ausschließlich)</td></tr>
+<tr><td><code>Math.sin(x)</code>, <code>Math.cos(x)</code>, <code>Math.tan(x)</code></td><td>Winkelfunktionen, Winkel im Bogenmaß</td></tr>
+<tr><td><code>Math.toRadians(grad)</code> / <code>Math.toDegrees(rad)</code></td><td>Umrechnung zwischen Grad und Bogenmaß</td></tr>
+<tr><td><code>Math.log(x)</code> / <code>Math.log10(x)</code></td><td>natürlicher bzw. dekadischer Logarithmus</td></tr>
+<tr><td><code>Math.floorMod(a, b)</code> / <code>Math.floorDiv(a, b)</code></td><td>Modulo und Division, die zur negativen Unendlichkeit runden</td></tr>
+<tr><td><code>Math.PI</code>, <code>Math.E</code></td><td>Konstanten π und e</td></tr>
+</table>
+<p>Zufallszahl von 1 bis 6: <code>int w = (int) (Math.random() * 6) + 1;</code></p>
+
+<h3>Scanner (java.util.Scanner)</h3>
+<pre>import java.util.Scanner;
+Scanner sc = new Scanner(System.in);
+int n = sc.nextInt();</pre>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>int nextInt()</code></td><td>liest die nächste ganze Zahl</td></tr>
+<tr><td><code>double nextDouble()</code></td><td>liest die nächste Kommazahl (Schreibweise abhängig von der Spracheinstellung, oft mit Komma)</td></tr>
+<tr><td><code>boolean nextBoolean()</code></td><td>liest <code>true</code> oder <code>false</code></td></tr>
+<tr><td><code>String next()</code></td><td>liest das nächste Wort (bis zum Leerraum)</td></tr>
+<tr><td><code>String nextLine()</code></td><td>liest den Rest der aktuellen Zeile</td></tr>
+<tr><td><code>boolean hasNext()</code> / <code>hasNextInt()</code> / <code>hasNextLine()</code></td><td>prüft, ob noch eine Eingabe dieser Art folgt</td></tr>
+<tr><td><code>void close()</code></td><td>schließt den Scanner</td></tr>
+</table>
+<p>Achtung: Nach <code>nextInt()</code> bleibt der Zeilenumbruch in der Eingabe. Wer danach eine ganze Zeile braucht, ruft <code>nextLine()</code> einmal zusätzlich auf, um ihn zu verwerfen.</p>
+
+<h3>ArrayList&lt;E&gt; (java.util.ArrayList)</h3>
+<p>Dynamische Liste, Index ab 0. Elementtypen sind Klassen (<code>Integer</code> statt <code>int</code>).</p>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>boolean add(E e)</code></td><td>hängt <code>e</code> hinten an</td></tr>
+<tr><td><code>void add(int index, E e)</code></td><td>fügt <code>e</code> an der Stelle <code>index</code> ein, spätere Elemente rücken auf</td></tr>
+<tr><td><code>E get(int index)</code></td><td>liefert das Element an der Stelle <code>index</code></td></tr>
+<tr><td><code>E set(int index, E e)</code></td><td>ersetzt das Element, liefert das alte zurück</td></tr>
+<tr><td><code>E remove(int index)</code></td><td>entfernt das Element an der Stelle <code>index</code> und liefert es zurück</td></tr>
+<tr><td><code>boolean remove(Object o)</code></td><td>entfernt das erste Vorkommen von <code>o</code></td></tr>
+<tr><td><code>int size()</code></td><td>Anzahl der Elemente</td></tr>
+<tr><td><code>boolean isEmpty()</code></td><td>true bei leerer Liste</td></tr>
+<tr><td><code>boolean contains(Object o)</code></td><td>true, wenn <code>o</code> enthalten ist</td></tr>
+<tr><td><code>int indexOf(Object o)</code></td><td>Index des ersten Vorkommens, -1 wenn nicht enthalten</td></tr>
+<tr><td><code>void clear()</code></td><td>leert die Liste</td></tr>
+<tr><td><code>void sort(Comparator c)</code></td><td>sortiert, mit <code>null</code> in natürlicher Ordnung</td></tr>
+</table>
+<pre>ArrayList&lt;String&gt; namen = new ArrayList&lt;&gt;();
+namen.add("Mia");
+for (String n : namen) { System.out.println(n); }</pre>
+
+<h3>HashMap&lt;K,V&gt; (java.util.HashMap)</h3>
+<p>Abbildung von Schlüsseln auf Werte, jeder Schlüssel höchstens einmal. Die Reihenfolge der Einträge ist nicht festgelegt.</p>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>V put(K key, V value)</code></td><td>speichert den Wert, liefert den früheren Wert oder <code>null</code></td></tr>
+<tr><td><code>V get(Object key)</code></td><td>liefert den Wert oder <code>null</code>, wenn der Schlüssel fehlt</td></tr>
+<tr><td><code>V getOrDefault(Object key, V standard)</code></td><td>Wert oder <code>standard</code></td></tr>
+<tr><td><code>boolean containsKey(Object key)</code></td><td>Schlüssel vorhanden?</td></tr>
+<tr><td><code>boolean containsValue(Object value)</code></td><td>Wert vorhanden?</td></tr>
+<tr><td><code>V remove(Object key)</code></td><td>entfernt den Eintrag, liefert den Wert oder <code>null</code></td></tr>
+<tr><td><code>int size()</code> / <code>boolean isEmpty()</code></td><td>Anzahl der Einträge / leer?</td></tr>
+<tr><td><code>Set&lt;K&gt; keySet()</code></td><td>alle Schlüssel</td></tr>
+<tr><td><code>Collection&lt;V&gt; values()</code></td><td>alle Werte</td></tr>
+<tr><td><code>Set&lt;Map.Entry&lt;K,V&gt;&gt; entrySet()</code></td><td>alle Einträge, mit <code>getKey()</code> und <code>getValue()</code></td></tr>
+<tr><td><code>void clear()</code></td><td>leert die Abbildung</td></tr>
+</table>
+<pre>HashMap&lt;String, Integer&gt; punkte = new HashMap&lt;&gt;();
+punkte.put("Mia", 12);
+for (String k : punkte.keySet()) { System.out.println(k + ": " + punkte.get(k)); }</pre>
+
+<h3>Arrays (java.util.Arrays)</h3>
+<p>Die Länge eines Feldes steht in der Eigenschaft <code>a.length</code> (ohne Klammern).</p>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>static String toString(int[] a)</code></td><td>Feld als Text, z. B. <code>[3, 1, 2]</code> (für alle Feldtypen)</td></tr>
+<tr><td><code>static void sort(int[] a)</code></td><td>sortiert aufsteigend (auch <code>sort(a, von, bis)</code>)</td></tr>
+<tr><td><code>static void fill(int[] a, int wert)</code></td><td>füllt das ganze Feld mit <code>wert</code></td></tr>
+<tr><td><code>static int[] copyOf(int[] a, int neueLaenge)</code></td><td>Kopie mit neuer Länge (kürzer: abgeschnitten, länger: mit 0 aufgefüllt)</td></tr>
+<tr><td><code>static int[] copyOfRange(int[] a, int von, int bis)</code></td><td>Kopie des Bereichs von <code>von</code> bis <em>vor</em> <code>bis</code></td></tr>
+<tr><td><code>static boolean equals(int[] a, int[] b)</code></td><td>gleiche Länge und gleiche Elemente?</td></tr>
+<tr><td><code>static int binarySearch(int[] a, int key)</code></td><td>Binärsuche, das Feld muss sortiert sein; Index oder negativer Wert, wenn nicht gefunden</td></tr>
+<tr><td><code>static &lt;T&gt; List&lt;T&gt; asList(T... a)</code></td><td>Liste fester Größe über den Elementen</td></tr>
+</table>
+
+<h3>Integer, Double und Character</h3>
+<table>
+<tr><th>Methode / Konstante</th><th>Beschreibung</th></tr>
+<tr><td><code>static int Integer.parseInt(String s)</code></td><td>String in <code>int</code> umwandeln; <code>NumberFormatException</code> bei ungültiger Eingabe</td></tr>
+<tr><td><code>static double Double.parseDouble(String s)</code></td><td>String in <code>double</code> umwandeln (Dezimalpunkt)</td></tr>
+<tr><td><code>static Integer Integer.valueOf(int i)</code></td><td>Umhüllung als Objekt</td></tr>
+<tr><td><code>static String Integer.toString(int i)</code></td><td>Zahl als Text</td></tr>
+<tr><td><code>static String Integer.toBinaryString(int i)</code> / <code>toHexString(int i)</code></td><td>Dualdarstellung bzw. Hexadezimaldarstellung</td></tr>
+<tr><td><code>static int Integer.compare(int a, int b)</code></td><td>negativ, 0 oder positiv</td></tr>
+<tr><td><code>Integer.MAX_VALUE</code> / <code>Integer.MIN_VALUE</code></td><td>2147483647 bzw. -2147483648</td></tr>
+<tr><td><code>Character.isDigit(c)</code>, <code>isLetter(c)</code></td><td>Ziffer bzw. Buchstabe?</td></tr>
+<tr><td><code>Character.isUpperCase(c)</code>, <code>toUpperCase(c)</code></td><td>Großbuchstabe prüfen bzw. umwandeln</td></tr>
+</table>
+
+<h3>System.out</h3>
+<table>
+<tr><th>Methode</th><th>Beschreibung</th></tr>
+<tr><td><code>System.out.println(x)</code></td><td>gibt <code>x</code> aus und beginnt eine neue Zeile</td></tr>
+<tr><td><code>System.out.print(x)</code></td><td>gibt <code>x</code> ohne Zeilenumbruch aus</td></tr>
+<tr><td><code>System.out.printf(String fmt, Object... args)</code></td><td>formatierte Ausgabe</td></tr>
+<tr><td><code>System.currentTimeMillis()</code></td><td>Millisekunden seit 1.1.1970</td></tr>
+<tr><td><code>System.exit(int status)</code></td><td>beendet das Programm (0 = ohne Fehler)</td></tr>
+</table>
+<p>Formatangaben für <code>printf</code>: <code>%d</code> ganze Zahl, <code>%f</code> Kommazahl (<code>%.2f</code> mit zwei Nachkommastellen), <code>%s</code> Text, <code>%c</code> Zeichen, <code>%b</code> Wahrheitswert, <code>%x</code> hexadezimal, <code>%5d</code> mindestens 5 Stellen breit, <code>%-8s</code> linksbündig, <code>%n</code> Zeilenumbruch.</p>
+<pre>System.out.printf("%s hat %d Punkte (%.1f %%)%n", name, punkte, prozent);</pre>
+</div>

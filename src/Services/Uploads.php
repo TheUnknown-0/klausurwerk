@@ -38,11 +38,39 @@ final class Uploads
      * Validiert und speichert eine hochgeladene Datei.
      *
      * @param array $file Eintrag aus $_FILES
-     * @param 'logos'|'branding' $subdir
+     * @param string $subdir Unterordner, z. B. 'logos', 'branding', 'materials'
      * @param list<string>|null $allowedExtensions Einschränkung (z. B. nur Bilder für Logos)
      * @return array{filename: string, original_name: string, mime: string, size: int}
      */
     public function store(array $file, string $subdir, ?array $allowedExtensions = null, int $maxBytes = 10485760): array
+    {
+        return $this->place($file, $subdir, $allowedExtensions, $maxBytes, true);
+    }
+
+    /**
+     * Wie store(), aber für eine lokale Datei auf dem Server (Import, Kopie, Tests):
+     * wird kopiert statt per move_uploaded_file verschoben, die Quelle bleibt erhalten.
+     *
+     * @param list<string>|null $allowedExtensions
+     * @return array{filename: string, original_name: string, mime: string, size: int}
+     */
+    public function storeLocal(string $path, string $originalName, string $subdir, ?array $allowedExtensions = null, int $maxBytes = 10485760): array
+    {
+        if (!is_file($path)) {
+            throw new HttpException(400, 'Die Datei fehlt.');
+        }
+
+        return $this->place(
+            ['error' => UPLOAD_ERR_OK, 'size' => (int) filesize($path), 'name' => $originalName, 'tmp_name' => $path],
+            $subdir,
+            $allowedExtensions,
+            $maxBytes,
+            false,
+        );
+    }
+
+    /** @return array{filename: string, original_name: string, mime: string, size: int} */
+    private function place(array $file, string $subdir, ?array $allowedExtensions, int $maxBytes, bool $uploaded): array
     {
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             throw new HttpException(400, 'Der Upload ist fehlgeschlagen. Bitte versuche es erneut.');
@@ -75,7 +103,9 @@ final class Uploads
         }
 
         $filename = bin2hex(random_bytes(16)) . '.' . $ext;
-        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
+        $target = $dir . '/' . $filename;
+        $ok = $uploaded ? move_uploaded_file($file['tmp_name'], $target) : copy($file['tmp_name'], $target);
+        if (!$ok) {
             throw new HttpException(500, 'Die Datei konnte nicht gespeichert werden.');
         }
 
