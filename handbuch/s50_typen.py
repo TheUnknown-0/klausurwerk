@@ -77,6 +77,8 @@ TITLES3 = {"uml": "Klassendiagramm Bibliothek", "structogram": "Struktogramm", "
 
 
 def main(b):
+    import time
+    time.sleep(12)  # Herzschlag des vorigen Tabs (localStorage) muss abgelaufen sein
     # --- Übung #2: Aufnahmen
     m = sess(b, "mia.becker")
     goto(m, "/klausur/2", 2000)

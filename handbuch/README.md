@@ -8,7 +8,7 @@ Quellen und Werkzeuge für das Handbuch (Gesamtausgabe und drei Teilhefte als PD
 | `manual/01.html` bis `07.html` | Kapitel 1 bis 7 (Überblick, Installation, Verwaltung, Vorbereiten, Klausurtag, Korrektur, Schüler:innen) |
 | `manual/08.html` | Anhänge A bis E (Rechte, Tastenkürzel, Ereignisse, FAQ, Datenschutzvorlage) |
 | `manual/04-typen.html` | Abschnitt 4.6 (16 Antworttypen), **erzeugt** von `gen_types.py` |
-| `manual/style.css`, `manual/cover.html` | Gestaltung (Indigo `#3730a3`, Schriften aus `public/assets/fonts`) und Titelseite |
+| `manual/style.css`, `manual/cover.html` | Gestaltung im Design „Klausurbogen“ (Papier mit Karoraster, Königsblau, Rotstift; Newsreader und Atkinson aus `public/assets/fonts`) und Titelseite |
 | `manual/build.py` | baut das PDF |
 | `teile_trennen.py` | baut die drei Teilhefte |
 | `kw.py` | Hilfen für die Aufnahmen (Playwright) |
@@ -45,14 +45,14 @@ python s30a_lauf.py --neu               # Warteraum, Beitritt, Start (legt state
 python s30b_schueler.py                 # Schüleransicht von Mia ausfüllen
 python s30b2_schueler.py                # Zuordnung und Reihenfolge
 python s30c_pult.py                     # Verstoß, Hand, Zeit, Toilette, Durchsage, Gerätewechsel
+python s30d2_pause.py                   # Replay im Detailfenster, Pause für alle
 python s30e_ende.py                     # Anfragen, Abgabe (Dialoge)
-python s30f_fertig.py                   # Rest über die Pult-Schnittstelle, Klausur beenden
 python s40_korrektur.py                 # Korrektur, Ergebnisse, Freigabe, Rückgabe
 python s50_typen.py && python s50b_diagramme.py   # Übung (Turtle, Robo) und Test mit allen Diagrammtypen
 python s60_karten_probe.py              # Zugangskarten-PDF und Technik-Check
 ```
 
-Hinweise: Jeder Browserkontext ist für Klausurwerk ein neues Gerät. Deshalb speichern die Skripte die Sitzung
+Hinweise: Zwischen zwei Skripten, die dieselbe Sitzung laden, warten die Skripte 12 Sekunden (Herzschlag des vorigen Tabs, sonst meldet die Klausur „zweiter Tab“ und sperrt). Native Rückfragen (`data-confirm`) bestätigt `s40_korrektur.py` per `page.on("dialog")`. `s30f_fertig.py` ist eine Alternative zu `s30e_ende.py`. Jeder Browserkontext ist für Klausurwerk ein neues Gerät. Deshalb speichern die Skripte die Sitzung
 (Cookies, Gerätekennung) je Benutzer in `states/` und laden sie wieder (`kw.sess`). Pult-Bestätigungen sind eigene
 Dialoge (Knopf „Jetzt starten“ usw.). Passwörter: `admin`, `frau.lehmann`, `herr.yilmaz` mit `Demo2026!`, Schüler:innen
 mit `<benutzername>-2026`. Wenn die Anwendung ihr Aussehen ändert, passen Sie Selektoren in den Skripten an.

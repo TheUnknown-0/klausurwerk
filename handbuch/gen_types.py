@@ -3,7 +3,7 @@ UI = '<span class="ui">{}</span>'
 T = [
  ("choice", "Multiple Choice", "Text und Auswahl",
   "Der Schüler kreuzt eine oder mehrere Antworten an. Die Optionen können Markdown mit Code und Formeln enthalten und je Person gemischt werden.",
-  "Aufgabentext, dann pro Option ein Textfeld mit Häkchen „richtig“; ↑ ↓ ✕ ordnen und löschen. Schalter <b>Mehrere Antworten möglich</b> und <b>Optionen je Person mischen</b>. Bewertungsart: alles oder nichts, oder anteilig (richtig Gewählte minus falsch Gewählte, nicht unter 0).",
+  "Aufgabentext, dann pro Option ein Textfeld mit Häkchen „richtig“; mit den Pfeil-Symbolen ordnen Sie die Optionen, mit dem Kreuz-Symbol entfernen Sie eine. Schalter <b>Mehrere Antworten möglich</b> und <b>Optionen je Person mischen</b>. Bewertungsart: alles oder nichts, oder anteilig (richtig Gewählte minus falsch Gewählte, nicht unter 0).",
   "Ja, vollständig. Vorschlag = Aufgabenpunkte mal Anteil richtig, gerundet auf 0,5."),
  ("gaps", "Lückentext", "Text und Auswahl",
   "Ein Text oder Code mit Lücken. Jede Lücke ist ein kurzes Eingabefeld oder eine Auswahlliste.",

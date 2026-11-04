@@ -21,6 +21,8 @@ def btn(page, pattern, first=True):
 
 
 def main(b):
+    import time
+    time.sleep(12)  # Herzschlag des vorigen Tabs (localStorage) muss abgelaufen sein
     S = {}
     for n in NAMES:
         p = sess(b, n)
@@ -76,7 +78,6 @@ def main(b):
     step("toilette", lambda: btn(t, "Abwesend").click())
     t.wait_for_timeout(1000)
     shot(t, "x-417-pult-toilette-dialog")
-    step("toilette ok", lambda: (t.locator("dialog[open] button.btn-primary, .modal button.btn-primary, [role=dialog] button.btn-primary").first.click()))
     t.wait_for_timeout(3500)
     shot(ben, "x-523-abwesend")
     step("ben zurueck", lambda: btn(ben, "Zurück|Freigabe").click())
@@ -103,7 +104,7 @@ def main(b):
     t.wait_for_timeout(1200)
     shot(t, "x-422-pult-detail-zeit-geraet")
     print(text(t, "body")[-1500:])
-    step("schliessen", lambda: btn(t, "Schließen").click())
+    step("schliessen", lambda: t.keyboard.press("Escape"))
 
     # Geraetewechsel: Paul an neuem Geraet
     ctx2 = new_ctx(b)
@@ -115,7 +116,7 @@ def main(b):
     print(text(t, "body")[:1200])
 
     # Selbst abgeben: Lea
-    step("lea abgeben", lambda: btn(lea, "^Abgeben").click())
+    step("lea abgeben", lambda: lea.locator("button", has_text="Abgeben").first.click())
     lea.wait_for_timeout(800)
     shot(lea, "x-526-abgabe-dialog")
     for n, p in S.items():

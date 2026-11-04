@@ -2,7 +2,7 @@
 from kw import *
 from s30c_pult import step, btn
 
-DLG = "dialog[open] button.btn-primary, [role=dialog] button.btn-primary, .modal button.btn-primary"
+DLG = "dialog[open] button.btn-primary, [role=dialog] button.btn-primary, .modal button.btn-primary, dialog[open] button.btn-danger"
 
 
 def overlay(p):
@@ -13,6 +13,8 @@ def overlay(p):
 
 
 def main(b):
+    import time
+    time.sleep(12)  # Herzschlag des vorigen Tabs (localStorage) muss abgelaufen sein
     t = sess(b, "frau.lehmann")
     t.set_viewport_size({"width": 1440, "height": 1150})
     lea = sess(b, "lea.koch"); goto(lea, "/klausur/1", 1500); overlay(lea)
@@ -22,14 +24,12 @@ def main(b):
     shot(t, "x-426-pult-anfragen")
     print(t.evaluate("[...document.querySelectorAll('button')].map(b=>b.innerText.trim()).filter(x=>x)"))
     # Gerätewechsel für Paul freigeben
-    step("paul", lambda: t.get_by_role("button", name=re.compile("Gerät|Wechsel")).first.click())
-    t.wait_for_timeout(1200)
     shot(t, "x-427-pult-geraetewechsel-dialog")
-    step("dlg", lambda: t.locator(DLG).first.click())
+    step("paul", lambda: t.locator("li.pult-request-device").get_by_role("button", name="Freigeben").first.click())
     t.wait_for_timeout(3500)
     shot(paul, "x-527-geraetewechsel-freigegeben")
     # Ben freigeben (Anfrage), Hand quittieren
-    step("ben freigeben", lambda: t.locator("*", has_text="Bitte um Freigabe").get_by_role("button", name="Freigeben").first.click())
+    step("ben freigeben", lambda: t.locator("li.pult-request-release").get_by_role("button", name="Freigeben").first.click())
     t.wait_for_timeout(1500)
     step("hand", lambda: t.get_by_role("button", name="Quittieren").first.click())
     t.wait_for_timeout(1500)
@@ -50,7 +50,7 @@ def main(b):
     shot(lea, "x-530-abgegeben")
     shot(t, "x-432-pult-eine-abgegeben")
     step("alle", lambda: btn(t, "Alle auswählen").click())
-    step("abgeben", lambda: t.locator("button", has_text="Abgeben").filter(has_text="📥").first.click())
+    step("abgeben", lambda: t.get_by_role("button", name="Abgeben", exact=True).first.click())
     t.wait_for_timeout(900)
     shot(t, "x-433-pult-abgeben-dialog")
     step("dlg", lambda: t.locator(DLG).first.click())

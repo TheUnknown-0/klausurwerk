@@ -46,6 +46,8 @@ def typecode(p, code):
 
 
 def main(b):
+    import time
+    time.sleep(12)  # Herzschlag des vorigen Tabs (localStorage) muss abgelaufen sein
     p = sess(b, "mia.becker")
     goto(p, "/klausur/1", 1500)
     ov = p.get_by_role("button", name=re.compile("beginnen|Weiter im Vollbild|Vollbild"))
@@ -88,7 +90,7 @@ def main(b):
     # Zuordnung
     pick(p, "Begriffe")
     shot(p, "x-516-matching-leer")
-    sels = p.locator("main select, .exam-main select, select")
+    sels = p.locator("select:visible")
     n = sels.count()
     for i in range(n):
         sels.nth(i).select_option(index=min(i + 1, 3))

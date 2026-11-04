@@ -6,6 +6,8 @@ from s50_typen import TITLES3, overlay
 
 
 def main(b):
+    import time
+    time.sleep(12)  # Herzschlag des vorigen Tabs (localStorage) muss abgelaufen sein
     t = sess(b, "frau.lehmann")
     goto(t, "/klausuren/3/pult", 1500)
     st = t.evaluate("fetch('/api/pult/3/stand?cursor=0',{headers:{Accept:'application/json'}}).then(r=>r.json())")

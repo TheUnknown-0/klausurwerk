@@ -51,7 +51,7 @@
     <img src="img/603-vorbewertung-laeuft.jpg" alt="Vorbewertung">
     <figcaption><b>{fig}</b> Der Fortschritt der automatischen Vorbewertung</figcaption>
   </figure>
-  <div class="box tip"><span class="t">Python-Tests und <code>input()</code></span><p>Tests vom Typ <code>python_assert</code> führen das Programm des Schülers im selben Namensraum aus. Ruft das Programm auf oberster Ebene <code>input()</code> auf, laufen die Funktionstests in einen „EOFError“ (keine Eingabe vorhanden), wie es in Abbildung 6.4 bei <code>fib(0)</code> zu sehen ist. Schreiben Sie die Aufgabe deshalb entweder mit <code>io</code>-Tests (Eingabe und Ausgabe) oder weisen Sie die Schüler an, das Hauptprogramm in <code>if __name__ == "__main__":</code> zu schreiben. Ein Test des Typs <code>python_assert</code> setzt <code>__name__</code> nicht auf <code>"__main__"</code>.</p></div>
+  <div class="box tip"><span class="t">Python-Tests und <code>input()</code></span><p>Tests vom Typ <code>python_assert</code> laden das Programm des Schülers als Modul (<code>__name__</code> ist dabei nicht <code>"__main__"</code>) und prüfen dann die Funktionen. Steht <code>input()</code> ohne <code>if __name__ == "__main__":</code> im Hauptteil, gibt es beim Laden keine Eingabe. Klausurwerk prüft dann mit allem, was bis zu dieser Zeile definiert ist, und schreibt einen Hinweis in die Testmeldung. So bekommt Mia in Abbildung 6.5 für <code>fib</code> trotzdem alle Testpunkte. Funktionen, die erst <em>nach</em> dem <code>input()</code> stehen, fehlen allerdings (NameError). Empfehlen Sie den Schülern deshalb die Schreibweise mit <code>if __name__ == "__main__":</code>, oder prüfen Sie das Hauptprogramm mit <code>io</code>-Tests (Eingabe und Ausgabe).</p></div>
   <p>Vorschläge sind <b>nur Vorschläge</b>: grau und kursiv in der Matrix, bis Sie sie übernehmen. In der Einzelansicht gilt <span class="ui">Vorschlag übernehmen</span>, in der Übersicht <span class="ui">Vorschläge übernehmen (ohne Code)</span> und <span class="ui">Alle Vorschläge übernehmen</span>. Beim Sammelübernehmen bleiben Zellen unberührt, in denen Sie schon bewertet haben.</p>
 
   <h2 id="k6-4"><span class="num">6.4</span>Die Bewertungsübersicht (Matrix)</h2>
@@ -66,10 +66,10 @@
       <tr><td>schwarze Zahl</td><td>bewertet (Ihre Punkte, bzw. der Endwert)</td></tr>
       <tr><td>graue Kursivzahl</td><td>nur Vorschlag der automatischen Prüfung</td></tr>
       <tr><td>–</td><td>offen</td></tr>
-      <tr><td>gelb hinterlegt, ⚠</td><td>Zweitkorrektur weicht von der Erstkorrektur ab</td></tr>
+      <tr><td>gelb hinterlegt, Warndreieck</td><td>Zweitkorrektur weicht von der Erstkorrektur ab</td></tr>
       <tr><td>rot, !</td><td>automatische Prüfung fehlgeschlagen</td></tr>
-      <tr><td>⏰</td><td>Änderungen nach Ablauf der Bearbeitungszeit (Überziehung)</td></tr>
-      <tr><td>📋</td><td>Einfügungen innerhalb der Klausur (aus der Klausur kopierter Text)</td></tr>
+      <tr><td>Wecker-Symbol</td><td>Änderungen nach Ablauf der Bearbeitungszeit (Überziehung)</td></tr>
+      <tr><td>Klemmbrett-Symbol</td><td>Einfügungen innerhalb der Klausur (aus der Klausur kopierter Text)</td></tr>
       <tr><td>„ohne Abgabe“</td><td>Teilnahme nicht abgegeben (Zustand im Tooltip)</td></tr>
     </tbody>
   </table>
@@ -88,12 +88,12 @@
   </figure>
   <ul>
     <li><b>Punkte</b>: 0 bis zur Aufgabenpunktzahl in Schritten von 0,5 (Komma oder Punkt). Gespeichert wird automatisch kurz nach der Eingabe und beim Verlassen des Feldes. <span class="ui">0</span> und <span class="ui">Voll</span> setzen die Extremwerte, <span class="ui">Vorschlag übernehmen (2)</span> übernimmt den Vorschlag.</li>
-    <li><b>Testergebnisse</b>: ausklappbar, je Test bestanden (✓) oder nicht (✗), erreichte Punkte, Meldung, <b>Ausgabe</b> und <b>Fehlerausgabe</b>.</li>
-    <li><b>Hinweise</b>: Überziehung (⏰), Anzahl Einfügungen (📋), „ohne Abgabe“.</li>
+    <li><b>Testergebnisse</b>: ausklappbar, je Test bestanden (Häkchen) oder nicht (Kreuz), erreichte Punkte, Meldung, <b>Ausgabe</b> und <b>Fehlerausgabe</b>.</li>
+    <li><b>Hinweise</b>: Überziehung (Wecker-Symbol), Anzahl Einfügungen (Klemmbrett-Symbol), „ohne Abgabe“.</li>
     <li><b>Replay</b>: spielt die Entstehung der Antwort ab (nur mit Zugriff auf das Pult der Klausur).</li>
   </ul>
   <h3>Durchblättern: Person für Person oder eine Aufgabe für alle</h3>
-  <p>Oben in der Einzelansicht wählen Sie die Reihenfolge: <b>Person für Person</b> (alle Aufgaben einer Person, dann die nächste) oder <b>Eine Aufgabe für alle</b> (dieselbe Aufgabe bei allen, dann die nächste Aufgabe). Letzteres ist meist schneller und gerechter, weil Sie mit demselben Maßstab bewerten. Über die Auswahlfelder (Person, Aufgabe), die Pfeile und die Knöpfe <span class="ui">← Zurück</span>, <span class="ui p">Weiter →</span> und <span class="ui">Nächste offene Stelle</span> navigieren Sie.</p>
+  <p>Oben in der Einzelansicht wählen Sie die Reihenfolge: <b>Person für Person</b> (alle Aufgaben einer Person, dann die nächste) oder <b>Eine Aufgabe für alle</b> (dieselbe Aufgabe bei allen, dann die nächste Aufgabe). Letzteres ist meist schneller und gerechter, weil Sie mit demselben Maßstab bewerten. Über die Auswahlfelder (Person, Aufgabe), die Pfeil-Knöpfe „Vorherige/Nächste Person“ und „Vorherige/Nächste Aufgabe“ sowie die Knöpfe <span class="ui">← Zurück</span>, <span class="ui p">Weiter →</span> und <span class="ui">Nächste offene Stelle</span> navigieren Sie.</p>
   <figure>
     <img src="img/614-eine-aufgabe-fuer-alle.jpg" alt="Eine Aufgabe für alle">
     <figcaption><b>{fig}</b> „Eine Aufgabe für alle“: dieselbe Aufgabe, Person für Person</figcaption>
@@ -119,12 +119,12 @@
   <p>Jede Lehrkraft mit dem Schalter „Korrigieren“ (Kapitel 4.9) bewertet für sich: ein Eintrag je Lehrkraft, Aufgabe und Person.</p>
   <ul>
     <li><b>Endwert</b>: der Eintrag der Hauptlehrkraft. Hat sie nichts eingetragen, der einzige vorhandene (bei mehreren der zuletzt geänderte). Die Hauptlehrkraft entscheidet bei Abweichungen.</li>
-    <li><b>Abweichung</b>: in der Matrix gelb (⚠) und in der Einzelansicht als Hinweis mit den fremden Punkten.</li>
+    <li><b>Abweichung</b>: in der Matrix gelb (Warndreieck) und in der Einzelansicht als Hinweis mit den fremden Punkten.</li>
     <li><b>Sichtbarkeit</b>: Die Hauptlehrkraft sieht alle Bewertungen und Kommentare. Hinzugefügte Lehrkräfte sehen zunächst nur ihre eigenen und können <span class="ui">Fremde Bewertungen zeigen</span> einschalten (gilt je Sitzung).</li>
   </ul>
   <figure>
     <img src="img/617-matrix-abweichung.jpg" alt="Abweichung in der Matrix">
-    <figcaption><b>{fig}</b> Eine Zweitkorrektur weicht ab: gelb mit ⚠, die Kennzahl „Abweichend“ zeigt 1</figcaption>
+    <figcaption><b>{fig}</b> Eine Zweitkorrektur weicht ab: gelb mit Warndreieck, die Kennzahl „Abweichend“ zeigt 1</figcaption>
   </figure>
   <h3>Tastatur</h3>
   <p>Mit <span class="kbd">Enter</span> im Punktefeld speichern Sie und springen zur nächsten Zelle, mit <span class="kbd">Alt</span> + Pfeiltasten wechseln Sie Zelle, Person und Aufgabe, mit <span class="kbd">Alt</span> + <span class="kbd">O</span> zur nächsten offenen Zelle (Anhang B).</p>

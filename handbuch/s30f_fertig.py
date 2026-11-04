@@ -21,7 +21,7 @@ def main(b):
     shot(t, "x-430-pult-voll")
     # Dialog "Abgeben" und "Klausur beenden" nur aufnehmen
     step("alle", lambda: btn(t, "Alle auswählen").click())
-    step("abgeben", lambda: t.locator("button", has_text="Abgeben").filter(has_text="📥").first.click())
+    step("abgeben", lambda: t.get_by_role("button", name="Abgeben", exact=True).first.click())
     t.wait_for_timeout(900)
     shot(t, "x-433-pult-abgeben-dialog")
     print(t.evaluate("[...document.querySelectorAll('dialog[open] button, [role=dialog] button')].map(b=>b.innerText+'|'+b.className)"))

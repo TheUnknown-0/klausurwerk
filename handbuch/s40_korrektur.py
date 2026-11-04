@@ -7,7 +7,10 @@ EX = 1
 
 
 def main(b):
+    import time
+    time.sleep(12)  # Herzschlag des vorigen Tabs (localStorage) muss abgelaufen sein
     t = sess(b, "frau.lehmann")
+    t.on("dialog", lambda d: d.accept())  # native Rueckfragen (data-confirm) bestaetigen
     t.set_viewport_size({"width": 1440, "height": 1000})
     goto(t, f"/klausuren/{EX}")
     shot(t, "600-klausur-beendet")

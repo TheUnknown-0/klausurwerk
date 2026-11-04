@@ -23,8 +23,7 @@ handbuch/states/
 handbuch/manual/_build.html
 handbuch/manual/_pass.pdf
 handbuch/manual/_cover.pdf
-# Handbuch: Bilder und PDFs werden nach dem Redesign neu erzeugt
-handbuch/shots/
+handbuch/manual/_cover.html
+# Handbuch: Aufnahmen (shots/), Beispiel-PDFs und fertige PDFs sind eingecheckt;
+# manual/img/ erzeugt build.py daraus.
 handbuch/manual/img/
-handbuch/*.pdf
-handbuch/data/*.pdf

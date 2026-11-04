@@ -25,7 +25,7 @@
     <img src="img/202-klausur-neu.jpg" alt="Neue Klausur">
     <figcaption><b>{fig}</b> Eine neue Klausur anlegen</figcaption>
   </figure>
-  <p>Die Klausurseite zeigt danach Status, Modus, die Kennzahlen (Aufgaben, Gesamtpunkte, Dauer, Material), die Eckdaten, die Aufgabenliste mit Antworttyp und Punkten, die Lehrkräfte und die Aktionen <span class="ui">Aufgaben bearbeiten</span>, <span class="ui">Einstellungen</span>, <span class="ui">Material</span>, <span class="ui">SEB-Datei</span>, <span class="ui">Export (ZIP)</span>, <span class="ui">Als Vorlage kopieren</span> und je nach Status die Statuswechsel.</p>
+  <p>Die Klausurseite zeigt danach Status, Modus, die Kennzahlen (Aufgaben, Gesamtpunkte, Dauer, Material), die Eckdaten, die Aufgabenliste mit Antworttyp und Punkten, die Lehrkräfte und die Karte „Bearbeiten und weitergeben“. Ihre Aktionen sind gruppiert: <b>Vorbereiten</b> (<span class="ui">Aufgaben bearbeiten</span>, <span class="ui">Einstellungen</span>, <span class="ui">Material</span>, <span class="ui">SEB-Datei</span>), <b>Zustand</b> (<span class="ui">Fertigstellen</span> beziehungsweise <span class="ui">Zurück in den Entwurf</span>) und <b>Weitergeben</b> (<span class="ui">Export (ZIP)</span>, <span class="ui">Als Vorlage kopieren</span>). Oben stehen <span class="ui">Pult öffnen</span>, <span class="ui">Vorschau</span> und, je nach Status, <span class="ui">Korrektur</span> und <span class="ui">Ergebnisse</span>.</p>
   <figure>
     <img src="img/203-klausur-seite.jpg" alt="Klausurseite">
     <figcaption><b>{fig}</b> Die Klausurseite im Zustand „Bereit“, mit den Knöpfen Pult öffnen und Vorschau</figcaption>
@@ -88,8 +88,8 @@
   </figure>
   <h3>Aufgaben und Teilaufgaben</h3>
   <ul>
-    <li><span class="ui">+ Aufgabe</span> legt eine Aufgabe auf oberster Ebene an (1, 2, 3 …), <span class="ui">+ Teilaufgabe</span> eine untergeordnete (1a, 1b …).</li>
-    <li>↑ und ↓ verschieben die Aufgabe, → macht sie zur Teilaufgabe der vorherigen, ← holt sie wieder eine Ebene hoch. <span class="ui d">Löschen</span> entfernt sie samt Teilaufgaben.</li>
+    <li><span class="ui">Aufgabe</span> (Plus-Symbol) legt eine Aufgabe auf oberster Ebene an (1, 2, 3 …), <span class="ui">Teilaufgabe</span> (Plus-Symbol) eine untergeordnete (1a, 1b …).</li>
+    <li>Die Pfeil-Knöpfe über der Aufgabenliste verschieben die Aufgabe (nach oben, nach unten), machen sie zur Teilaufgabe der vorherigen (Pfeil nach rechts) oder holen sie wieder eine Ebene hoch (Pfeil nach links). <span class="ui d">Löschen</span> entfernt sie samt Teilaufgaben.</li>
     <li>Eine Aufgabe mit Teilaufgaben ist ein <b>Container</b>: Sie hat einen eigenen Text (zum Beispiel eine Ausgangslage), aber keinen Antworttyp. Ihre <b>Punkte</b> sind die Summe der Teilaufgaben und werden automatisch berechnet.</li>
     <li><span class="ui p">Speichern</span> speichert die gewählte Aufgabe; daneben steht „Gespeichert“ oder ein Hinweis auf ungespeicherte Änderungen.</li>
   </ul>
@@ -144,7 +144,7 @@ for (int i = 0; i &lt; feld.length; i++) { ... }
   </ul>
 
   <h2 id="k4-8"><span class="num">4.8</span>Vorschau</h2>
-  <p>Mit <span class="ui">Vorschau</span> (auf der Klausurseite und im Pult) sehen Sie die Klausur genau so, wie Schüler sie sehen: gleiche Seite, gleiche Antworttypen, gleiche Hilfsmittel. Ein blauer Streifen weist darauf hin: „Vorschau: Es wird nichts gespeichert und nichts an die Lehrkraft gemeldet.“ Probieren Sie hier jede Aufgabe aus, auch das Ausführen von Code. Aufgaben mit Fehlern in Gerüst oder Beispieltests finden Sie so vor der Klausur.</p>
+  <p>Mit <span class="ui">Vorschau</span> (auf der Klausurseite und im Pult) sehen Sie die Klausur genau so, wie Schüler sie sehen: gleiche Seite, gleiche Antworttypen, gleiche Hilfsmittel. Ein Streifen oben weist darauf hin: „Vorschau: Es wird nichts gespeichert und nichts an die Lehrkraft gemeldet.“ Probieren Sie hier jede Aufgabe aus, auch das Ausführen von Code. Aufgaben mit Fehlern in Gerüst oder Beispieltests finden Sie so vor der Klausur.</p>
   <figure>
     <img src="img/x-310-vorschau-code-java.jpg" alt="Vorschau">
     <figcaption><b>{fig}</b> Die Vorschau einer Java-Aufgabe mit dem blauen Hinweisstreifen</figcaption>

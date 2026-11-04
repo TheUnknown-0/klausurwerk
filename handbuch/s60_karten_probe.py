@@ -7,6 +7,8 @@ DLG = "dialog[open] button.btn-primary, [role=dialog] button.btn-primary, .modal
 
 
 def main(b):
+    import time
+    time.sleep(12)  # Herzschlag des vorigen Tabs (localStorage) muss abgelaufen sein
     a = sess(b, "admin")
     import sys
     if "--probe" in sys.argv:
