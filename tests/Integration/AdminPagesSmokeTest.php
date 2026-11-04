@@ -295,6 +295,112 @@ final class AdminPagesSmokeTest extends DatabaseTestCase
         (new CoursesController($this->ctx))->addMember(['id' => $course['id']]);
     }
 
+    public function testWeiterleitungNachLoginBleibtInDerApp(): void
+    {
+        $controller = new \App\Controllers\AuthController($this->context((int) $this->createUser('teacher')['id']));
+        $method = new \ReflectionMethod($controller, 'safeRedirectTarget');
+        $allowed = ['/klausur/3', '/klausuren?x=1&y=/z', '/'];
+        $blocked = ['//evil.example.com/x', '/\\evil.example.com/x', "/\t/evil.example.com", "/\n/evil.example.com",
+            '/ok\\pfad', 'https://evil.example.com', 'evil.example.com', ''];
+
+        foreach ($allowed as $target) {
+            self::assertSame($target, $method->invoke($controller, $target), $target);
+        }
+        foreach ($blocked as $target) {
+            self::assertNull($method->invoke($controller, $target), json_encode($target));
+        }
+        self::assertNull($method->invoke($controller, null));
+    }
+
+    public function testErzwungenerPasswortwechselNurFuerDieEchteSeite(): void
+    {
+        $controller = new DashboardController($this->context((int) $this->createUser('teacher')['id']));
+        $method = new \ReflectionMethod($controller, 'isPasswordChangeRequest');
+        $check = function (string $uri) use ($method, $controller): bool {
+            $_SERVER['REQUEST_URI'] = $uri;
+
+            return $method->invoke($controller);
+        };
+
+        self::assertTrue($check('/passwort-aendern'));
+        self::assertTrue($check('/passwort-aendern?x=1'));
+        self::assertFalse($check('/dashboard?x=/passwort-aendern'));
+        self::assertFalse($check('/klausuren?/passwort-aendern'));
+        self::assertFalse($check('/api/korrektur/1/save?/passwort-aendern'));
+        self::assertFalse($check('/x/passwort-aendern'));
+    }
+
+    public function testFremdeSchuelerKoennenNichtInEigenenKursGezogenWerden(): void
+    {
+        $teacher = $this->createUser('teacher');
+        $other = $this->createUser('teacher');
+        $mine = $this->createCourse('10a', 10, (int) $teacher['id']);
+        $theirs = $this->createCourse('10b', 10, (int) $other['id']);
+        $foreign = $this->createUser('student');
+        $own = $this->createUser('student');
+        $this->addMember((int) $theirs['id'], (int) $foreign['id']);
+        $second = $this->createCourse('9c', 9, (int) $teacher['id']);
+        $this->addMember((int) $second['id'], (int) $own['id']);
+
+        $this->ctx = $this->context((int) $teacher['id']);
+        $_SERVER['HTTP_ACCEPT'] = 'application/json';
+        $_SERVER['HTTP_X_CSRF_TOKEN'] = $this->ctx->csrf->token();
+
+        // Fremde Schüler:in (Mitglied eines fremden Kurses): abgelehnt, kein Konto-Zugriff danach.
+        $_POST = ['user_id' => (string) $foreign['id']];
+        $result = (new CoursesController($this->ctx))->addMember(['id' => $mine['id']]);
+        self::assertFalse($result['success']);
+        self::assertSame(403, http_response_code());
+        self::assertNull($this->db->fetchValue(
+            'SELECT 1 FROM course_members WHERE course_id = ? AND user_id = ?',
+            [$mine['id'], $foreign['id']],
+        ));
+
+        // Eigene Schüler:in (schon in einem eigenen Kurs) und kurslose Schüler:in gehen.
+        http_response_code(200);
+        $_POST = ['user_id' => (string) $own['id']];
+        self::assertTrue((new CoursesController($this->ctx))->addMember(['id' => $mine['id']])['added']);
+        $fresh = $this->createUser('student');
+        $_POST = ['user_id' => (string) $fresh['id']];
+        self::assertTrue((new CoursesController($this->ctx))->addMember(['id' => $mine['id']])['added']);
+
+        // Mit ALLE_KURSE ist die Einschränkung aufgehoben.
+        $this->grantPermission((int) $teacher['id'], \App\Core\Permissions::ALLE_KURSE);
+        $this->ctx = $this->context((int) $teacher['id']);
+        $_SERVER['HTTP_X_CSRF_TOKEN'] = $this->ctx->csrf->token();
+        $_POST = ['user_id' => (string) $foreign['id']];
+        self::assertTrue((new CoursesController($this->ctx))->addMember(['id' => $mine['id']])['added']);
+    }
+
+    public function testPersonensucheZeigtLehrkraftenOhneAlleKurseNurEigeneUndKurslose(): void
+    {
+        $teacher = $this->createUser('teacher');
+        $other = $this->createUser('teacher');
+        $mine = $this->createCourse('10a', 10, (int) $teacher['id']);
+        $theirs = $this->createCourse('10b', 10, (int) $other['id']);
+        $own = $this->createUser('student', ['lastname' => 'Sucheins', 'username' => 'eigen.sucheins']);
+        $foreign = $this->createUser('student', ['lastname' => 'Sucheins', 'username' => 'fremd.sucheins']);
+        $free = $this->createUser('student', ['lastname' => 'Sucheins', 'username' => 'frei.sucheins']);
+        $this->addMember((int) $mine['id'], (int) $own['id']);
+        $this->addMember((int) $theirs['id'], (int) $foreign['id']);
+        $_GET = ['q' => 'sucheins', 'role' => 'student'];
+
+        $names = array_column($this->page((int) $teacher['id'], UserSearchController::class, 'search')['users'], 'username');
+        sort($names);
+        self::assertSame(['eigen.sucheins', 'frei.sucheins'], $names);
+
+        // Auch ohne role-Filter bleiben fremde Schüler:innen verborgen.
+        $_GET = ['q' => 'sucheins'];
+        self::assertNotContains('fremd.sucheins', array_column($this->page((int) $teacher['id'], UserSearchController::class, 'search')['users'], 'username'));
+
+        // Lehrkräfte mit ALLE_KURSE und Admins sehen alle.
+        $this->grantPermission((int) $teacher['id'], \App\Core\Permissions::ALLE_KURSE);
+        $_GET = ['q' => 'sucheins', 'role' => 'student'];
+        self::assertCount(3, $this->page((int) $teacher['id'], UserSearchController::class, 'search')['users']);
+        $admin = $this->createUser('admin');
+        self::assertCount(3, $this->page((int) $admin['id'], UserSearchController::class, 'search')['users']);
+    }
+
     public function testFremderKursLaesstKeineMitgliederHinzufuegen(): void
     {
         $owner = $this->createUser('teacher');

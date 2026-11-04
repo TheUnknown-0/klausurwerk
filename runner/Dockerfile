@@ -1,5 +1,5 @@
 # Klausurwerk-Runner: führt Java (21 und 25), Python 3 und SQLite abgeschottet aus.
-# Die Einschränkungen (read_only, tmpfs, cap_drop, Limits) setzt compose.yaml.
+# Die Einschränkungen (read_only, tmpfs, cap_drop/cap_add, Limits) setzt compose.yaml.
 FROM eclipse-temurin:21-jdk AS jdk21
 FROM eclipse-temurin:25-jdk AS jdk25
 
@@ -17,7 +17,6 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 util-linux tzdata \
     && python3 -c "import sqlite3" \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --system --uid 10001 --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin runner \
     && mkdir -p /work
 
 COPY --from=jdk21 /opt/java/openjdk /opt/jdk21
@@ -34,9 +33,11 @@ ENV RUNNER_LIBS_DIR=/opt/runner/libs \
     RUNNER_WORK_DIR=/work \
     RUNNER_PORT=8080
 
-USER 10001:10001
+# Der Hauptprozess bleibt root, aber nur mit SETUID, SETGID, CHOWN, FOWNER, DAC_OVERRIDE und KILL
+# (compose.yaml: cap_drop ALL, no-new-privileges, read_only). Jeder Lauf wechselt vor exec auf
+# eine eigene UID aus 20000 bis 20063 (setgroups([]), setgid, setuid), siehe kwrunner/sandbox.py.
 WORKDIR /work
 EXPOSE 8080
 
-# Läuft als unprivilegierter Benutzer, schreibt nur nach /tmp und /work (tmpfs).
+# Schreibt nur nach /tmp und /work (tmpfs); Schülercode läuft nie als root.
 CMD ["python3", "-I", "-B", "/opt/runner/kwrunner/main.py"]

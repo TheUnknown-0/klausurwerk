@@ -80,6 +80,18 @@ Zwei Ebenen, nie vermischen:
     Schüler:innen zusätzlich `AND user_id = ?`).
 11. Zeit ist Serverzeit. Clientzeit dient nur der Anzeige und der Zuordnung von Offline-Schritten.
 
+## Runner-Sicherheit
+
+- Der Runner-Container hängt nur am internen Netz `runner_net` (kein Internet), Dateisystem schreibgeschützt bis auf tmpfs `/tmp` und `/work`.
+- Der Hauptprozess läuft als root, aber nur mit den Capabilities SETUID, SETGID, CHOWN, FOWNER, DAC_OVERRIDE, KILL (`cap_drop: ALL`, `no-new-privileges`).
+- Jeder Lauf (interaktiv, `/tests`, `/robo`) bekommt eine eigene UID/GID aus dem Pool 20000 bis 20063. Laufverzeichnisse gehören dieser UID (0700), `/work` ist nicht listbar (0711), `/proc/1/environ` (Token) ist für Läufe unlesbar, `RLIMIT_NPROC` gilt je Lauf.
+- Testdateien des Autograders werden vor dem Start des Schülercodes gelöscht. Restrisiken (in `runner/README.md` dokumentiert): gleichzeitige Läufe teilen den Netzwerk-Namensraum (localhost); Testcode und Schülercode laufen im selben Prozess, ein gezielt präpariertes Programm kann ein „bestanden“ vortäuschen. Vorbewertungen sind deshalb immer Vorschläge.
+- App-seitig: höchstens ein laufender Lauf je Person, 30 Starts je Minute (`Services\RunLimiter`).
+
+## Safe Exam Browser
+
+`Services\SebGuard` prüft bei `require_seb` den Config Key (`X-SafeExamBrowser-ConfigKeyHash`). Der Config Key folgt aus der `.seb`-Datei und schützt daher nur gegen Versehen. Ist zusätzlich der Browser Exam Key hinterlegt (`exams.seb_browser_exam_key`), wird auch `X-SafeExamBrowser-RequestHash` geprüft; das ist der eigentliche Echtheitsnachweis.
+
 ## Zustände einer Teilnahme
 
 Einzige Stelle für Übergänge: `Services\ParticipationState::transition($participation, $to, $reason, $actorId)`.

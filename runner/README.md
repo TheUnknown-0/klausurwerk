@@ -10,14 +10,14 @@ angesprochen. Schnittstelle: `docs/API.md`, Abschnitt 5.
 ```
 runner/
   Dockerfile            Multi-Stage: Temurin 21 und 25 (nach /opt/jdk21, /opt/jdk25) auf ubuntu:24.04,
-                        python3 (stdlib, kein pip), util-linux (prlimit); Benutzer 10001, Port 8080
+                        python3 (stdlib, kein pip), util-linux (prlimit); Hauptprozess root mit wenigen Capabilities, Läufe unter UIDs 20000+, Port 8080
   kwrunner/
     main.py             Einstieg (python3 -I -B), SIGTERM-sauber, Zombie-Reaper
     config.py           Umgebungsvariablen und Bibliothekspfade
     httpd.py            ThreadingHTTPServer, Routing (Registry), Token-Prüfung (hmac.compare_digest)
     runs.py             /runs: Warteschlange, Übersetzen, Starten, Abruf, Aufräumen
     testexec.py         /tests: synchron, je Test isoliert (io, java_main, python_assert, sql_result)
-    sandbox.py          Kindprozess mit rlimits (prlimit), Wächter-Thread, Ausgabe-Chunks
+    sandbox.py          Kindprozess mit rlimits (prlimit), eigene UID je Lauf (UidPool), Wächter-Thread, Ausgabe-Chunks
     javatools.py        javac/java-Kommandos, Fehler-Parser, Startklasse (Paket beachten)
     boot_py.py          Startskript im Kindprozess: Python-Lauf, python_assert, SQL-Vergleich
     compare.py          exact, trim, ignore_whitespace, contains, regex
@@ -25,7 +25,8 @@ runner/
     modules/            Erweiterungspunkt für weitere Routen (z. B. /robo)
   libs/java/            .jar-Dateien und Klassenordner: kommen beim Übersetzen und Ausführen auf den Klassenpfad
   libs/python/          Python-Module: kommen in sys.path der Läufe (python3 -I ignoriert PYTHONPATH)
-  tests/test_runner.py  Integrationstests gegen den echten Container
+  tests/test_runner.py  Integrationstests gegen den echten Container (inkl. Isolation: fremder Lauf, /work, Token)
+  tests/test_sandbox_unit.py  Unit-Tests ohne Container (nur Linux)
 ```
 
 ### Erweiterungspunkt (`/robo`)
@@ -85,24 +86,58 @@ Fehlerantwort). Hilfen: `ctx.cfg` (Konfiguration, `java_libs()`, `python_libs()`
 | Platte je Lauf | 64 MB und 4000 Einträge (Wächter), einzelne Datei 10 MB (`RLIMIT_FSIZE`) |
 | Parallelität | `RUNNER_MAX_PARALLEL` laufende Läufe, weitere warten (Status `queued`), höchstens 64 aktive Läufe, sonst HTTP 429 |
 | Umgebung der Kindprozesse | leer bis auf PATH, HOME=`/tmp/<id>`, TMPDIR, LANG; der Token wird nie weitergegeben |
+| Identität | eigene UID/GID je Lauf (20000 bis 20063), keine Zusatzgruppen, keine Capabilities |
 
 Java läuft mit `-XX:+ExitOnOutOfMemoryError`, `-Xss8m`, SerialGC, nur C1, ohne Perf-Daten.
 Die JVM verwendet kein `user.language=de`, damit `Scanner.nextDouble` und `String.format`
 mit Punkt rechnen; nur `javac` meldet Fehler auf Deutsch.
 
+### Isolation der Läufe
+
+Der Hauptprozess des Containers läuft als root, aber nur mit den Capabilities `SETUID`,
+`SETGID`, `CHOWN`, `FOWNER`, `DAC_OVERRIDE` und `KILL` (`compose.yaml`: `cap_drop: ALL`,
+`cap_add`, `no-new-privileges`, `read_only`). Jeder Lauf (interaktiv, `/tests`, `/robo`)
+bekommt eine eigene UID/GID aus dem Pool 20000 bis 20063 (`kwrunner/sandbox.py`,
+`UidPool`). Der Kindprozess wechselt vor `exec` per `setgroups([])`, `setgid`, `setuid`
+(Popen-Argumente `user`, `group`, `extra_groups`). Daraus folgt:
+
+* Das Laufverzeichnis `/work/<id>` und `/tmp/<id>` gehören der Lauf-UID (0700). Ein
+  gleichzeitiger fremder Lauf kann sie weder lesen noch betreten.
+* `/work` selbst ist 0711: Läufe können es nicht auflisten und sehen keine fremden IDs.
+* `/proc/1/environ` (dort steht `RUNNER_TOKEN`) gehört root (0400): für Schülercode
+  nicht lesbar. Das Token steht außerdem nie im Environment der Kinder.
+* `RLIMIT_NPROC` zählt je UID, wirkt also je Lauf. Eine Fork- oder Thread-Bombe stört
+  andere Läufe nicht mehr.
+* Nach jedem Lauf werden alle Prozesse der UID beendet (`kill`) und ihre Dateien in
+  `/tmp` und `/dev/shm` gelöscht, bevor die UID wieder vergeben wird.
+* Versteckte Testdateien (`.kw_assert.py`, `.kw_setup.sql`, `.kw_expected.sql`) löscht der
+  Testrahmen, sobald er sie gelesen hat und bevor Schülercode läuft.
+* Ohne root (Entwicklungsrechner) entfällt der UID-Wechsel (`RUNNER_ISOLATE=0` schaltet ihn
+  auch als root ab). Produktiv muss der Container wie in `compose.yaml` gestartet werden.
+
 ### Bekannte Grenzen der Isolation (ehrlich gesagt)
 
-* Alle Läufe teilen sich eine UID (der Container hat kein `CAP_SETUID`). Ein Lauf könnte
-  über `/proc` und `/work` die Dateien eines gleichzeitig laufenden fremden Laufs lesen.
-  Die Verzeichnisse sind 0700 und die IDs zufällig, ein gezielter Angriff ist aber
-  möglich. Härtung wäre ein Sandbox-Werkzeug mit eigenen Namensräumen (nicht eingebaut).
-* `RLIMIT_NPROC` gilt je UID: Eine Thread- oder Fork-Bombe kann für wenige Zehntel
-  Sekunden gleichzeitig laufende andere Läufe stören (Threadanlage schlägt dort fehl),
-  bis der Wächter sie beendet. Der Container selbst bleibt unversehrt.
-* `python_assert`: Schülercode und Prüfung laufen im selben Prozess. Wer gezielt den
-  Ergebnis-Deskriptor beschreibt, kann ein "bestanden" fälschen. Für Java gilt das nicht
-  (Ergebnis = Exit-Code des Testprozesses).
+* **Gemeinsames Netz.** Ein Netzwerk-Namespace je Lauf bräuchte `CAP_SYS_ADMIN` (und
+  lockert damit den Container deutlich), das geben wir dem Runner bewusst nicht. Alle
+  Läufe teilen daher `localhost`. Zwei gleichzeitig laufende Programme könnten darüber
+  miteinander reden (Absprache, Abschreiben zwischen zwei Schüler:innen). Die
+  Runner-API auf `127.0.0.1:8080` ist für Schülercode ohne Token nutzlos (das Token ist
+  nicht lesbar), und der Container hat keinen Internetzugang. Restrisiko: ein
+  Localhost-Kanal zwischen zwei gleichzeitigen Läufen. Dagegen hilft nur Aufsicht oder
+  ein Wegwerf-Container je Lauf.
+* `/proc` zeigt Prozesse anderer Läufe samt Kommandozeile (Pfade mit Lauf-ID). Den Inhalt
+  der Verzeichnisse und das Token erreicht man damit nicht.
+* `python_assert`: Schülercode und Prüfung laufen im selben Prozess. Die Testdatei ist
+  zwar als Datei nicht mehr lesbar, im Speicher des Prozesses liegt der Testcode aber
+  (per `gc`/Frame-Inspektion auffindbar), und wer gezielt den Ergebnis-Deskriptor
+  beschreibt, kann ein "bestanden" fälschen. Für Java gilt das Ähnliche: Test und
+  Schülerklassen laufen in derselben JVM, ein `Runtime.halt(0)` im Schülercode lässt den
+  Test bestehen (Ergebnis = Exit-Code), und die übersetzte Testklasse liegt lesbar im
+  Klassenpfad. Die automatische Bewertung ist deshalb ein Vorschlag, den die Lehrkraft prüft.
 * `compare: regex` verwendet Pythons `re` ohne Zeitlimit (Muster stammen von Lehrkräften).
+* Wartende Läufe zählen nicht mehr als "abgefragt" (kein `touch()` in der Warteschlange):
+  Läufe, die niemand pollt, werden nach 60 s verworfen. Eine Obergrenze je Aufrufer kennt
+  der Runner nicht, die App begrenzt das je Person (`RunLimiter`).
 
 ## Tests
 
@@ -117,7 +152,9 @@ einzeln mit denselben Einschränkungen wie in `compose.yaml`
 
 ```sh
 docker run -d --rm --name kw-runner-test --read-only --tmpfs /tmp:size=256m --tmpfs /work:size=512m \
-  --cap-drop ALL --security-opt no-new-privileges --pids-limit 512 -m 2g --cpus 2 \
+  --cap-drop ALL --cap-add SETUID --cap-add SETGID --cap-add CHOWN --cap-add FOWNER \
+  --cap-add DAC_OVERRIDE --cap-add KILL \
+  --security-opt no-new-privileges --pids-limit 512 -m 2g --cpus 2 \
   -e RUNNER_TOKEN=test -p 18080:8080 klausurwerk-runner-dev
 ```
 

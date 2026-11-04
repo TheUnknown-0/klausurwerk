@@ -184,6 +184,21 @@ final class DiagramLogicAutomatonTest extends TestCase
         self::assertStringContainsString('Rückkopplung', $result['details']['errors'][0]);
     }
 
+    public function testLogicOhneOutputBausteinGibtKeinePunkte(): void
+    {
+        $type = new LogicType();
+        $config = $this->logicConfig();
+        $solution = $type->normalizeSolution(['truth_table' => ['00' => ['X' => 0], '01' => ['X' => 0], '10' => ['X' => 0], '11' => ['X' => 1]]], $config);
+        $circuit = ['components' => [$this->comp('iA', 'INPUT', 'A'), $this->comp('iB', 'INPUT', 'B'), $this->comp('g1', 'NAND')],
+            'wires' => [$this->wire('w1', 'iA', 'g1', 'in0'), $this->wire('w2', 'iB', 'g1', 'in1')]];
+        $result = $type->autoCheck($config, $solution, $type->normalizeContent($circuit, $config));
+        self::assertSame(0.0, $result['ratio']);
+        self::assertNotSame([], $result['details']['errors']);
+        foreach ($result['details']['items'] as $item) {
+            self::assertFalse($item['ok']);
+        }
+    }
+
     public function testLogicLoesungAusMusterschaltung(): void
     {
         $type = new LogicType();
@@ -241,7 +256,8 @@ final class DiagramLogicAutomatonTest extends TestCase
             '11' => ['X' => '1', 'Y' => '0'],   // X falsch
             '77' => ['X' => '1'],               // unbekannte Zeile
         ]], $config);
-        self::assertSame('1', $content['rows']['00']['X']);
+        // vorgegebene Zellen werden nicht mitgespeichert (zählen in autoCheck ohnehin nicht)
+        self::assertArrayNotHasKey('X', $content['rows']['00']);
         self::assertArrayNotHasKey('77', $content['rows']);
 
         $result = $type->autoCheck($config, $solution, $content);
@@ -250,6 +266,18 @@ final class DiagramLogicAutomatonTest extends TestCase
         self::assertEqualsWithDelta(5 / 7, $result['ratio'], 0.001);
         self::assertTrue($type->isAnswered($content));
         self::assertStringContainsString('A | B | X | Y', $type->toText($content, $config));
+        self::assertStringContainsString('0 | 0 | 1 | 0', $type->toText($content, $config), 'vorgegebene Zelle erscheint im Text');
+    }
+
+    public function testWahrheitstabelleNurVorgegebeneZellenIstNichtBeantwortet(): void
+    {
+        $type = new TruthTableType();
+        $config = $this->ttConfig(['prefilled' => ['00' => ['X' => '1']]]);
+        $leer = $type->normalizeContent(['rows' => ['00' => ['X' => '1']]], $config);
+        self::assertSame([], $leer['rows']);
+        self::assertFalse($type->isAnswered($leer));
+        $eigene = $type->normalizeContent(['rows' => ['00' => ['X' => '1', 'Y' => '0']]], $config);
+        self::assertTrue($type->isAnswered($eigene));
     }
 
     public function testWahrheitstabelleEinEingangHatIntSchluessel(): void

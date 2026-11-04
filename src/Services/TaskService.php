@@ -235,6 +235,10 @@ final class TaskService
             if ($points < 0 || $points > 999) {
                 throw new TaskValidationException('Die Punktzahl muss zwischen 0 und 999 liegen.', 'points');
             }
+            // Die Korrektur vergibt nur 0,5-Schritte (GradingService::normalizePoints), sonst wäre das Maximum nie erreichbar.
+            if (abs($points * 2 - round($points * 2)) > 1e-6) {
+                throw new TaskValidationException('Die Punktzahl muss ein Vielfaches von 0,5 sein.', 'points');
+            }
 
             $operatorId = ($input['operator_id'] ?? null) === null || $input['operator_id'] === '' ? null : (int) $input['operator_id'];
             if ($operatorId !== null && $this->db->fetchValue('SELECT id FROM operators WHERE id = ?', [$operatorId]) === null) {

@@ -243,10 +243,12 @@ final class LogicType extends DiagramTaskType
 
         $items = [];
         $right = 0;
+        $missing = array_flip($calc['missing_outputs']);
         foreach ($table as $key => $row) {
             foreach ($row as $out => $expected) {
                 $actual = $calc['table'][(string) $key][$out] ?? null;
-                $ok = $actual !== null && (int) $actual === (int) $expected;
+                // Ein fehlender OUTPUT-Baustein liefert nur den Platzhalter 0: nie als richtig werten.
+                $ok = !isset($missing[$out]) && $actual !== null && (int) $actual === (int) $expected;
                 $items[] = ['id' => $key . '.' . $out, 'ok' => $ok];
                 $right += $ok ? 1 : 0;
             }

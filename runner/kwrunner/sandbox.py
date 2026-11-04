@@ -4,6 +4,12 @@ Der Container ist die äußere Mauer (kein Netz, read_only, cap_drop, pids_limit
 Hier kommt die innere dazu: eigene Prozessgruppe je Lauf, rlimits über ``prlimit``,
 ein Wächter-Thread für Wandzeit, CPU-Zeit, Threads, Speicher, Plattenplatz und
 Ausgabemenge, leere Umgebung (der RUNNER_TOKEN gelangt nie in Kindprozesse).
+
+Läuft der Runner als root (so im Container, mit wenigen Capabilities), bekommt jeder
+Lauf eine eigene UID/GID aus einem Pool (20000 bis 20063). Das Laufverzeichnis gehört
+dieser UID (0700), ``/work`` selbst ist 0711 (nicht listbar), ``RLIMIT_NPROC`` gilt je Lauf,
+und ``/proc/1/environ`` (Token) sowie fremde Läufe sind für Schülercode nicht lesbar.
+Ohne root (Entwicklungsrechner, Unit-Tests) entfällt der Wechsel.
 """
 from __future__ import annotations
 
@@ -17,6 +23,8 @@ import threading
 import time
 from dataclasses import dataclass
 
+UID_BASE = int(os.environ.get("RUNNER_UID_BASE", "20000") or 20000)
+UID_COUNT = 64
 CLK_TCK = os.sysconf("SC_CLK_TCK") if hasattr(os, "sysconf") else 100
 PAGE = os.sysconf("SC_PAGE_SIZE") if hasattr(os, "sysconf") else 4096
 
@@ -109,6 +117,117 @@ def dir_usage(path: str, entry_cap: int = 4000) -> tuple[int, int]:
     return total, count
 
 
+def isolation_active() -> bool:
+    """True, wenn jeder Lauf unter eigener UID startet (Runner läuft als root)."""
+    return hasattr(os, "geteuid") and os.geteuid() == 0 and os.environ.get("RUNNER_ISOLATE", "1") != "0"
+
+
+class UidPool:
+    """Pool laufbezogener UIDs. Jede UID gehört zu höchstens einem Lauf zugleich."""
+
+    def __init__(self, base: int = UID_BASE, count: int = UID_COUNT):
+        self._free = list(range(base, base + count))
+        self._cond = threading.Condition()
+
+    def acquire(self, timeout: float = 5.0) -> int | None:
+        deadline = time.monotonic() + timeout
+        with self._cond:
+            while not self._free:
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    return None
+                self._cond.wait(left)
+            return self._free.pop(0)
+
+    def release(self, uid: int) -> None:
+        with self._cond:
+            if uid not in self._free:
+                self._free.append(uid)
+                self._cond.notify()
+
+
+UIDS = UidPool()
+
+
+def kill_uid(uid: int) -> None:
+    """Alle Prozesse einer Lauf-UID beenden (auch solche, die die Sitzung verlassen haben)."""
+    for _ in range(20):
+        found = False
+        try:
+            names = os.listdir("/proc")
+        except OSError:
+            return
+        for name in names:
+            if not name.isdigit():
+                continue
+            try:
+                if os.stat(f"/proc/{name}").st_uid == uid:
+                    found = True
+                    os.kill(int(name), signal.SIGKILL)
+            except OSError:
+                continue
+        if not found:
+            return
+        time.sleep(0.05)
+
+
+def purge_uid_files(uid: int) -> None:
+    """Dateien der Lauf-UID in allgemein beschreibbaren Verzeichnissen entfernen,
+    damit der nächste Lauf mit derselben UID nichts davon erbt."""
+    for base in ("/tmp", "/dev/shm"):
+        try:
+            entries = list(os.scandir(base))
+        except OSError:
+            continue
+        for entry in entries:
+            try:
+                if entry.stat(follow_symlinks=False).st_uid != uid:
+                    continue
+                if entry.is_dir(follow_symlinks=False):
+                    shutil.rmtree(entry.path, ignore_errors=True)
+                else:
+                    os.unlink(entry.path)
+            except OSError:
+                pass
+
+
+class RunIdentity:
+    """Kontext: reserviert eine Lauf-UID (oder ``None`` ohne Isolation) und räumt danach auf."""
+
+    def __init__(self):
+        self.uid: int | None = None
+
+    def __enter__(self) -> int | None:
+        if isolation_active():
+            self.uid = UIDS.acquire(5.0)
+            if self.uid is None:
+                raise RunnerError(429, "Die Ausführungsumgebung ist gerade ausgelastet. Bitte versuche es gleich noch einmal.")
+        return self.uid
+
+    def __exit__(self, *exc) -> None:
+        if self.uid is not None:
+            kill_uid(self.uid)
+            purge_uid_files(self.uid)
+            UIDS.release(self.uid)
+
+
+def chown_tree(path: str, uid: int | None) -> None:
+    """Datei oder Verzeichnisbaum der Lauf-UID übereignen (Symlinks nicht verfolgen)."""
+    if uid is None:
+        return
+    try:
+        os.lchown(path, uid, uid)
+    except OSError:
+        return
+    if os.path.isdir(path) and not os.path.islink(path):
+        for root, dirs, files in os.walk(path):
+            for name in dirs + files:
+                try:
+                    os.lchown(os.path.join(root, name), uid, uid)
+                except OSError:
+                    pass
+
+
 CHILDREN: set = set()  # PIDs, die ein Proc selbst einsammelt (nicht von reap_orphans anfassen)
 
 
@@ -163,7 +282,8 @@ class Proc:
 
     def __init__(self, argv: list[str], cwd: str, env: dict, limits: Limits,
                  stdin_data: bytes | None = None, interactive: bool = False,
-                 watch_dirs: tuple = (), pass_fds: tuple = ()):
+                 watch_dirs: tuple = (), pass_fds: tuple = (), uid: int | None = None):
+        self.uid = uid
         self.argv = argv
         self.cwd = cwd
         self.env = env
@@ -203,6 +323,7 @@ class Proc:
                 stdin=subprocess.PIPE if piped else subprocess.DEVNULL,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 start_new_session=True, close_fds=True, pass_fds=self.pass_fds,
+                **user_kwargs(self.uid),
             )
         except OSError as exc:
             raise RunnerError(503, "Der Prozess konnte nicht gestartet werden (" + str(exc.strerror) + ").") from exc
@@ -376,6 +497,13 @@ class Proc:
             return "".join(c["text"] for c in self.chunks if c["stream"] == stream)
 
 
+def user_kwargs(uid: int | None) -> dict:
+    """Popen-Argumente für den Wechsel auf die Lauf-UID (setgroups([]), setgid, setuid vor exec)."""
+    if uid is None:
+        return {}
+    return {"user": uid, "group": uid, "extra_groups": []}
+
+
 def clean_env(home: str, tmp: str, extra: dict | None = None) -> dict:
     """Leere Umgebung: nichts vom Runner (Token!) wird weitergegeben."""
     env = {
@@ -394,9 +522,11 @@ def clean_env(home: str, tmp: str, extra: dict | None = None) -> dict:
     return env
 
 
-def make_private_dir(path: str) -> str:
+def make_private_dir(path: str, uid: int | None = None) -> str:
     os.makedirs(path, mode=0o700, exist_ok=True)
     os.chmod(path, 0o700)
+    if uid is not None:
+        os.chown(path, uid, uid)
     return path
 
 

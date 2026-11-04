@@ -559,7 +559,11 @@ final class StudentExamController extends Controller
             if ($state !== 'submit_requested') {
                 return $this->jsonError('Es liegt keine Abgabe-Anfrage vor.', 409) + ['state' => $state];
             }
-            $new = $this->svc()->states()->transition($pid, 'active', 'Abgabe zurückgezogen', null, $nowMs);
+            try {
+                $new = $this->svc()->states()->transition($pid, 'active', 'Abgabe zurückgezogen', null, $nowMs);
+            } catch (\DomainException $e) {
+                return $this->staleStateError($pid, $e);
+            }
             $closeRequests('submit', 'cancelled');
 
             return ['success' => true, 'state' => (string) $new['state']];
@@ -572,16 +576,37 @@ final class StudentExamController extends Controller
         }
         if ((string) $exam['mode'] === 'practice') {
             // Übung: keine Aufsicht nötig, die Abgabe gilt sofort.
-            $new = $this->svc()->states()->transition($pid, 'submitted', 'Selbst abgegeben (Übung)', $userId, $nowMs);
+            try {
+                $new = $this->svc()->states()->transition($pid, 'submitted', 'Selbst abgegeben (Übung)', $userId, $nowMs);
+            } catch (\DomainException $e) {
+                return $this->staleStateError($pid, $e);
+            }
 
             return ['success' => true, 'state' => (string) $new['state']];
         }
-        $new = $this->svc()->states()->transition($pid, 'submit_requested', 'Abgabe angefragt', null, $nowMs);
+        try {
+            $new = $this->svc()->states()->transition($pid, 'submit_requested', 'Abgabe angefragt', null, $nowMs);
+        } catch (\DomainException $e) {
+            return $this->staleStateError($pid, $e);
+        }
         if ($openRequest('submit') === null) {
             $openRequestRow('submit');
         }
 
         return ['success' => true, 'state' => (string) $new['state']];
+    }
+
+    /**
+     * Der Zustand wurde zwischen Lesen und Übergang geändert (z. B. Sperre durch die
+     * Lehrkraft): 409 mit dem aktuellen Zustand statt eines 500-Fehlers.
+     *
+     * @return array<string, mixed>
+     */
+    private function staleStateError(int $pid, \DomainException $e): array
+    {
+        $row = $this->ctx->db->fetchOne('SELECT state FROM participations WHERE id = ?', [$pid]);
+
+        return $this->jsonError($e->getMessage(), 409) + ['state' => (string) ($row['state'] ?? '')];
     }
 
     /** POST /api/klausur/{id}/datei (Zeichenaufgaben mit Upload) */

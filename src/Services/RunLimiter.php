@@ -13,11 +13,18 @@ use App\Core\HttpException;
  *
  * Ein Lauf gilt als laufend, solange er nicht beendet ist und zuletzt vor höchstens ABANDON_MS
  * abgefragt wurde (der Client fragt alle 250 ms; der Runner beendet unbeachtete Läufe selbst).
+ *
+ * Nicht mehr abgefragte, aber nicht beendete Läufe können auf dem Runner noch bis zu seinem
+ * Abbruch (60 s ohne Abfrage) einen Slot belegen. Bis LINGER_MS nach der letzten Abfrage zählen sie
+ * deshalb weiter: Wer einen Lauf startet und nie abfragt, kann nicht alle paar Sekunden den
+ * nächsten starten und so alle Runner-Slots belegen.
  */
 final class RunLimiter
 {
     public const MAX_STARTS_PER_MINUTE = 30;
     public const ABANDON_MS = 8000;
+    /** Wie lange ein nicht mehr abgefragter Lauf noch als Slot-Belegung gilt (Runner: 60 s plus Takt). */
+    public const LINGER_MS = 70000;
     /** Absolute Obergrenze für die Dauer eines Laufs, unabhängig vom Abruf. */
     public const MAX_AGE_MS = 300000;
 
@@ -35,6 +42,9 @@ final class RunLimiter
         $nowMs ??= ExamClock::nowMs();
         if ($this->running($userId, $nowMs) !== null) {
             throw new HttpException(429, 'Es läuft noch ein Programm von dir. Beende es zuerst, bevor du ein neues startest.');
+        }
+        if ($this->lingering($userId, $nowMs) !== null) {
+            throw new HttpException(429, 'Dein vorheriges Programm wird noch beendet. Bitte warte einen Moment und starte dann neu.');
         }
         $starts = (int) $this->db->fetchValue(
             'SELECT COUNT(*) FROM run_sessions WHERE user_id = ? AND started_at > ?',
@@ -54,6 +64,22 @@ final class RunLimiter
              WHERE user_id = ? AND finished_at IS NULL AND started_at > ? AND COALESCE(last_poll_at, started_at) > ?
              ORDER BY started_at DESC LIMIT 1',
             [$userId, ExamClock::toDb($nowMs - self::MAX_AGE_MS), ExamClock::toDb($nowMs - self::ABANDON_MS)],
+        );
+
+        return $row !== null ? (string) $row['run_id'] : null;
+    }
+
+    /**
+     * Unbeendeter Lauf, der nicht mehr abgefragt wird, aber auf dem Runner noch laufen kann (run_id oder null).
+     */
+    public function lingering(int $userId, ?int $nowMs = null): ?string
+    {
+        $nowMs ??= ExamClock::nowMs();
+        $row = $this->db->fetchOne(
+            'SELECT run_id FROM run_sessions
+             WHERE user_id = ? AND finished_at IS NULL AND started_at > ? AND COALESCE(last_poll_at, started_at) > ?
+             ORDER BY started_at DESC LIMIT 1',
+            [$userId, ExamClock::toDb($nowMs - self::MAX_AGE_MS), ExamClock::toDb($nowMs - self::LINGER_MS)],
         );
 
         return $row !== null ? (string) $row['run_id'] : null;

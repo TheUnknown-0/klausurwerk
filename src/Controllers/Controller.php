@@ -41,8 +41,7 @@ abstract class Controller
             $this->redirect($this->ctx->url('/login') . '?redirect=' . urlencode($_SERVER['REQUEST_URI'] ?? '/'));
         }
 
-        if ((int) ($user['must_change_password'] ?? 0) === 1
-            && !str_contains($_SERVER['REQUEST_URI'] ?? '', '/passwort-aendern')) {
+        if ((int) ($user['must_change_password'] ?? 0) === 1 && !$this->isPasswordChangeRequest()) {
             if ($this->isApiRequest()) {
                 throw new HttpException(401, 'Bitte zuerst das Passwort ändern.');
             }
@@ -50,6 +49,20 @@ abstract class Controller
         }
 
         return $user;
+    }
+
+    /**
+     * Ist die Anfrage die Passwortwechsel-Seite selbst? Verglichen wird nur der Pfad (ohne Query-String),
+     * sonst ließe sich die Sperre mit "?/passwort-aendern" umgehen.
+     */
+    protected function isPasswordChangeRequest(): bool
+    {
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        if (!is_string($path)) {
+            return false;
+        }
+
+        return rtrim($path, '/') === rtrim($this->ctx->url('/passwort-aendern'), '/');
     }
 
     /** Erwartet der Aufrufer JSON (API-Route oder Accept-Header)? */

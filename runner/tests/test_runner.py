@@ -19,9 +19,10 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RUNNER_DIR = os.path.dirname(HERE)
-IMAGE = "klausurwerk-runner-dev"
-NAME = "kw-runner-test"
-URL = os.environ.get("KW_RUNNER_URL", "http://127.0.0.1:18080")
+IMAGE = os.environ.get("KW_RUNNER_IMAGE", "klausurwerk-runner-dev")
+NAME = os.environ.get("KW_RUNNER_NAME", "kw-runner-test")
+PORT = os.environ.get("KW_RUNNER_PORT", "18080")
+URL = os.environ.get("KW_RUNNER_URL", "http://127.0.0.1:" + PORT)
 TOKEN = os.environ.get("KW_RUNNER_TOKEN", "test")
 EXTERNAL = "KW_RUNNER_URL" in os.environ
 
@@ -39,8 +40,9 @@ def setUpModule():
     docker("rm", "-f", NAME, check=False)
     docker("run", "-d", "--rm", "--name", NAME, "--read-only",
            "--tmpfs", "/tmp:size=256m,mode=1777", "--tmpfs", "/work:size=512m,mode=1777",
-           "--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--pids-limit", "512",
-           "-m", "2g", "--cpus", "2", "-e", "RUNNER_TOKEN=" + TOKEN, "-p", "18080:8080", IMAGE)
+           "--cap-drop", "ALL", "--cap-add", "SETUID", "--cap-add", "SETGID", "--cap-add", "CHOWN",
+           "--cap-add", "FOWNER", "--cap-add", "DAC_OVERRIDE", "--cap-add", "KILL", "--security-opt", "no-new-privileges", "--pids-limit", "512",
+           "-m", "2g", "--cpus", "2", "-e", "RUNNER_TOKEN=" + TOKEN, "-p", PORT + ":8080", IMAGE)
     deadline = time.time() + 30
     while time.time() < deadline:
         try:
@@ -511,6 +513,63 @@ class TestsEndpointTests(unittest.TestCase):
         self.assertFalse(results[0]["ok"])
         self.assertEqual(call("POST", "/tests", {"language": "sql", "main_file": "a.sql",
                                                  "files": [{"name": "a.sql", "content": "SELECT 1"}], "tests": []})[0], 400)
+
+
+ISOLATION_PROBE = r'''
+import java.nio.file.*; import java.util.*;
+public class Main {
+    static String probe(String label, java.util.concurrent.Callable<Object> c) {
+        try { return label + "=ok:" + c.call(); } catch (Exception e) { return label + "=denied"; }
+    }
+    public static void main(String[] a) throws Exception {
+        String foreign = new Scanner(System.in).nextLine().trim();
+        System.out.println(probe("list", () -> { try (var s = Files.list(Path.of("/work"))) { return s.count(); } }));
+        System.out.println(probe("environ", () -> Files.readAllBytes(Path.of("/proc/1/environ")).length));
+        System.out.println(probe("foreign", () -> Files.readString(Path.of(foreign))));
+        System.out.println(probe("foreigndir", () -> { try (var s = Files.list(Path.of(foreign).getParent())) { return s.count(); } }));
+        for (String l : Files.readAllLines(Path.of("/proc/self/status"))) if (l.startsWith("Uid:")) System.out.println(l);
+        System.out.println("token=" + System.getenv("RUNNER_TOKEN"));
+    }
+}
+'''
+
+
+@unittest.skipIf(EXTERNAL, "braucht docker exec in den Test-Container")
+class IsolationTests(unittest.TestCase):
+    """Jeder Lauf hat eine eigene UID; fremde Läufe, /work und das Token bleiben unlesbar."""
+
+    def test_fremder_lauf_work_und_token_unlesbar(self):
+        sleeper = 'public class Main { public static void main(String[] a) throws Exception { Thread.sleep(60000); } }'
+        victim = start({"language": "java", "java_version": "21", "main_file": "Main.java", "files": java_files(sleeper)})
+        try:
+            time.sleep(2.5)
+            listing = docker("exec", NAME, "sh", "-c", "ls /work").stdout.split()
+            dirs = [d for d in listing if d.startswith("r_") and d[2:] == victim.run_id[2:]]
+            self.assertEqual(len(dirs), 1, listing)
+            foreign = "/work/%s/Main.java" % dirs[0]
+            mode = docker("exec", NAME, "stat", "-c", "%a %u", "/work/" + dirs[0]).stdout.split()
+            self.assertEqual(mode[0], "700")
+            self.assertGreaterEqual(int(mode[1]), 20000)
+            self.assertEqual(docker("exec", NAME, "stat", "-c", "%a", "/work").stdout.strip(), "711")
+            out = run_java(ISOLATION_PROBE, stdin=foreign + "\n").stdout
+            self.assertIn("list=denied", out)
+            self.assertIn("environ=denied", out)
+            self.assertIn("foreign=denied", out)
+            self.assertIn("foreigndir=denied", out)
+            self.assertIn("token=null", out)
+            uid = [l for l in out.splitlines() if l.startswith("Uid:")][0].split()[1]
+            self.assertGreaterEqual(int(uid), 20000, out)
+            self.assertNotEqual(int(uid), int(mode[1]))
+        finally:
+            call("POST", "/runs/%s/stop" % victim.run_id)
+
+    def test_testdateien_fuer_schueler_nicht_lesbar(self):
+        code = ("import os\nhidden = [n for n in os.listdir('.') if n.startswith('.kw_')]\n"
+                "def f():\n    return 1\n")
+        results = call("POST", "/tests", {
+            "language": "python", "main_file": "m.py", "files": [{"name": "m.py", "content": code}],
+            "tests": [{"name": "versteckt", "type": "python_assert", "code": "assert hidden == [], hidden"}]})[1]["results"]
+        self.assertTrue(results[0]["ok"], results)
 
 
 class HousekeepingTests(unittest.TestCase):

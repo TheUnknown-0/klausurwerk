@@ -18,6 +18,15 @@ final class LiveHelpersTest extends TestCase
         unset($_SERVER['HTTPS'], $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI'], $_SERVER['HTTP_X_FORWARDED_PROTO'], $_SERVER[SebGuard::HEADER]);
     }
 
+    public function testClientPayloadWithMsKeyIsToleratedAsDuration(): void
+    {
+        $settings = ['violation_grace_ms' => 300, 'lock_on_violation' => true];
+        // So sendet es monitor.js (Fallback 'ms' und kanonisch 'duration_ms').
+        self::assertFalse(EventLog::isLockingViolation('window_blur', ['ms' => 100], $settings));
+        self::assertTrue(EventLog::isLockingViolation('window_blur', ['ms' => 5000], $settings));
+        self::assertFalse(EventLog::isLockingViolation('window_blur', ['duration_ms' => 100], $settings));
+    }
+
     public function testWindowBlurBelowGraceIsInfoAndDoesNotLock(): void
     {
         $settings = ['violation_grace_ms' => 300];
@@ -96,6 +105,43 @@ final class LiveHelpersTest extends TestCase
 
         self::assertTrue($guard->passes($exam));
         self::assertSame([str_repeat('a', 64), 'http://klausur.schule.example/api/klausur/3/puls?x=1', 'abc'], $seen);
+    }
+
+    public function testSebGuardMitBrowserExamKeyVerlangtRequestHash(): void
+    {
+        $_SERVER['HTTP_HOST'] = 'klausur.schule.example';
+        $_SERVER['REQUEST_URI'] = '/klausur/3';
+        $url = 'http://klausur.schule.example/klausur/3';
+        $configKey = str_repeat('a', 64);
+        $bek = str_repeat('b', 64);
+        $guard = new SebGuard(null, $this->eventsStub());
+        $exam = ['id' => 3, 'settings' => json_encode(['require_seb' => true]), 'seb_config_key' => $configKey, 'seb_browser_exam_key' => $bek];
+
+        // Wer nur die .seb-Datei hat, kennt den Config Key und kann dessen Header berechnen, aber nicht den BEK.
+        $_SERVER[SebGuard::HEADER] = hash('sha256', $url . $configKey);
+        unset($_SERVER[SebGuard::REQUEST_HASH_HEADER]);
+        self::assertFalse($guard->passes($exam), 'Config Key allein genügt mit BEK nicht');
+        $_SERVER[SebGuard::REQUEST_HASH_HEADER] = hash('sha256', $url . str_repeat('c', 64));
+        self::assertFalse($guard->passes($exam), 'falscher BEK');
+
+        $_SERVER[SebGuard::REQUEST_HASH_HEADER] = hash('sha256', $url . $bek);
+        self::assertTrue($guard->passes($exam));
+        $_SERVER[SebGuard::HEADER] = 'falsch';
+        self::assertFalse($guard->passes($exam), 'beide Header müssen stimmen');
+
+        // Ohne hinterlegten BEK bleibt es bei der Config-Key-Prüfung.
+        $_SERVER[SebGuard::HEADER] = hash('sha256', $url . $configKey);
+        unset($_SERVER[SebGuard::REQUEST_HASH_HEADER]);
+        $exam['seb_browser_exam_key'] = null;
+        self::assertTrue($guard->passes($exam));
+        unset($_SERVER[SebGuard::REQUEST_HASH_HEADER]);
+    }
+
+    public function testSebConfigPrueftSchluesselFormat(): void
+    {
+        self::assertTrue(\App\Services\SebConfig::isValidKey(str_repeat('a1', 32)));
+        self::assertFalse(\App\Services\SebConfig::isValidKey(str_repeat('A1', 32)));
+        self::assertFalse(\App\Services\SebConfig::isValidKey('abc'));
     }
 
     public function testSebGuardPrefersConfiguredPublicBase(): void

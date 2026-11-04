@@ -72,6 +72,8 @@ export class ExamApp {
         this.handRaised = false;
         this.openRequests = [];
         this.releaseRequested = false;
+        this.releaseRequestedAt = 0;
+        this.releaseSeenOpen = false;
         this.announcements = [];
         this.annIds = new Set();
         this.annCursor = 0;
@@ -410,12 +412,13 @@ export class ExamApp {
             if (newState === 'submitted' && this.submittedAt === null) {
                 this.submittedAt = this.serverNow();
             }
-            if (newState === 'active' && prev !== 'active') {
-                this.autosave?.resume();
-            }
             if (newState === 'submitted') {
                 this.autosave?.pause();
             }
+        }
+        if (newState === 'active') {
+            // Auch ohne Zustandswechsel: ein kurzes 409 (Pause/Sperre und sofort wieder frei) darf das Autosave nicht dauerhaft blockieren.
+            this.autosave?.resume();
         }
         if (this.localLock) {
             if (newState === 'locked') {
@@ -424,8 +427,19 @@ export class ExamApp {
                 this.clearLocalLock();
             }
         }
-        if (this.openRequests.includes('release')) {
-            this.releaseRequested = true;
+        if (newState === 'locked' || newState === 'absent') {
+            const open = this.openRequests.includes('release');
+            if (open) {
+                this.releaseRequested = true;
+                this.releaseSeenOpen = true;
+            } else if (this.releaseRequested && Date.now() - this.releaseRequestedAt > 4000) {
+                // Anfrage ist nicht mehr offen, der Zustand aber unverändert: abgelehnt, erneut anfragen möglich.
+                this.releaseRequested = false;
+                if (this.releaseSeenOpen) {
+                    toast('Die Lehrkraft hat deine Anfrage abgelehnt. Du kannst sie erneut stellen.', 'warning');
+                }
+                this.releaseSeenOpen = false;
+            }
         }
         if (CONTENT_STATES.has(newState) && !this.content && this.joined) {
             this.loadContent();
@@ -723,6 +737,8 @@ export class ExamApp {
 
     async requestRelease() {
         this.releaseRequested = true;
+        this.releaseRequestedAt = Date.now();
+        this.releaseSeenOpen = false;
         this.refreshUi();
         const res = await post(`${this.api}/anfrage`, { type: 'release' });
         if (!res.ok) {

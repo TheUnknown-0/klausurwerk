@@ -431,7 +431,13 @@ final class AuthController extends Controller
     /** Erlaubt nur relative Pfade innerhalb der App als Redirect-Ziel. */
     private function safeRedirectTarget(mixed $target): ?string
     {
-        if (!is_string($target) || $target === '' || !str_starts_with($target, '/') || str_starts_with($target, '//')) {
+        // Nur ein einzelner Schrägstrich am Anfang, kein Backslash (\x5C; Browser lesen Backslash-Host wie //host),
+        // keine Steuerzeichen (Tabs und Zeilenumbrüche entfernen Browser aus URLs) und weder Host noch Schema.
+        if (!is_string($target) || preg_match('#^/(?![/\x5C])[^\x00-\x1F\x7F\x5C]*$#', $target) !== 1) {
+            return null;
+        }
+        $parts = parse_url($target);
+        if ($parts === false || isset($parts['host']) || isset($parts['scheme'])) {
             return null;
         }
 

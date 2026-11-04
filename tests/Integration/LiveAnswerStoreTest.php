@@ -347,4 +347,37 @@ final class LiveAnswerStoreTest extends DatabaseTestCase
         );
         self::assertSame(1, $r['saved_items']);
     }
+
+    public function testForgedClientTimestampCannotBypassLock(): void
+    {
+        $lockedAt = self::T0 + 600_000;
+        (new ParticipationState($this->db, new EventLog($this->db)))
+            ->transition((int) $this->p['id'], 'locked', 'Vollbild', null, $lockedAt, ['lock_reason' => 'Vollbild']);
+
+        // client_ts=0 und riesiger Versatz: früher "vor der Sperre", jetzt abgelehnt.
+        $this->expectException(HttpException::class);
+        $this->store->save(
+            $this->exam,
+            $this->reloadParticipation((int) $this->p['id']),
+            [$this->item(1, $this->task1, 'geschummelt', 1)],
+            [$this->task1 => ['content' => ['text' => 'geschummelt']]],
+            $lockedAt + 20_000,
+            -3_600_000,
+        );
+    }
+
+    public function testNoDeliveryLongAfterTheStateChange(): void
+    {
+        $lockedAt = self::T0 + 600_000;
+        (new ParticipationState($this->db, new EventLog($this->db)))
+            ->transition((int) $this->p['id'], 'locked', 'Vollbild', null, $lockedAt, ['lock_reason' => 'Vollbild']);
+
+        try {
+            $this->save([$this->item(1, $this->task1, 'spaet', $lockedAt - 1000)], [$this->task1 => ['content' => ['text' => 'spaet']]], $lockedAt + AnswerStore::DELIVERY_MS + 1000);
+            self::fail('409 erwartet');
+        } catch (HttpException $e) {
+            self::assertSame(409, $e->status);
+        }
+        self::assertNull($this->answer($this->task1));
+    }
 }

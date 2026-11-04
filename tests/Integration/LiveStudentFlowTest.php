@@ -701,4 +701,22 @@ final class LiveStudentFlowTest extends DatabaseTestCase
         $teacher = $this->makeUser('teacher', 'Lehrer');
         $this->expectStatus(403, fn () => $this->call($teacher, 'index', 0));
     }
+
+    public function testShortBlurWithClientPayloadMsIsOnlyInfo(): void
+    {
+        [$student, $exam] = $this->activeStudent();
+        $r = $this->call($student, 'event', (int) $exam['id'], ['events' => [['type' => 'window_blur', 'details' => ['ms' => 100]]]]);
+        self::assertSame('active', $r['state']);
+    }
+
+    public function testStaleStateInSubmitRequestIs409NotException(): void
+    {
+        [$student, $exam, $pid] = $this->activeStudent();
+        $this->db->run("UPDATE participations SET state = 'locked' WHERE id = ?", [$pid]);
+        $ctrl = new StudentExamController($this->makeContext($student));
+        $m = new \ReflectionMethod($ctrl, 'staleStateError');
+        $r = $m->invoke($ctrl, $pid, new \DomainException('Übergang nicht erlaubt'));
+        self::assertSame('locked', $r['state']);
+        self::assertFalse($r['success']);
+    }
 }

@@ -78,6 +78,14 @@ def mode_run(args: list) -> int:
     return 0
 
 
+def _remove_hidden(path: str) -> None:
+    """Versteckte Testdatei löschen, sobald sie gelesen ist (Schülercode kann sie nicht mehr öffnen)."""
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
 def mode_assert(args: list) -> int:
     main_file, libs, mem, assert_file, fd = args[0], args[1], int(args[2]), args[3], int(args[4])
     limit_memory(mem)
@@ -86,6 +94,7 @@ def mode_assert(args: list) -> int:
         student = handle.read()
     with open(assert_file, encoding="utf-8", errors="replace") as handle:
         test_code = handle.read()
+    _remove_hidden(assert_file)  # nicht mehr als Datei lesbar, bevor Schülercode läuft
     namespace = {"__name__": "schueler_modul", "__file__": main_file, "__builtins__": __builtins__}
     try:
         exec(compile(student, main_file, "exec"), namespace)
@@ -191,6 +200,8 @@ def mode_sql(args: list) -> int:
     fd, ordered, reveal, seconds = int(args[4]), args[5] == "1", args[6] == "1", int(args[7])
     read = lambda p: open(p, encoding="utf-8", errors="replace").read()  # noqa: E731
     setup, student, expected = read(setup_file), read(student_file), read(expected_file)
+    _remove_hidden(setup_file)
+    _remove_hidden(expected_file)
     deadline = time.monotonic() + seconds
 
     def guard(db):

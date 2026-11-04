@@ -601,4 +601,52 @@ final class LiveStateTest extends DatabaseTestCase
         $this->act($exam, ['action' => 'resume_all'], self::T0 + 120_000);
 
         self::assertSame('active', $this->reloadParticipation((int) $p['id'])['state']);
-    }}
+    }
+    public function testSubmitByTeacherClosesOpenDeviceRequest(): void
+    {
+        [$exam, $p] = $this->runningExamWithStudent();
+        $id = (int) $p['id'];
+        $this->devices->bind($id, DeviceBinding::newToken());
+        $this->states->transition($id, 'device_pending', 'Gerätewechsel', null, self::T0 + 1000);
+        $this->devices->requestChange((int) $exam['id'], $id, DeviceBinding::newToken(), self::T0 + 1000);
+
+        $this->act($exam, ['action' => 'submit', 'participation_ids' => [$id]], self::T0 + 2000);
+
+        self::assertSame('submitted', $this->reloadParticipation($id)['state']);
+        self::assertSame(0, (int) $this->db->fetchValue("SELECT COUNT(*) FROM exam_requests WHERE participation_id = ? AND type = 'device' AND status = 'open'", [$id]));
+    }
+
+    public function testIndividualPauseKeepsRunningWhileDevicePending(): void
+    {
+        [$exam, $p] = $this->runningExamWithStudent();
+        $id = (int) $p['id'];
+        $this->states->transition($id, 'paused', 'Pause', $this->teacher, self::T0 + 60_000);
+        $this->states->transition($id, 'device_pending', 'Gerät', null, self::T0 + 120_000);
+        $mid = $this->reloadParticipation($id);
+        self::assertSame(self::T0 + 60_000, ExamClock::toMs($mid['paused_at']), 'Pause läuft über den Gerätewechsel weiter');
+        self::assertSame(0, (int) $mid['paused_seconds']);
+
+        $this->states->release($id, 'ok', $this->teacher, self::T0 + 180_000);
+        $after = $this->reloadParticipation($id);
+        self::assertSame('paused', $after['state']);
+        self::assertNotNull($after['paused_at']);
+
+        $this->states->transition($id, 'active', 'weiter', $this->teacher, self::T0 + 240_000);
+        $end = $this->reloadParticipation($id);
+        self::assertNull($end['paused_at']);
+        self::assertSame(180, (int) $end['paused_seconds'], 'Wartezeit des Gerätewechsels zählt zur Pause');
+    }
+
+    public function testDeviceReleaseKeepsOriginalLockReason(): void
+    {
+        [, $p] = $this->runningExamWithStudent();
+        $id = (int) $p['id'];
+        $this->states->transition($id, 'locked', 'Vollbild', null, self::T0 + 1000, ['lock_reason' => 'Vollbild verlassen']);
+        $this->states->transition($id, 'device_pending', 'Gerät', null, self::T0 + 2000);
+        $this->states->release($id, 'Gerätewechsel freigegeben', $this->teacher, self::T0 + 3000);
+
+        $row = $this->reloadParticipation($id);
+        self::assertSame('locked', $row['state']);
+        self::assertSame('Vollbild verlassen', $row['lock_reason']);
+    }
+}

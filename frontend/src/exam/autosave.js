@@ -39,6 +39,8 @@ export class Autosave {
         this.persistTimer = null;
         this.attempt = 0;
         this.blocked = false;
+        /** Aufgaben, deren Schritte der Server abgelehnt hat (Zustand eingeschränkt): nach resume() erneut senden. */
+        this.deferred = new Set();
         this.sending = null;
         this.destroyed = false;
     }
@@ -189,6 +191,20 @@ export class Autosave {
                 this.attempt = 0;
                 this.onVersions(res.data?.versions ?? {});
                 this.persistSoon();
+                const rejected = new Set(Array.isArray(res.data?.rejected) ? res.data.rejected : []);
+                if (rejected.size > 0) {
+                    // Teilweise abgelehnt (Sperre/Pause): Inhalt nicht verwerfen, sondern nach der Freigabe neu senden.
+                    for (const i of batch.items) {
+                        if (rejected.has(i.seq)) {
+                            this.deferred.add(String(i.task_id));
+                        }
+                    }
+                    this.blocked = true;
+                    this.setStatus({ kind: 'blocked' });
+                    this.onMessage('Ein Teil deiner letzten Eingaben wurde nicht gespeichert, weil dein Zustand eingeschränkt ist. Sie bleiben auf diesem Gerät und werden nach der Freigabe automatisch übertragen.', 'warning');
+                    this.onConflict(res);
+                    return false;
+                }
                 const invalid = Object.values(res.data?.invalid ?? {});
                 if (invalid.length > 0) {
                     // Nur einzelne Antworten wurden zurückgewiesen; der Rest ist gespeichert.
@@ -198,6 +214,13 @@ export class Autosave {
                     this.setStatus({ kind: 'saved' });
                 }
                 continue;
+            }
+            if (res.status === 409 && res.data?.state === 'active') {
+                // Der Server war nur kurz eingeschränkt (z. B. Pause und sofort Fortsetzen) und ist jetzt wieder aktiv:
+                // nichts war gespeichert, also nach kurzer Wartezeit erneut senden statt dauerhaft zu blockieren.
+                this.setStatus({ kind: 'saving' });
+                this.retryLater();
+                return false;
             }
             if (res.status === 409) {
                 this.blocked = true;
@@ -240,6 +263,14 @@ export class Autosave {
         }
         this.blocked = false;
         this.attempt = 0;
+        for (const id of this.deferred) {
+            const c = this.outbox.contents[id];
+            if (c && c.content !== null && c.content !== undefined) {
+                this.outbox.record(id, c.content, { kind: 'value' }, this.now(), !!c.flagged);
+            }
+        }
+        this.deferred.clear();
+        this.persistSoon();
         this.setStatus(this.outbox.hasPending ? { kind: 'saving' } : { kind: 'saved' });
         this.flush();
     }

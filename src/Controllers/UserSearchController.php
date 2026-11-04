@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Services\CourseService;
 use App\Services\UserImport;
 
 /**
@@ -41,6 +42,21 @@ final class UserSearchController extends Controller
         if ($courseId > 0) {
             $where[] = 'EXISTS (SELECT 1 FROM course_members m WHERE m.user_id = u.id AND m.course_id = ?)';
             $args[] = $courseId;
+        }
+        if ($role !== 'teacher') {
+            // Lehrkräfte ohne ALLE_KURSE sehen nur Schüler:innen ihrer Kurse und kurslose Konten
+            // (z. B. frisch angelegt); Lehrkräfte- und Admin-Konten bleiben unberührt.
+            $courseService = new CourseService($this->ctx->db, $this->ctx->auth);
+            if (!$courseService->seesAllCourses()) {
+                $scope = 'NOT EXISTS (SELECT 1 FROM course_members am WHERE am.user_id = u.id)';
+                $own = $courseService->ownCourseIds((int) $this->ctx->auth->id());
+                if ($own !== []) {
+                    $scope .= ' OR EXISTS (SELECT 1 FROM course_members om WHERE om.user_id = u.id AND om.course_id IN ('
+                        . implode(',', array_fill(0, count($own), '?')) . '))';
+                    array_push($args, ...$own);
+                }
+                $where[] = "(u.role <> 'student' OR " . $scope . ')';
+            }
         }
         foreach (preg_split('/\s+/', $query, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $token) {
             $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $token) . '%';

@@ -142,10 +142,10 @@ export class Monitor {
             graceMs: Number(this.settings.violation_grace_ms ?? 300),
             onInfo: (ms) => {
                 if (this.o.isActive()) {
-                    this.o.events.push('window_blur', { ms });
+                    this.o.events.push('window_blur', { duration_ms: ms });
                 }
             },
-            onViolation: (ms) => this.violation('window_blur', { ms }),
+            onViolation: (ms) => this.violation('window_blur', { duration_ms: ms }),
         });
     }
 

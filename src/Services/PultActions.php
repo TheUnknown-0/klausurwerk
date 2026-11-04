@@ -364,6 +364,8 @@ final class PultActions
             case 'submit':
                 $this->state->transition($id, 'submitted', 'Abgabe durch Lehrkraft', $actorId, $nowMs);
                 $this->resolveRequests($id, ['submit', 'release', 'hand'], 'approved', $actorId, $nowMs);
+                // Eine offene Geräte-Anfrage ist mit der Abgabe gegenstandslos (sonst bliebe sie ewig offen).
+                $this->resolveRequests($id, ['device'], 'rejected', $actorId, $nowMs);
                 break;
 
             case 'approve_submit':

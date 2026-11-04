@@ -59,7 +59,7 @@ export function blockedShortcut(e) {
 }
 
 /**
- * Fokusverlust mit Toleranz: kurze Verluste sind nur ein Hinweis (Details {ms}),
+ * Fokusverlust mit Toleranz: kurze Verluste sind nur ein Hinweis (Details {duration_ms}),
  * längere ein Verstoß, sobald die Schwelle überschritten ist (auch wenn der Fokus
  * nie zurückkehrt).
  */

@@ -16,7 +16,12 @@ namespace App\Services;
  *  4. SHA-256 über die UTF-8-Bytes, als kleingeschriebener Hex-String (64 Zeichen).
  *
  * Header-Prüfung einer Anfrage: SHA-256(absolute URL ohne Fragment . Config Key)
- * muss dem Wert von X-SafeExamBrowser-ConfigKeyHash entsprechen.
+ * muss dem Wert von X-SafeExamBrowser-ConfigKeyHash entsprechen. Dieselbe Formel gilt mit dem
+ * Browser Exam Key (BEK) für X-SafeExamBrowser-RequestHash (siehe SebGuard).
+ *
+ * Wichtig: Der Config Key lässt sich aus der (unverschlüsselten) .seb-Datei berechnen. Wer die
+ * Datei hat, kann den Header auch ohne SEB erzeugen. Der Config Key schützt daher nur gegen
+ * Versehen; echte Prüfung verlangt zusätzlich den BEK.
  *
  * Hinweis: SEB berechnet den Key aus der geladenen Konfiguration inklusive seiner
  * eigenen Standardwerte. Weicht der Key im Browser ab, lässt sich der angezeigte
@@ -110,7 +115,13 @@ final class SebConfig
         ];
     }
 
-    /** Header-Prüfung (siehe Klassenkommentar). */
+    /** Ist das ein gültiger Schlüssel (64 Hex-Zeichen, klein)? */
+    public static function isValidKey(string $key): bool
+    {
+        return preg_match('/^[0-9a-f]{64}$/', $key) === 1;
+    }
+
+    /** Header-Prüfung für Config Key und BEK (gleiche Formel, siehe Klassenkommentar). */
     public static function verifyRequest(string $configKeyHex, string $absoluteUrl, ?string $headerHash): bool
     {
         if ($headerHash === null || $headerHash === '' || $configKeyHex === '') {

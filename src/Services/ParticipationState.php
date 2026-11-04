@@ -100,15 +100,23 @@ final class ParticipationState
             // Einzelpause beenden und/oder starten.
             $pausedAt = ExamClock::toMs($row['paused_at']);
             $pausedSeconds = (int) $row['paused_seconds'];
-            if ($pausedAt !== null && self::stopsClock($from, $toilet)) {
+            // Wartet ein Gerätewechsel, läuft die Einzelpause der Person weiter (Wartezeit zählt nicht
+            // von der Restzeit ab), wenn der Rückkehrzustand die Uhr anhält.
+            $fromStops = self::stopsClock($from, $toilet)
+                || ($from === 'device_pending' && self::stopsClock((string) $row['resume_state'], $toilet));
+            $toStops = self::stopsClock($to, $toilet)
+                || ($to === 'device_pending' && self::stopsClock($from, $toilet));
+            if ($pausedAt !== null && $fromStops && $toStops) {
+                // Pause läuft über den Übergang hinweg ununterbrochen weiter.
+            } elseif ($pausedAt !== null && $fromStops) {
                 $pausedSeconds += (int) round(max(0, $nowMs - $pausedAt) / 1000);
                 $pausedAt = null;
-            } elseif ($pausedAt !== null && !self::stopsClock($to, $toilet)) {
+            } elseif ($pausedAt !== null && !$toStops) {
                 // Altlast (z. B. geänderte Einstellung): offene Pause nie stehen lassen.
                 $pausedSeconds += (int) round(max(0, $nowMs - $pausedAt) / 1000);
                 $pausedAt = null;
             }
-            if ($pausedAt === null && self::stopsClock($to, $toilet) && !$examPaused && !$byExamPause) {
+            if ($pausedAt === null && $toStops && !$examPaused && !$byExamPause) {
                 $pausedAt = $nowMs;
             }
 
@@ -189,7 +197,33 @@ final class ParticipationState
             }
         }
 
-        return $this->transition($id, $target, $reason, $actorId, $nowMs);
+        $options = [];
+        if ($row['state'] === 'device_pending' && $target === 'locked') {
+            // Der ursprüngliche Sperrgrund bleibt erhalten (nicht "Gerätewechsel freigegeben").
+            $original = $this->lastLockReason($id);
+            if ($original !== null) {
+                $options['lock_reason'] = $original;
+            }
+        }
+
+        return $this->transition($id, $target, $reason, $actorId, $nowMs, $options);
+    }
+
+    /** Sperrgrund aus dem letzten Übergang nach "locked" (aus dem Ereignisprotokoll). */
+    private function lastLockReason(int $id): ?string
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT details FROM participation_events WHERE participation_id = ? AND type = 'state_changed' ORDER BY id DESC LIMIT 20",
+            [$id],
+        );
+        foreach ($rows as $r) {
+            $d = json_decode((string) $r['details'], true);
+            if (is_array($d) && ($d['to'] ?? null) === 'locked' && is_string($d['lock_reason'] ?? null) && $d['lock_reason'] !== '') {
+                return $d['lock_reason'];
+            }
+        }
+
+        return null;
     }
 
     /**

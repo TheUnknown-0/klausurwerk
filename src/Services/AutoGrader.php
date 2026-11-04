@@ -317,6 +317,17 @@ final class AutoGrader
         if ($type === null) {
             return ['suggested' => null, 'details' => ['source' => 'error', 'error' => 'Unbekannter Antworttyp.']];
         }
+        // Reihenfolge: Das Widget speichert die unberührte, gemischte Anzeige nicht (sonst würde jede
+        // geöffnete Aufgabe als beantwortet zählen). Wer die angezeigte Reihenfolge für richtig hielt und
+        // nichts änderte, hat sie aber de facto abgegeben: die Vorbewertung wertet deshalb die serverseitig
+        // deterministisch gemischte Startreihenfolge (Seed shuffle_seed + task_id, wie ExamContent) als Antwort.
+        // Pult-Fortschritt und Bericht ("keine Antwort") bleiben unverändert.
+        if (($content === null || !$type->isAnswered($content)) && $task['answer_type'] === 'ordering') {
+            $start = $this->orderingStart($type, $task, $participation);
+            if ($start !== null) {
+                $content = ['order' => $start];
+            }
+        }
         if ($content === null || !$type->isAnswered($content)) {
             return ['suggested' => 0.0, 'details' => ['source' => 'empty', 'ratio' => 0.0]];
         }
@@ -341,6 +352,27 @@ final class AutoGrader
             'suggested' => self::suggestedFromRatio($task['points'], (float) $check['ratio']),
             'details' => $check['details'],
         ];
+    }
+
+    /**
+     * Startreihenfolge einer Reihenfolge-Aufgabe, wie die Person sie sah (null, wenn nicht bestimmbar).
+     *
+     * @param array<string, mixed> $task
+     * @param array<string, mixed> $participation
+     * @return list<string>|null
+     */
+    private function orderingStart(TaskType $type, array $task, array $participation): ?array
+    {
+        if (!isset($participation['shuffle_seed'])) {
+            return null;
+        }
+        $seed = ((int) $participation['shuffle_seed'] + (int) $task['id']) & 0x7FFFFFFF;
+        $ids = [];
+        foreach ($type->studentConfig(is_array($task['config'] ?? null) ? $task['config'] : [], $seed)['items'] ?? [] as $item) {
+            $ids[] = (string) $item['id'];
+        }
+
+        return $ids === [] ? null : $ids;
     }
 
     /**

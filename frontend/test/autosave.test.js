@@ -259,3 +259,44 @@ test('Einstellungen werden mit Standards aufgefüllt', () => {
     assert.equal(s.aids.operators, true);
     assert.equal(mergeSettings({}, 'practice').lock_on_violation, false);
 });
+
+test('teilweise abgelehnte Schritte (rejected) werden nicht verworfen, sondern nach resume() neu gesendet', async () => {
+    const { a, calls } = fakeAutosave([]);
+    let seen = null;
+    a.post = async (url, body) => {
+        calls.push({ url, body });
+        if (calls.length === 1) {
+            seen = body.items.map((i) => i.seq);
+            return { ok: true, status: 200, data: { success: true, versions: {}, rejected: [body.items[0].seq] } };
+        }
+        return { ok: true, status: 200, data: { success: true, versions: {}, rejected: [] } };
+    };
+    const messages = [];
+    a.onMessage = (m) => messages.push(m);
+    await a.init(0, {});
+    a.change(7, { text: 'wichtig' });
+    clearTimeout(a.timer);
+    assert.equal(await a.flush(), false);
+    assert.equal(a.blocked, true);
+    assert.equal(messages.length, 1);
+    a.resume();
+    await a.sending;
+    assert.equal(calls.length, 2);
+    assert.deepEqual(calls[1].body.contents['7'].content, { text: 'wichtig' });
+    assert.ok(calls[1].body.items[0].seq > seen[0], 'neue seq');
+    assert.equal(a.pendingCount, 0);
+});
+
+test('409 mit Zustand active: resume() gibt das Autosave auch ohne Zustandswechsel wieder frei', async () => {
+    const { a, calls } = fakeAutosave([{ ok: false, status: 409, transient: false, error: 'x', data: { state: 'active' } }]);
+    await a.init(0, {});
+    a.change(1, { text: 'z' });
+    clearTimeout(a.timer);
+    assert.equal(await a.flush(), false);
+    assert.equal(a.blocked, false);
+    clearTimeout(a.retryTimer);
+    a.retryTimer = null;
+    assert.equal(await a.flush(), true);
+    assert.equal(calls.length, 2);
+    assert.equal(a.pendingCount, 0);
+});

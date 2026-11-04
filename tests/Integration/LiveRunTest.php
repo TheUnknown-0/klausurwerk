@@ -74,6 +74,20 @@ final class LiveRunTest extends DatabaseTestCase
         self::assertNull($this->limiter->running($user, self::T0 + 2000 + RunLimiter::ABANDON_MS + 1));
     }
 
+    public function testNeverPolledRunBlocksNextStartUntilRunnerHasReapedIt(): void
+    {
+        // Wer Läufe startet und nie abfragt, darf nicht alle paar Sekunden den nächsten starten.
+        $user = $this->makeUser('student');
+        $this->limiter->register('r_1', $user, null, null, self::T0);
+
+        self::assertNull($this->limiter->running($user, self::T0 + RunLimiter::ABANDON_MS + 1));
+        $this->expectStatus(429, fn () => $this->limiter->check($user, self::T0 + RunLimiter::ABANDON_MS + 1));
+        $this->expectStatus(429, fn () => $this->limiter->check($user, self::T0 + RunLimiter::LINGER_MS - 1));
+        // Nach dem Abbruch durch den Runner (60 s ohne Abfrage) ist der Platz frei.
+        $this->limiter->check($user, self::T0 + RunLimiter::LINGER_MS + 1);
+        self::assertTrue(true);
+    }
+
     public function testRunningPollKeepsTheSlotBusy(): void
     {
         $user = $this->makeUser('student');

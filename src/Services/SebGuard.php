@@ -10,11 +10,18 @@ use App\Core\HttpException;
  * Safe-Exam-Browser-Prüfung. Verlangt die Klausur SEB (settings.require_seb), muss jede Anfrage den
  * Header X-SafeExamBrowser-ConfigKeyHash mitbringen. Geprüft wird gegen exams.seb_config_key mit der
  * absoluten URL, wie der Browser sie sieht (Herkunft aus public_base_url bzw. Request-Host plus REQUEST_URI).
+ *
+ * Der Config Key ist aus der .seb-Datei berechenbar und beweist deshalb nicht, dass wirklich SEB läuft
+ * (er schützt nur gegen Versehen). Hinterlegt die Lehrkraft zusätzlich den Browser Exam Key (BEK,
+ * exams.seb_browser_exam_key), wird auch X-SafeExamBrowser-RequestHash = SHA-256(absolute URL . BEK)
+ * verlangt; den BEK kann nur ein echter SEB mit dieser Konfiguration berechnen.
  * Bei Fehler: 403 und, wenn die Teilnahme bekannt ist, das Ereignis seb_missing.
  */
 final class SebGuard
 {
     public const HEADER = 'HTTP_X_SAFEEXAMBROWSER_CONFIGKEYHASH';
+    /** Header mit SHA-256(absolute URL . Browser Exam Key); nur geprüft, wenn die Klausur einen BEK hinterlegt hat. */
+    public const REQUEST_HASH_HEADER = 'HTTP_X_SAFEEXAMBROWSER_REQUESTHASH';
 
     /** @var callable(string, string, ?string): bool */
     private $verifier;
@@ -49,8 +56,17 @@ final class SebGuard
         }
         $key = (string) ($exam['seb_config_key'] ?? '');
         $header = $_SERVER[self::HEADER] ?? null;
+        $url = $this->absoluteUrl();
+        if ($key === '' || !($this->verifier)($key, $url, is_string($header) ? $header : null)) {
+            return false;
+        }
+        $bek = strtolower(trim((string) ($exam['seb_browser_exam_key'] ?? '')));
+        if ($bek === '') {
+            return true;
+        }
+        $requestHash = $_SERVER[self::REQUEST_HASH_HEADER] ?? null;
 
-        return $key !== '' && ($this->verifier)($key, $this->absoluteUrl(), is_string($header) ? $header : null);
+        return ($this->verifier)($bek, $url, is_string($requestHash) ? $requestHash : null);
     }
 
     /**

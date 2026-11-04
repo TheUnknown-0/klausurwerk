@@ -42,7 +42,8 @@ def setUpModule():
     docker("rm", "-f", NAME, check=False)
     docker("run", "-d", "--rm", "--name", NAME, "--read-only",
            "--tmpfs", "/tmp:size=256m,mode=1777", "--tmpfs", "/work:size=512m,mode=1777",
-           "--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--pids-limit", "512",
+           "--cap-drop", "ALL", "--cap-add", "SETUID", "--cap-add", "SETGID", "--cap-add", "CHOWN",
+           "--cap-add", "FOWNER", "--cap-add", "DAC_OVERRIDE", "--cap-add", "KILL", "--security-opt", "no-new-privileges", "--pids-limit", "512",
            "-m", "2g", "--cpus", "2", "-e", "RUNNER_TOKEN=" + TOKEN, "-p", "%d:8080" % PORT, IMAGE)
     deadline = time.time() + 30
     while time.time() < deadline:

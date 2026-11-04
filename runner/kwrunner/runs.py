@@ -9,7 +9,7 @@ import time
 from . import javatools
 from .config import Config
 from .modules._guifilter import GuiView
-from .sandbox import Limits, Proc, RunnerError, clean_env, make_private_dir, remove_tree
+from .sandbox import Limits, Proc, RunIdentity, RunnerError, clean_env, make_private_dir, remove_tree
 from .workspace import clamp_limits, validate_files, write_files
 
 LANGUAGES = ("java", "python")
@@ -57,8 +57,8 @@ class RunManager:
                 return False
             if time.monotonic() > deadline:
                 return False
-            if run is not None:
-                run.touch()
+            # Bewusst kein run.touch(): Wartende Läufe zählen nur, solange der Aufrufer sie abfragt.
+            # Wer Läufe startet und nie abfragt, soll weder Slots noch Warteschlange dauerhaft belegen.
 
     def release_slot(self) -> None:
         try:
@@ -116,19 +116,21 @@ class RunManager:
         work = os.path.join(cfg.work_dir, run.id)
         home_dir = os.path.join("/tmp", run.id)
         have_slot = False
+        ident = RunIdentity()
         try:
             have_slot = self.acquire_slot(10 * 3600, run)
             if not have_slot:
                 return
             run.state = "compiling" if job["language"] == "java" else "running"
-            make_private_dir(work)
-            make_private_dir(home_dir)
-            tmp = make_private_dir(os.path.join(work, ".tmp"))
-            write_files(work, job["files"])
+            uid = ident.__enter__()
+            make_private_dir(work, uid)
+            make_private_dir(home_dir, uid)
+            tmp = make_private_dir(os.path.join(work, ".tmp"), uid)
+            write_files(work, job["files"], uid)
             if job["language"] == "java":
-                self._run_java(run, job, work, home_dir, tmp)
+                self._run_java(run, job, work, home_dir, tmp, uid)
             else:
-                self._run_python(run, job, work, home_dir, tmp)
+                self._run_python(run, job, work, home_dir, tmp, uid)
         except RunnerError as exc:
             run.message = exc.message
             run.own_chunks.append({"stream": "system", "text": exc.message + "\n"})
@@ -142,6 +144,7 @@ class RunManager:
                 self.release_slot()
             remove_tree(work)
             remove_tree(home_dir)
+            ident.__exit__(None, None, None)
             if run.proc is not None:
                 run.exit_code = run.proc.exit_code if run.exit_code is None else run.exit_code
                 run.timed_out = run.proc.timed_out
@@ -159,14 +162,14 @@ class RunManager:
                       max_output=cfg.max_output_bytes * (4 if job.get("gui") else 1), max_threads=cfg.max_threads,
                       max_disk=cfg.max_disk_bytes, fsize=cfg.fsize_bytes)
 
-    def _run_java(self, run: Run, job: dict, work: str, home_dir: str, tmp: str) -> None:
+    def _run_java(self, run: Run, job: dict, work: str, home_dir: str, tmp: str, uid: int | None) -> None:
         cfg = self.cfg
         home = job["home"]
         out_dir = os.path.join(work, ".out")
         sources = [n for n, _ in job["files"] if n.endswith(".java")]
         if not sources:
             raise RunnerError(400, "Es gibt keine Java-Datei (.java) zu übersetzen.")
-        ok, raw, errors = javatools.run_compile(cfg, home, work, home_dir, sources, out_dir)
+        ok, raw, errors = javatools.run_compile(cfg, home, work, home_dir, sources, out_dir, uid=uid)
         run.compile_ok = ok
         if not ok:
             run.compile_errors = errors
@@ -182,21 +185,22 @@ class RunManager:
         run.state = "running"
         argv = javatools.java_run_argv(cfg, home, out_dir, job["cls"], job["memory"])
         env = clean_env(home_dir, tmp, {"JAVA_HOME": home})
-        self._supervise(run, job, argv, work, env, home_dir)
+        self._supervise(run, job, argv, work, env, home_dir, uid)
 
-    def _run_python(self, run: Run, job: dict, work: str, home_dir: str, tmp: str) -> None:
+    def _run_python(self, run: Run, job: dict, work: str, home_dir: str, tmp: str, uid: int | None) -> None:
         cfg = self.cfg
         argv = [cfg.python_bin, "-I", "-B", cfg.boot_py, "run", job["main_file"], cfg.python_libs(),
                 str(job["memory"] + 200)]
         env = clean_env(home_dir, tmp)
-        self._supervise(run, job, argv, work, env, home_dir)
+        self._supervise(run, job, argv, work, env, home_dir, uid)
 
-    def _supervise(self, run: Run, job: dict, argv: list[str], work: str, env: dict, home_dir: str) -> None:
+    def _supervise(self, run: Run, job: dict, argv: list[str], work: str, env: dict, home_dir: str,
+                   uid: int | None = None) -> None:
         stdin = job["stdin"]
         interactive = stdin is None
         proc = Proc(argv, work, env, self._limits(job, interactive),
                     stdin_data=None if interactive else stdin.encode("utf-8", "replace"),
-                    interactive=interactive, watch_dirs=(work, home_dir))
+                    interactive=interactive, watch_dirs=(work, home_dir), uid=uid)
         run.proc = proc
         if job.get("gui"):
             run.gui_view = GuiView()

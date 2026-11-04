@@ -5,7 +5,7 @@ import os
 import re
 
 from .config import Config
-from .sandbox import RunnerError
+from .sandbox import RunnerError, chown_tree
 
 NAME_RE = re.compile(r"^[A-Za-z0-9_.-]{1,80}$")
 
@@ -38,7 +38,7 @@ def validate_files(raw, cfg: Config) -> list[tuple[str, str]]:
     return out
 
 
-def write_files(directory: str, files: list[tuple[str, str]]) -> None:
+def write_files(directory: str, files: list[tuple[str, str]], uid: int | None = None) -> None:
     for name, content in files:
         path = os.path.join(directory, name)
         # Namen sind validiert (kein Pfad), trotzdem gegen Ausbruch absichern.
@@ -47,6 +47,7 @@ def write_files(directory: str, files: list[tuple[str, str]]) -> None:
         with open(path, "w", encoding="utf-8", errors="replace", newline="") as handle:
             handle.write(content)
         os.chmod(path, 0o600)
+        chown_tree(path, uid)
 
 
 def clamp_limits(raw, cfg: Config) -> tuple[int, int]:

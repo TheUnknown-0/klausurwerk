@@ -231,6 +231,18 @@ final class CoursesController extends Controller
             $this->redirect($this->ctx->url('/admin/kurse/' . $courseId));
         }
 
+        // Kursbindung: Lehrkräfte ohne ALLE_KURSE dürfen nur Schüler:innen aufnehmen, die sie schon
+        // verwalten (Mitglied eigener Kurse) oder die noch in keinem Kurs sind (z. B. frisch angelegt).
+        // Sonst könnte jede Lehrkraft fremde Konten an sich ziehen und dann Passwörter zurücksetzen.
+        if (!$this->mayTakeStudent($studentId)) {
+            $message = 'Diese Schüler:in gehört zu anderen Kursen und darf von dir nicht hinzugefügt werden. Bitte wende dich an die Lehrkraft des Kurses oder an die Administration.';
+            if ($json) {
+                return $this->jsonError($message, 403);
+            }
+            $this->flash('error', $message);
+            $this->redirect($this->ctx->url('/admin/kurse/' . $courseId));
+        }
+
         $added = $this->service()->addMember($courseId, $studentId);
         if ($added) {
             $this->ctx->audit->log('kurs.mitglied_hinzufuegen', 'info', sprintf('%s zu %s', $student['username'], $course['name']));
@@ -263,6 +275,17 @@ final class CoursesController extends Controller
     }
 
     // ---------- Helfer ----------
+
+    /** Darf die angemeldete Person diese Schüler:in in einen Kurs aufnehmen? */
+    private function mayTakeStudent(int $studentId): bool
+    {
+        $service = $this->service();
+        if ($service->canManageStudent($studentId)) {
+            return true;
+        }
+
+        return $this->ctx->db->fetchValue('SELECT 1 FROM course_members WHERE user_id = ? LIMIT 1', [$studentId]) === null;
+    }
 
     private function service(): CourseService
     {

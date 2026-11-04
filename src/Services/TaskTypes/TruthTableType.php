@@ -135,11 +135,14 @@ final class TruthTableType extends DiagramTaskType
     public function normalizeContent(array $content, array $config): array
     {
         $rows = self::cells($content['rows'] ?? [], $config['inputs'] ?? [], $config['outputs'] ?? []);
-        // Vorgegebene Zellen sind fest.
-        $prefilled = (array) ($config['prefilled'] ?? []);
-        foreach ($prefilled as $key => $row) {
-            foreach (is_array($row) ? $row : [] as $out => $v) {
-                $rows[(string) $key][(string) $out] = (string) $v;
+        // Vorgegebene Zellen sind fest (das Widget erzwingt sie beim Anzeigen, autoCheck zählt sie nicht).
+        // Sie werden daher NICHT mitgespeichert: sonst gälte eine Tabelle ohne eigene Eintragung als beantwortet.
+        foreach ((array) ($config['prefilled'] ?? []) as $key => $row) {
+            foreach (is_array($row) ? array_keys($row) : [] as $out) {
+                unset($rows[(string) $key][(string) $out]);
+            }
+            if (isset($rows[(string) $key]) && $rows[(string) $key] === []) {
+                unset($rows[(string) $key]);
             }
         }
 
@@ -187,7 +190,7 @@ final class TruthTableType extends DiagramTaskType
         foreach (self::rowKeys(count($inputs)) as $key) {
             $cells = str_split($key);
             foreach ($outputs as $out) {
-                $cells[] = $content['rows'][$key][$out] ?? '-';
+                $cells[] = $config['prefilled'][$key][$out] ?? $content['rows'][$key][$out] ?? '-';
             }
             $lines[] = implode(' | ', $cells);
         }

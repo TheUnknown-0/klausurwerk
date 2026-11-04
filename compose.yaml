@@ -45,7 +45,10 @@ services:
     tmpfs:
       - /tmp:size=256m,mode=1777
       - /work:size=512m,mode=1777
+    # Der Runner startet jeden Lauf unter eigener UID (setuid/setgid), legt Laufverzeichnisse an
+    # und beendet Reste (kill). Mehr Capabilities bekommt er nicht; Schülercode hat keine.
     cap_drop: ["ALL"]
+    cap_add: ["SETUID", "SETGID", "CHOWN", "FOWNER", "DAC_OVERRIDE", "KILL"]
     security_opt:
       - no-new-privileges:true
     pids_limit: 512

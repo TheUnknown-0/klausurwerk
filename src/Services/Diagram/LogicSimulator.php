@@ -140,13 +140,14 @@ final class LogicSimulator
      *
      * @param list<string> $inputNames
      * @param list<string> $outputNames
-     * @return array{table: array<string, array<string, int>>, errors: list<string>, warnings: list<string>}
+     * @return array{table: array<string, array<string, int>>, errors: list<string>, warnings: list<string>, missing_outputs: list<string>}
      */
     public static function truthTable(array $circuit, array $inputNames, array $outputNames): array
     {
         $n = count($inputNames);
         $table = [];
         $errors = [];
+        $missing = [];
         $warnings = [];
         for ($row = 0; $row < (1 << $n); $row++) {
             $key = str_pad(decbin($row), $n, '0', STR_PAD_LEFT);
@@ -156,7 +157,7 @@ final class LogicSimulator
             }
             $result = self::evaluate($circuit, $in);
             if ($result['errors'] !== []) {
-                return ['table' => [], 'errors' => $result['errors'], 'warnings' => $result['warnings']];
+                return ['table' => [], 'errors' => $result['errors'], 'warnings' => $result['warnings'], 'missing_outputs' => []];
             }
             $warnings = array_values(array_unique(array_merge($warnings, $result['warnings'])));
             $line = [];
@@ -164,12 +165,14 @@ final class LogicSimulator
                 $line[$name] = $result['outputs'][$name] ?? 0;
                 if (!array_key_exists($name, $result['outputs'])) {
                     $errors[$name] = "Der Ausgang {$name} fehlt in der Schaltung.";
+                    $missing[$name] = $name;
                 }
             }
             $table[$key] = $line;
         }
 
-        return ['table' => $table, 'errors' => array_values($errors), 'warnings' => $warnings];
+        // Fehlende Ausgänge stehen mit Platzhalter 0 in der Tabelle: missing_outputs lässt sie nicht als Antwort zählen.
+        return ['table' => $table, 'errors' => array_values($errors), 'warnings' => $warnings, 'missing_outputs' => array_values($missing)];
     }
 
     /** Boolescher Ausdruck am Ausgang (für die Textdarstellung). */

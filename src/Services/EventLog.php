@@ -82,7 +82,8 @@ final class EventLog
     private static function belowGrace(array $details, array $settings): bool
     {
         $grace = max(0, (int) ($settings['violation_grace_ms'] ?? 300));
-        $duration = $details['duration_ms'] ?? null;
+        // Kanonisch ist 'duration_ms' (Pult liest es); der Client sendet 'ms'. Beide gelten.
+        $duration = $details['duration_ms'] ?? $details['ms'] ?? null;
 
         return is_numeric($duration) && (int) $duration < $grace;
     }

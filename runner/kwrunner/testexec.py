@@ -11,7 +11,7 @@ from . import javatools
 from .compare import compare_output, show
 from .config import Config
 from .runs import RunManager
-from .sandbox import NOTES, Limits, Proc, RunnerError, clean_env, make_private_dir, remove_tree
+from .sandbox import NOTES, Limits, Proc, RunIdentity, RunnerError, chown_tree, clean_env, make_private_dir, remove_tree
 from .workspace import clamp_limits, validate_files, write_files
 
 MAX_TESTS = 100
@@ -76,12 +76,14 @@ class TestRunner:
         test_id = "t_" + secrets.token_hex(10)
         work = os.path.join(cfg.work_dir, test_id)
         home_dir = os.path.join("/tmp", test_id)
+        ident = RunIdentity()
         try:
-            make_private_dir(work)
-            make_private_dir(home_dir)
-            base = make_private_dir(os.path.join(work, "base"))
-            write_files(base, files)
-            ctx = dict(language=language, files=files, main_file=main_file, java_home=java_home,
+            uid = ident.__enter__()
+            make_private_dir(work, uid)
+            make_private_dir(home_dir, uid)
+            base = make_private_dir(os.path.join(work, "base"), uid)
+            write_files(base, files, uid)
+            ctx = dict(uid=uid, language=language, files=files, main_file=main_file, java_home=java_home,
                        seconds=seconds, memory=memory, reveal=reveal, sql_setup=sql_setup,
                        work=work, base=base, home_dir=home_dir, deadline=time.monotonic() + budget,
                        cls=None, compile_error=None)
@@ -90,6 +92,7 @@ class TestRunner:
             self.manager.release_slot()
             remove_tree(work)
             remove_tree(home_dir)
+            ident.__exit__(None, None, None)
         return {"results": results}
 
     def _run_all(self, ctx: dict, tests: list) -> list[dict]:
@@ -123,7 +126,8 @@ class TestRunner:
             ctx["compile_error"] = ("Es gibt keine Java-Datei (.java) zu übersetzen.", "")
             return
         out_dir = os.path.join(ctx["base"], ".out")
-        ok, raw, errors = javatools.run_compile(cfg, ctx["java_home"], ctx["base"], ctx["home_dir"], sources, out_dir)
+        ok, raw, errors = javatools.run_compile(cfg, ctx["java_home"], ctx["base"], ctx["home_dir"], sources, out_dir,
+                                                uid=ctx["uid"])
         if not ok:
             first = errors[0]
             where = f"{first['file']}, Zeile {first['line']}: " if first.get("line") else ""
@@ -149,6 +153,7 @@ class TestRunner:
         directory = os.path.join(ctx["work"], f"t{index}")
         shutil.copytree(ctx["base"], directory, symlinks=False)
         os.chmod(directory, 0o700)
+        chown_tree(directory, ctx["uid"])
         remaining = max(1.0, ctx["deadline"] - time.monotonic())
         if kind == "io":
             return self._test_io(ctx, name, test, directory, remaining)
@@ -170,7 +175,7 @@ class TestRunner:
                extra_env: dict | None = None, pass_fds: tuple = ()) -> Proc:
         env = clean_env(ctx["home_dir"], directory, extra_env)
         proc = Proc(argv, directory, env, limits, stdin_data=stdin.encode("utf-8", "replace"),
-                    watch_dirs=(directory, ctx["home_dir"]), pass_fds=pass_fds)
+                    watch_dirs=(directory, ctx["home_dir"]), pass_fds=pass_fds, uid=ctx["uid"])
         proc.start()
         proc.wait(limits.wall_seconds + 10)
         if not proc.done.is_set():
@@ -249,7 +254,7 @@ class TestRunner:
         os.replace(os.path.join(directory, "." + file_name), os.path.join(directory, file_name))
         out_dir = os.path.join(directory, ".out")
         ok, raw, errors = javatools.run_compile(self.cfg, ctx["java_home"], directory, ctx["home_dir"],
-                                                [file_name], out_dir)
+                                                [file_name], out_dir, uid=ctx["uid"])
         if not ok:
             first = errors[0]
             return self._result(name, False, "Der Test lässt sich nicht übersetzen: " + first["message"]

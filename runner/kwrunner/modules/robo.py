@@ -27,7 +27,7 @@ import secrets
 import threading
 
 from .. import javatools
-from ..sandbox import NOTES, Limits, Proc, RunnerError, clean_env, make_private_dir, remove_tree
+from ..sandbox import NOTES, Limits, Proc, RunIdentity, RunnerError, clean_env, make_private_dir, remove_tree
 from ..workspace import clamp_limits, validate_files, write_files
 
 TRACE_PREFIX = "\x01KWR:"
@@ -232,18 +232,21 @@ def handle_robo(ctx, req):
     run_id = "t_" + secrets.token_hex(10)
     work = os.path.join(cfg.work_dir, run_id)
     home_dir = os.path.join("/tmp", run_id)
+    ident = RunIdentity()
     try:
-        make_private_dir(work)
-        make_private_dir(home_dir)
-        directory = make_private_dir(os.path.join(work, "run"))
-        write_files(directory, files)
-        write_files(directory, [("robo_world.json", json.dumps(world_raw, ensure_ascii=False))])
+        uid = ident.__enter__()
+        make_private_dir(work, uid)
+        make_private_dir(home_dir, uid)
+        directory = make_private_dir(os.path.join(work, "run"), uid)
+        write_files(directory, files, uid)
+        write_files(directory, [("robo_world.json", json.dumps(world_raw, ensure_ascii=False))], uid)
         result = _execute(ctx, eng, language, files, main_file, java_home, cls, directory, home_dir,
-                          seconds, memory, world_raw)
+                          seconds, memory, world_raw, uid)
     finally:
         ctx.runs.release_slot()
         remove_tree(work)
         remove_tree(home_dir)
+        ident.__exit__(None, None, None)
 
     trace, stdout_text, stderr_text, error_message, proc_message = result
     world, sim_error, clean = replay(eng, world_raw, trace)
@@ -276,7 +279,7 @@ def handle_robo(ctx, req):
 
 
 def _execute(ctx, eng, language, files, main_file, java_home, cls, directory, home_dir,
-             seconds, memory, world_raw):
+             seconds, memory, world_raw, uid=None):
     """Übersetzt (Java) und startet das Programm. Rückgabe:
     (Protokoll, Text, Fehlertext, Meldung bei Übersetzungs-/Laufzeitproblem, Meldung bei Abbruch)."""
     cfg = ctx.cfg
@@ -284,7 +287,7 @@ def _execute(ctx, eng, language, files, main_file, java_home, cls, directory, ho
     if language == "java":
         sources = [n for n, _ in files if n.endswith(".java")]
         out_dir = os.path.join(directory, ".out")
-        ok, raw, errors = javatools.run_compile(cfg, java_home, directory, home_dir, sources, out_dir)
+        ok, raw, errors = javatools.run_compile(cfg, java_home, directory, home_dir, sources, out_dir, uid=uid)
         if not ok:
             first = errors[0]
             where = f"{first['file']}, Zeile {first['line']}: " if first.get("line") else ""
@@ -298,7 +301,7 @@ def _execute(ctx, eng, language, files, main_file, java_home, cls, directory, ho
     limits = Limits(cpu_seconds=seconds, wall_seconds=seconds + 3, rss_mb=rss, max_output=768 * 1024,
                     max_threads=cfg.max_threads, max_disk=cfg.max_disk_bytes, fsize=cfg.fsize_bytes)
     env = clean_env(home_dir, directory, env_extra)
-    proc = Proc(argv, directory, env, limits, stdin_data=b"", watch_dirs=(directory, home_dir))
+    proc = Proc(argv, directory, env, limits, stdin_data=b"", watch_dirs=(directory, home_dir), uid=uid)
     proc.start()
     proc.wait(limits.wall_seconds + 10)
     if not proc.done.is_set():

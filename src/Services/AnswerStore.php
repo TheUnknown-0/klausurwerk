@@ -27,6 +27,23 @@ final class AnswerStore
     public const MAX_ITEMS = 200;
     /** Toleranz für Schritte, die kurz vor einem Zustandswechsel entstanden sind. */
     public const OFFLINE_WINDOW_MS = 2000;
+    /**
+     * Wie lange (Serverzeit) nach einem Zustandswechsel noch Schritte aus dem Offline-Fenster
+     * angenommen werden, und wie weit vor dem Wechsel ein Schritt höchstens zurückliegen darf.
+     *
+     * Entscheidung zu gefälschten Zeitstempeln: client_ts und client_now_ms kommen vom Client und
+     * lassen sich nicht beweisen. Eine vollständige Sperre ist ohne vertrauenswürdigen Client nicht
+     * möglich, ein seq-Limit aus dem Puls wäre genauso fälschbar. Deshalb gilt eine harte
+     * Serverzeit-Grenze: (1) nach DELIVERY_MS Serverzeit seit dem Wechsel wird nichts mehr
+     * nachgeliefert, (2) ein Schritt darf nicht älter sein als der letzte erfolgreiche Speicher-
+     * zeitpunkt (minus Schonfrist) und höchstens BACKLOG_MS vor dem Wechsel liegen. Ein Schritt mit
+     * client_ts=0 wird damit abgelehnt, und der Zeitraum für Fälschungen ist eng begrenzt.
+     * Echte Offline-Arbeit bleibt erhalten: abgelehnte Inhalte sendet der Client nach der
+     * Freigabe erneut (siehe autosave.js, rejected).
+     */
+    public const DELIVERY_MS = 600000;
+    public const BACKLOG_MS = 600000;
+    public const LAST_SAVE_SLACK_MS = 60000;
     public const KINDS = ['ops', 'snapshot', 'value'];
     private const MAX_PAYLOAD_BYTES = 524288;
 
@@ -81,7 +98,14 @@ final class AnswerStore
             $tasks = $this->loadTasks((int) $exam['id'], $taskIds);
 
             $restricted = $state !== 'active';
-            $cutoff = (ExamClock::toMs($row['state_changed_at']) ?? 0) + self::OFFLINE_WINDOW_MS;
+            $changedMs = ExamClock::toMs($row['state_changed_at']) ?? 0;
+            $cutoff = $changedMs + self::OFFLINE_WINDOW_MS;
+            $floor = $changedMs - self::BACKLOG_MS;
+            $lastSaveMs = ExamClock::toMs($row['last_save_at'] ?? null);
+            if ($lastSaveMs !== null) {
+                $floor = max($floor, min($lastSaveMs, $changedMs) - self::LAST_SAVE_SLACK_MS);
+            }
+            $deliveryOver = $nowMs > $changedMs + self::DELIVERY_MS;
             $clock = ExamClock::forParticipation($exam, $row, $nowMs);
             $overtime = $clock['started'] && $clock['time_up'];
             $nowDb = ExamClock::toDb($nowMs);
@@ -104,7 +128,8 @@ final class AnswerStore
                     $duplicates++;
                     continue;
                 }
-                if ($restricted && $item['client_ts'] + $clientOffsetMs >= $cutoff) {
+                $itemMs = $item['client_ts'] + $clientOffsetMs;
+                if ($restricted && ($deliveryOver || $itemMs >= $cutoff || $itemMs < $floor)) {
                     $rejected[] = $item['seq'];
                     continue;
                 }

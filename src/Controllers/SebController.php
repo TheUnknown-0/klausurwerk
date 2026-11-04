@@ -36,24 +36,29 @@ final class SebController extends Controller
         $in = $this->jsonInput();
         $password = (string) ($in['quit_password'] ?? '');
         $manualKey = strtolower(trim((string) ($in['manual_key'] ?? '')));
+        $bek = strtolower(trim((string) ($in['browser_exam_key'] ?? '')));
 
         if (mb_strlen($password) > 100) {
             $this->flash('error', 'Das Passwort ist zu lang (höchstens 100 Zeichen).');
             $this->redirect($this->ctx->url('/klausuren/' . $id . '/seb'));
         }
-        if ($manualKey !== '' && preg_match('/^[0-9a-f]{64}$/', $manualKey) !== 1) {
+        if ($manualKey !== '' && !SebConfig::isValidKey($manualKey)) {
             $this->flash('error', 'Der Config Key muss aus 64 Hexadezimalzeichen bestehen.');
+            $this->redirect($this->ctx->url('/klausuren/' . $id . '/seb'));
+        }
+        if ($bek !== '' && !SebConfig::isValidKey($bek)) {
+            $this->flash('error', 'Der Browser Exam Key muss aus 64 Hexadezimalzeichen bestehen.');
             $this->redirect($this->ctx->url('/klausuren/' . $id . '/seb'));
         }
 
         $built = SebConfig::build($exam, $this->ctx->publicBase(), $password);
         $key = $manualKey !== '' ? $manualKey : $built['config_key'];
         $this->ctx->db->run(
-            'UPDATE exams SET seb_config_key = ?, seb_quit_password_hash = ? WHERE id = ?',
-            [$key, $password !== '' ? hash('sha256', $password) : null, $id],
+            'UPDATE exams SET seb_config_key = ?, seb_quit_password_hash = ?, seb_browser_exam_key = ? WHERE id = ?',
+            [$key, $password !== '' ? hash('sha256', $password) : null, $bek !== '' ? $bek : null, $id],
         );
         $this->ctx->exams->forget($id);
-        $this->ctx->audit->log('seb_datei', 'info', 'SEB-Datei für Klausur #' . $id . ' erzeugt.');
+        $this->ctx->audit->log('seb_datei', 'info', 'SEB-Datei für Klausur #' . $id . ' erzeugt' . ($bek !== '' ? ' (mit Browser Exam Key).' : ' (ohne Browser Exam Key).'));
 
         $name = 'klausur-' . $id . '.seb';
         header('Content-Type: application/x-seb');

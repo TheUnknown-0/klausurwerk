@@ -6,7 +6,7 @@ import re
 import subprocess
 
 from .config import Config
-from .sandbox import Limits, RunnerError, clean_env
+from .sandbox import Limits, RunnerError, chown_tree, clean_env, user_kwargs
 
 ERR_RE = re.compile(r"^(?P<file>[^\s:]+\.java):(?P<line>\d+): (?P<kind>[^:]+): (?P<msg>.*)$")
 PACKAGE_RE = re.compile(r"^\s*package\s+([A-Za-z_][\w.]*)\s*;", re.M)
@@ -89,12 +89,14 @@ def compile_cmd(cfg: Config, home: str, sources: list[str], out_dir: str, extra_
 
 
 def run_compile(cfg: Config, home: str, work: str, tmp: str, sources: list[str], out_dir: str,
-                extra_cp: list[str] | None = None, seconds: int = 30) -> tuple[bool, str, list[dict]]:
+                extra_cp: list[str] | None = None, seconds: int = 30,
+                uid: int | None = None) -> tuple[bool, str, list[dict]]:
     """Übersetzt synchron. Rückgabe: (ok, Rohausgabe, Fehlerliste).
 
     javac läuft wie alle Kindprozesse mit leerer Umgebung und rlimits (prlimit).
     """
     os.makedirs(out_dir, exist_ok=True)
+    chown_tree(out_dir, uid)
     lim = Limits(cpu_seconds=seconds, wall_seconds=seconds)
     argv = [
         "prlimit", f"--cpu={lim.cpu_seconds}:{lim.cpu_seconds + 1}", f"--fsize={lim.fsize}",
@@ -104,7 +106,7 @@ def run_compile(cfg: Config, home: str, work: str, tmp: str, sources: list[str],
     try:
         done = subprocess.run(argv, cwd=work, env=env, stdin=subprocess.DEVNULL,
                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              timeout=seconds + 5, start_new_session=True)
+                              timeout=seconds + 5, start_new_session=True, **user_kwargs(uid))
     except subprocess.TimeoutExpired:
         return False, "Die Übersetzung hat zu lange gedauert.", [
             {"file": "", "line": 0, "column": 0, "message": "Die Übersetzung hat zu lange gedauert.", "detail": ""}]
