@@ -10,3 +10,6 @@ tests/e2e/node_modules
 .phpunit.cache
 tools/phpunit.phar
 *.log
+handbuch
+tests/e2e/shots
+.tmp-build
