@@ -1,0 +1,225 @@
+<section class="chapter" id="k4" data-title="Klausuren vorbereiten">
+  <div class="chapter-head">
+    <div class="big">04</div>
+    <div class="kicker">Kapitel 4</div>
+    <h1>Klausuren vorbereiten</h1>
+    <p class="lead">Klausur anlegen, Einstellungen verstehen, Aufgaben schreiben, Material und Hilfsmittel bereitstellen, Kollegen hinzufügen, prüfen und freigeben.</p>
+    <div class="for">Für <span class="role r-teacher">Lehrkraft</span></div>
+  </div>
+
+  <h2 id="k4-1"><span class="num">4.1</span>Klausur anlegen</h2>
+  <p>Unter <span class="nav">Unterricht › Klausuren</span> sehen Sie alle Klausuren, die Sie betreuen. Die Liste zeigt Titel, Kurs, Modus, Status, Termin, Zahl der Aufgaben und Gesamtpunkte und lässt sich nach <b>Kurs</b>, <b>Status</b> und <b>Modus</b> filtern.</p>
+  <figure>
+    <img src="img/201-klausuren-liste.jpg" alt="Klausurliste">
+    <figcaption><b>{fig}</b> Die Klausurliste mit Klausur, Übung und Technik-Check</figcaption>
+  </figure>
+  <ol class="steps">
+    <li><span class="ui p">Neue Klausur</span> wählen (auch auf der Übersicht).</li>
+    <li><b>Titel</b> eintragen (Pflicht) und den <b>Modus</b> wählen: Klausur, Übung oder Probe (Technik-Check).</li>
+    <li><b>Kurs</b> wählen. Nur Mitglieder dieses Kurses können teilnehmen.</li>
+    <li><b>Dauer in Minuten</b> eintragen. Bei Übungen darf sie leer bleiben (ohne Zeitlimit).</li>
+    <li>Optional einen <b>Raum</b> (für den Sitzplan im Pult), einen <b>Geplanten Termin</b> und eine interne <b>Beschreibung</b> angeben.</li>
+    <li><span class="ui p">Klausur anlegen</span>. Sie wird als <b>Entwurf</b> angelegt; Sie sind Hauptlehrkraft.</li>
+  </ol>
+  <figure class="narrow">
+    <img src="img/202-klausur-neu.jpg" alt="Neue Klausur">
+    <figcaption><b>{fig}</b> Eine neue Klausur anlegen</figcaption>
+  </figure>
+  <p>Die Klausurseite zeigt danach Status, Modus, die Kennzahlen (Aufgaben, Gesamtpunkte, Dauer, Material), die Eckdaten, die Aufgabenliste mit Antworttyp und Punkten, die Lehrkräfte und die Aktionen <span class="ui">Aufgaben bearbeiten</span>, <span class="ui">Einstellungen</span>, <span class="ui">Material</span>, <span class="ui">SEB-Datei</span>, <span class="ui">Export (ZIP)</span>, <span class="ui">Als Vorlage kopieren</span> und je nach Status die Statuswechsel.</p>
+  <figure>
+    <img src="img/203-klausur-seite.jpg" alt="Klausurseite">
+    <figcaption><b>{fig}</b> Die Klausurseite im Zustand „Bereit“, mit den Knöpfen Pult öffnen und Vorschau</figcaption>
+  </figure>
+
+  <h2 id="k4-2"><span class="num">4.2</span>Einstellungen im Einzelnen</h2>
+  <p>Unter <span class="ui">Einstellungen</span> auf der Klausurseite stehen alle Schalter. Die Einstellungen lassen sich ändern, solange die Klausur ein Entwurf ist; einzelne Werte (Titel, Beschreibung, Erwartungshorizont) bleiben auch später bearbeitbar. In der Probe und in Übungen sind Überwachungsschalter ohne Wirkung.</p>
+  <figure>
+    <img src="img/206-einstellungen-ueberwachung.jpg" alt="Einstellungen Überwachung">
+    <figcaption><b>{fig}</b> Einstellungen, Abschnitt „Überwachung“</figcaption>
+  </figure>
+  <h3>Stammdaten</h3>
+  <p><b>Titel</b>, <b>Modus</b>, <b>Kurs</b>, <b>Dauer in Minuten</b>, <b>Raum</b>, <b>Geplanter Termin</b> und die interne <b>Beschreibung</b> wie beim Anlegen.</p>
+  <h3>Überwachung</h3>
+  <table>
+    <thead><tr><th>Einstellung</th><th>Wirkung und Empfehlung</th></tr></thead>
+    <tbody>
+      <tr><td><b>Bei Verstoß sperren</b> (Standard an)</td><td>Verlässt jemand das Vollbild oder den Klausur-Tab, wird die Person gesperrt, bis die Lehrkraft sie freigibt. Ohne Sperre wird der Verstoß nur protokolliert und gemeldet.</td></tr>
+      <tr><td><b>Toleranz für kurze Fokusverluste (Millisekunden)</b> (Standard 300)</td><td>Fokusverluste, die kürzer sind, zählen nur als Hinweis und nicht als Verstoß (0 bis 5000). Fängt Fehlalarme durch Systemdialoge ab.</td></tr>
+      <tr><td><b>Einfügen (Copy &amp; Paste)</b></td><td><i>nur innerhalb der Klausur</i> (Standard): Es lässt sich nur einfügen, was in der Klausur selbst kopiert wurde. Alles andere wird blockiert und mit Länge protokolliert. <i>gar nicht erlaubt</i> blockiert jedes Einfügen. <i>erlaubt, aber protokolliert</i> lässt alles zu und vermerkt es im Protokoll. Auch Ziehen und Ablegen von außen wird nach der ersten Regel blockiert.</td></tr>
+      <tr><td><b>Nur mit Safe Exam Browser</b></td><td>Der Beitritt gelingt nur mit einer passenden SEB-Datei (Prüfung des Config Keys bei jeder Anfrage). Die Datei erzeugen Sie unter „SEB-Datei“ (4.10).</td></tr>
+      <tr><td><b>Klausurcode verlangen</b></td><td>Zum Beitritt wird ein 6-stelliger Code benötigt, den Sie im Raum nennen oder anschreiben. Verhindert, dass jemand von zu Hause einen Platz belegt. Den Code sehen Sie im Pult und können ihn neu erzeugen.</td></tr>
+      <tr><td><b>Abwesenheit hält die Uhr an</b> (Standard aus)</td><td>Wer den Raum kurz verlässt (Toilette) und im Pult als abwesend markiert wird, behält die Zeit. Aus: Die Uhr läuft weiter.</td></tr>
+      <tr><td><b>Abgabe-Knopf anzeigen</b></td><td>Schüler können die Abgabe anfragen; Sie bestätigen sie im Pult. Aus: Es gibt keinen Knopf, Sie geben für die Schüler ab.</td></tr>
+    </tbody>
+  </table>
+  <h3>Darstellung und Ausführung</h3>
+  <figure>
+    <img src="img/207-einstellungen-darstellung.jpg" alt="Einstellungen Darstellung">
+    <figcaption><b>{fig}</b> Darstellung und Ausführung, Java-Version und Python-Pakete</figcaption>
+  </figure>
+  <ul>
+    <li><b>Auswahlaufgaben mischen</b>: Antwortoptionen und Zuordnungen erscheinen je Person in anderer Reihenfolge (fest aus der Teilnahme berechnet, also nach Neuladen gleich).</li>
+    <li><b>Punkte bei den Aufgaben anzeigen</b>: Schüler sehen, wie viele Punkte eine Aufgabe bringt.</li>
+    <li><b>Code ausführen</b>: <i>Programme ausführen</i>, <i>nur Syntax prüfen</i> oder <i>nicht ausführen</i>. Das ist der Standard für alle Code-Aufgaben; einzelne Aufgaben können abweichen (Feld „Ausführung“ im Aufgaben-Editor).</li>
+    <li><b>Java-Version</b>: Java 21 oder Java 25.</li>
+    <li><b>Python-Pakete zusätzlich laden</b>: NumPy und Matplotlib. Mehr Pakete verlängern die Ladezeit beim ersten Start von Python. Nur ankreuzen, wenn die Aufgaben sie brauchen.</li>
+  </ul>
+  <h3>Editor-Komfort</h3>
+  <figure>
+    <img src="img/208-einstellungen-editor.jpg" alt="Editor-Komfort und Hilfsmittel">
+    <figcaption><b>{fig}</b> Editor-Komfort, Hilfsmittel und Archiv-Freigabe</figcaption>
+  </figure>
+  <ul>
+    <li><b>Autovervollständigung</b>: Der Editor schlägt Wörter und Schlüsselwörter vor. Für Klausuren meist aus, für Übungen an.</li>
+    <li><b>Fehlermarkierung im Editor</b>: Syntaxfehler werden schon beim Tippen markiert.</li>
+    <li><b>Klammern automatisch schließen</b>: Beim Tippen von <code>( [ { "</code> wird die schließende Klammer ergänzt.</li>
+    <li><b>Schriftgröße im Editor</b>: 11 bis 24 Pixel. Schüler können sie zusätzlich selbst mit A− und A+ ändern.</li>
+  </ul>
+  <h3>Hilfsmittel</h3>
+  <p>Hilfsmittel erscheinen in einer Seitenleiste der Schüleransicht (Knopf <span class="ui">Hilfsmittel</span>). Zur Wahl stehen die <b>Java-API-Referenz</b> (Kurzreferenz der häufigsten Klassen), die <b>Python-Kurzreferenz</b>, der <b>SQL-Spickzettel</b>, die <b>Operatorenliste</b> und ein einfacher <b>Taschenrechner</b>. Hochgeladene Materialien mit „als Hilfsmittel“ (4.7) kommen zusätzlich dazu.</p>
+  <h3>Archiv</h3>
+  <p><b>Im Archiv für Kolleg:innen freigeben</b>: Andere Lehrkräfte finden die Aufgaben dieser Klausur im Archiv und dürfen sie samt Musterlösungen in eigene Klausuren kopieren. Kopien sind unabhängig vom Original.</p>
+
+  <h2 id="k4-3"><span class="num">4.3</span>Der Aufgaben-Editor</h2>
+  <p><span class="ui">Aufgaben bearbeiten</span> öffnet den Editor. Links steht der <b>Aufgabenbaum</b> mit Nummer, Titel, Antworttyp und Punkten; unten die Summe („Gesamt: 30 Punkte“). Rechts bearbeiten Sie die gewählte Aufgabe.</p>
+  <figure>
+    <img src="img/f-300-editor-choice-1.jpg" alt="Aufgaben-Editor">
+    <figcaption><b>{fig}</b> Der Aufgaben-Editor: links der Baum, rechts Titel, Aufgabentext mit Live-Vorschau</figcaption>
+  </figure>
+  <h3>Aufgaben und Teilaufgaben</h3>
+  <ul>
+    <li><span class="ui">+ Aufgabe</span> legt eine Aufgabe auf oberster Ebene an (1, 2, 3 …), <span class="ui">+ Teilaufgabe</span> eine untergeordnete (1a, 1b …).</li>
+    <li>↑ und ↓ verschieben die Aufgabe, → macht sie zur Teilaufgabe der vorherigen, ← holt sie wieder eine Ebene hoch. <span class="ui d">Löschen</span> entfernt sie samt Teilaufgaben.</li>
+    <li>Eine Aufgabe mit Teilaufgaben ist ein <b>Container</b>: Sie hat einen eigenen Text (zum Beispiel eine Ausgangslage), aber keinen Antworttyp. Ihre <b>Punkte</b> sind die Summe der Teilaufgaben und werden automatisch berechnet.</li>
+    <li><span class="ui p">Speichern</span> speichert die gewählte Aufgabe; daneben steht „Gespeichert“ oder ein Hinweis auf ungespeicherte Änderungen.</li>
+  </ul>
+  <div class="box note"><span class="t">Nach dem Start ist die Struktur gesperrt</span><p>Sobald eine Klausur gestartet wurde, steht im Baum „Struktur gesperrt (Klausur gestartet)“. Sie können dann Aufgaben nicht mehr hinzufügen, löschen oder verschieben. Texte und der Erwartungshorizont bleiben bearbeitbar, zum Beispiel um einen Tippfehler zu korrigieren (die Schüler sehen die Änderung nach dem nächsten Laden; für wichtige Hinweise nutzen Sie die Durchsage).</p></div>
+  <h3>Aufgabentext (Markdown)</h3>
+  <p>Der Text wird als Markdown geschrieben, rechts erscheint die Live-Vorschau. Möglich sind Überschriften, Fett und Kursiv, Listen, Tabellen, <b>Code</b> in Backticks oder als Block mit Sprache (<code>```java</code>), <b>Formeln</b> mit <code>$...$</code> im Text und <code>$$...$$</code> abgesetzt (KaTeX) sowie <b>Bilder</b> aus dem Klausurmaterial. Das HTML wird auf dem Server erzeugt und bereinigt.</p>
+  <div class="mono-block">Erläutere, warum die lineare Suche im schlechtesten Fall $n$ Vergleiche braucht.
+
+```java
+for (int i = 0; i &lt; feld.length; i++) { ... }
+```
+
+![Skizze des Feldes](material:3)</div>
+  <p>Ein Bild fügen Sie über die Auswahl <b>Material einfügen …</b> und den Knopf <span class="ui">Einfügen</span> ein; <b>Material verwalten</b> führt zur Materialseite (4.7).</p>
+  <h3>Punkte, Operator, Anforderungsbereich</h3>
+  <ul>
+    <li><b>Punkte</b>: Auch halbe Punkte sind möglich.</li>
+    <li><b>Operator</b>: Auswahl aus der Operatorenliste mit AFB, zum Beispiel „implementieren (AFB II-III)“. Optional.</li>
+    <li><b>Anforderungsbereich</b>: AFB I, II, III, I-II oder II-III, oder „offen“. Wird ein Operator gewählt, wird der Bereich vorgeschlagen. Die Auswertung im Klausurspiegel nutzt diesen Wert.</li>
+  </ul>
+  <h3>Erwartungshorizont und Musterlösung</h3>
+  <p>Unter dem Typ-spezifischen Bereich steht der <b>Erwartungshorizont (Markdown)</b>: die Bewertungskriterien für die Korrektur. Er bleibt auch nach dem Start bearbeitbar. Je nach Typ kommen die <b>Musterlösung</b> und bei Code die <b>Tests</b> hinzu. Diese Inhalte sehen Schüler <b>nie</b>.</p>
+
+  <h2 id="k4-4"><span class="num">4.4</span>Programmieraufgaben im Detail</h2>
+  <p>Programmcode ist der mächtigste Typ. Zum Aufbau einer guten Aufgabe gehören:</p>
+  <ol class="steps">
+    <li><b>Sprache und Startdatei</b> wählen (Java: Klasse mit <code>main</code>; Python: Skript; SQL: Abfragedatei).</li>
+    <li><b>Vorgegebene Dateien</b> anlegen: Reiter pro Datei, mit <span class="ui">+ Datei</span> neue Dateien, je Datei das Schloss für „schreibgeschützt“. Typisch: ein Gerüst <code>Konto.java</code> mit <code>// TODO</code> (bearbeitbar) und ein <code>Main.java</code>, das die Klasse aufruft (schreibgeschützt). Es sind höchstens 20 Dateien möglich; Namen dürfen nur Buchstaben, Ziffern, Punkt, Unterstrich und Minus enthalten.</li>
+    <li><b>Beispieltests</b> eintragen, die Schüler sehen dürfen (Name, Eingabe, erwartete Ausgabe, Vergleichsart). In Übungen zeigt die Schüleransicht sie sofort mit Ergebnis; in Klausuren nur, wenn Sie sie in den Aufgabentext übernehmen.</li>
+    <li><b>Versteckte Tests</b> mit Punkten anlegen. Sie laufen erst in der Korrektur auf dem Server und verlassen ihn nie in Richtung Schüler.</li>
+    <li>Mit dem Knopf zum <b>Testen der Aufgabe</b> im Editor führen Sie die Musterlösung gegen die Tests aus, bevor die Klausur fertig ist.</li>
+  </ol>
+  <div class="box tip"><span class="t">Tests sorgfältig formulieren</span><p>Ein <code>io</code>-Test vergleicht Ausgaben. „getrimmt“ ignoriert Leerraum am Anfang und Ende, „ohne Leerraum“ ignoriert jeden Leerraum, „enthält“ und „Regex“ sind lockerer. Wählen Sie die lockerste Art, die noch sinnvoll ist, damit richtige Lösungen nicht an Leerzeichen scheitern. Beim Prüfen in der Korrektur sehen Sie nach Bedarf Ausgabe und Fehlerausgabe jedes Tests.</p></div>
+  <p>Die Einstellung <b>Ausführung</b> je Aufgabe kann von der Klausur abweichen, zum Beispiel „nur Syntax prüfen“ für eine Aufgabe, bei der Schüler nur schreiben sollen. Bei „nicht ausführen“ fehlt der Knopf <span class="ui">Ausführen</span>.</p>
+
+  <h2 id="k4-5"><span class="num">4.5</span>Diagramm- und Mikroweltaufgaben</h2>
+  <p>Diagramme (UML, Struktogramm, PAP, Schaltnetz, Wahrheitstabelle, Automat, ER, Relationenschema, Zeichnung) werden als strukturiertes Modell gespeichert und als SVG gezeigt. So sind sie korrigierbar, druckbar und teilweise automatisch prüfbar. Die Musterlösung zeichnen Sie im selben Editor, den die Schüler benutzen. Die Robo-Welt malen Sie mit Werkzeugen direkt im Raster. Welche Einstellungen es je Typ gibt, zeigt der nächste Abschnitt.</p>
+
+<!--TYPEN-->
+
+  <h2 id="k4-7"><span class="num">4.7</span>Material und Hilfsmittel</h2>
+  <p>Unter <span class="ui">Material</span> laden Sie Bilder (PNG, JPG, GIF, WebP) und PDF-Dateien hoch (höchstens 20 MB je Datei). Material wird nur an Teilnehmer während der Klausur ausgeliefert.</p>
+  <figure class="narrow">
+    <img src="img/210-material.jpg" alt="Material">
+    <figcaption><b>{fig}</b> Materialseite: Datei, Zuordnung zu einer Aufgabe, „Als Hilfsmittel anbieten“</figcaption>
+  </figure>
+  <ul>
+    <li><b>Datei</b> wählen, optional <b>Gehört zu Aufgabe</b> auswählen und <span class="ui p">Hochladen</span>.</li>
+    <li>In einem Aufgabentext binden Sie ein Bild mit <code>![Beschriftung](material:ID)</code> ein. Die ID zeigt die Materialseite; im Editor gelingt es bequemer über „Material einfügen …“.</li>
+    <li><b>Als Hilfsmittel anbieten (Seitenleiste, z. B. Formelsammlung)</b>: Die Datei erscheint für Schüler im Fenster <span class="ui">Hilfsmittel</span>, zum Beispiel eine Formelsammlung als PDF.</li>
+    <li>Die Zuordnung zu einer Aufgabe und die Hilfsmittel-Eigenschaft lassen sich später ändern, ebenso lässt sich Material löschen.</li>
+  </ul>
+
+  <h2 id="k4-8"><span class="num">4.8</span>Vorschau</h2>
+  <p>Mit <span class="ui">Vorschau</span> (auf der Klausurseite und im Pult) sehen Sie die Klausur genau so, wie Schüler sie sehen: gleiche Seite, gleiche Antworttypen, gleiche Hilfsmittel. Ein blauer Streifen weist darauf hin: „Vorschau: Es wird nichts gespeichert und nichts an die Lehrkraft gemeldet.“ Probieren Sie hier jede Aufgabe aus, auch das Ausführen von Code. Aufgaben mit Fehlern in Gerüst oder Beispieltests finden Sie so vor der Klausur.</p>
+  <figure>
+    <img src="img/x-310-vorschau-code-java.jpg" alt="Vorschau">
+    <figcaption><b>{fig}</b> Die Vorschau einer Java-Aufgabe mit dem blauen Hinweisstreifen</figcaption>
+  </figure>
+
+  <h2 id="k4-9"><span class="num">4.9</span>Weitere Lehrkräfte (Aufsicht)</h2>
+  <p>Auf der Klausurseite im Abschnitt <b>Lehrkräfte</b> fügen Sie Kollegen hinzu: Tippen Sie mindestens zwei Buchstaben, wählen Sie die Person aus und klicken Sie <span class="ui">Hinzufügen</span>. Hinzugefügte Lehrkräfte sind <b>Aufsicht</b>:</p>
+  <table>
+    <thead><tr><th>Recht</th><th>Hauptlehrkraft</th><th>Aufsicht</th><th>Aufsicht mit „Lösungen“</th><th>Aufsicht mit „Korrigieren“</th></tr></thead>
+    <tbody>
+      <tr><td>Pult bedienen, Antworten live sehen</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c yes">ja</td></tr>
+      <tr><td>Aufgaben, Musterlösung, Erwartungshorizont, Tests sehen</td><td class="c yes">ja</td><td class="c no">nein</td><td class="c yes">ja</td><td class="c yes">ja</td></tr>
+      <tr><td>Korrigieren (Punkte, Kommentare, Ergebnisse, PDF)</td><td class="c yes">ja</td><td class="c no">nein</td><td class="c no">nein</td><td class="c yes">ja</td></tr>
+      <tr><td>Freigeben, Zurücknehmen, Archivieren, Notenschlüssel, Einstellungen ändern</td><td class="c yes">ja</td><td class="c no">nein</td><td class="c no">nein</td><td class="c no">nein</td></tr>
+    </tbody>
+  </table>
+  <p>Wer korrigieren darf, sieht dabei automatisch auch Lösungen und Erwartungshorizont. Die beiden Schalter <b>Lösungen</b> und <b>Korrigieren</b> setzen Sie je Lehrkraft in der Tabelle und speichern mit <span class="ui">Speichern</span>. <span class="ui d">Entfernen</span> nimmt die Lehrkraft wieder heraus. Admins und Lehrkräfte mit dem Recht „Alle Klausuren betreuen (auch fremde)“ haben auf jede Klausur Zugriff, ohne hinzugefügt zu werden. Die vollständige Rechtetabelle steht im Anhang A.</p>
+  <figure>
+    <img src="img/204-klausur-lehrkraefte.jpg" alt="Lehrkräfte einer Klausur">
+    <figcaption><b>{fig}</b> Abschnitt „Lehrkräfte“: Schalter „Lösungen“ und „Korrigieren“ je Aufsicht</figcaption>
+  </figure>
+
+  <h2 id="k4-10"><span class="num">4.10</span>SEB-Datei</h2>
+  <p>Der <b>Safe Exam Browser</b> (SEB) sperrt Alt+Tab, Entwicklerwerkzeuge und andere Programme. Klausurwerk erzeugt die passende Konfigurationsdatei selbst.</p>
+  <ol class="steps">
+    <li>Prüfen Sie unter <span class="nav">Verwaltung › Einstellungen</span>, dass die <b>Öffentliche Adresse</b> stimmt. Sonst verwendet die Datei die Adresse Ihres Browsers.</li>
+    <li>Auf der Klausurseite <span class="ui">SEB-Datei</span> öffnen. Dort stehen <b>Start-Adresse</b> (<code>…/klausur/ID</code>) und <b>Beenden-Adresse</b> (<code>…/seb-beenden</code>).</li>
+    <li>Optional ein <b>Passwort zum Beenden von SEB</b> setzen. Es wird nur als SHA-256-Hash in der Datei abgelegt. Notieren Sie es, es lässt sich nicht wiederherstellen. Leer heißt: SEB lässt sich ohne Passwort beenden.</li>
+    <li><span class="ui p">.seb-Datei herunterladen</span>. Verteilen Sie die Datei an die Schülerrechner (oder öffnen Sie sie dort); SEB startet im Kiosk-Modus und lädt die Klausur.</li>
+    <li>In den Klausureinstellungen den Schalter <b>Nur mit Safe Exam Browser</b> aktivieren. Der Server prüft dann bei jeder Anfrage den Config-Key-Hash und lehnt alles andere ab (Ereignis „SEB fehlt“ im Pult).</li>
+  </ol>
+  <figure class="narrow">
+    <img src="img/211-seb.jpg" alt="SEB-Datei">
+    <figcaption><b>{fig}</b> Die SEB-Seite einer Klausur</figcaption>
+  </figure>
+  <p>Unter „Erweitert“ können Sie den Config Key manuell festlegen, wenn Sie SEB-Konfigurationen selbst pflegen. Ändern Sie danach nichts mehr an Adresse oder Datei, ohne die Datei neu zu erzeugen: Der Key hängt an beidem.</p>
+
+  <h2 id="k4-11"><span class="num">4.11</span>Fertigstellen: Entwurf, Bereit, Klausurcode</h2>
+  <ol class="steps">
+    <li>Prüfen Sie Aufgaben, Punkte, Einstellungen und die Vorschau.</li>
+    <li>Wählen Sie auf der Klausurseite <span class="ui">Fertigstellen</span>. Die Klausur wechselt auf <b>Bereit</b>. Damit ist die Klausur gegen versehentliche Änderungen gesperrt; Pult, Zugangskarten und Probelauf sind möglich. Mit <span class="ui">Zurück in den Entwurf</span> öffnen Sie sie wieder, solange niemand teilgenommen hat.</li>
+    <li>Wenn Sie „Klausurcode verlangen“ gewählt haben, steht der 6-stellige Code jetzt auf der Klausurseite und im Pult; er lässt sich dort neu erzeugen.</li>
+    <li>Drucken Sie bei Bedarf Zugangskarten (3.4) und machen Sie am Vortag einen <b>Technik-Check</b> (4.13).</li>
+  </ol>
+
+  <h2 id="k4-12"><span class="num">4.12</span>Archiv, Kopieren, Export und Import</h2>
+  <p>Klausurwerk hat keinen eigenen Aufgabenpool. Stattdessen durchsuchen Sie das <b>Archiv</b> aller Aufgaben aus Ihren Klausuren und aus den für Kollegen freigegebenen.</p>
+  <figure>
+    <img src="img/212-archiv.jpg" alt="Archiv">
+    <figcaption><b>{fig}</b> Das Archiv: Suche und Filter nach Sprache, Antworttyp, Klassenstufe und Operator</figcaption>
+  </figure>
+  <ol class="steps">
+    <li><span class="nav">Unterricht › Archiv</span> öffnen.</li>
+    <li>Suchen Sie im Titel und Aufgabentext und filtern Sie nach <b>Sprache</b>, <b>Antworttyp</b>, <b>Klassenstufe</b> und <b>Operator</b>.</li>
+    <li>Bei einer Aufgabe wählen Sie die <b>Zielklausur</b> (eine Ihrer Klausuren im Entwurf) und klicken <span class="ui p">In Klausur kopieren</span>. Die Aufgabe samt Musterlösung, Tests und Dateien wird <b>kopiert</b>; spätere Änderungen am Original wirken nicht zurück.</li>
+  </ol>
+  <ul>
+    <li><span class="ui">Als Vorlage kopieren</span> (Klausurseite) erzeugt eine vollständige Kopie der Klausur zum Weiterverwenden im nächsten Jahr.</li>
+    <li><span class="ui">Export (ZIP)</span> speichert die ganze Klausur (Aufgaben, Lösungen, Tests, Materialien) als Datei. <span class="ui">Importieren</span> auf der Klausurliste liest sie wieder ein, zum Beispiel zum Austausch mit Kollegen anderer Schulen. Dafür brauchen Sie das Recht „Klausuren importieren/exportieren“.</li>
+  </ul>
+  <div class="box warn"><span class="t">Exportdateien enthalten Lösungen</span><p>Die ZIP-Datei enthält Musterlösungen und versteckte Tests. Geben Sie sie nur an Kollegen weiter und legen Sie sie nicht auf Laufwerken ab, auf die Schüler Zugriff haben.</p></div>
+
+  <h2 id="k4-13"><span class="num">4.13</span>Übung und Technik-Check</h2>
+  <h3>Übung</h3>
+  <p>Eine Übung ist eine Klausur ohne Überwachung. Es gibt keine Sperre, die Uhr ist optional, und Beispieltests zeigen Schülern sofort ihr Ergebnis. Eine Übung lässt sich im Pult trotzdem öffnen, starten und beenden. Sie eignet sich, um die Schüler vor der ersten Klausur mit der Oberfläche vertraut zu machen: Code ausführen, Diagramme zeichnen, Abgeben.</p>
+  <h3>Technik-Check (Probe)</h3>
+  <p>Eine Probe braucht keine Aufgaben. Schüler durchlaufen den echten Ablauf (Beitritt, Bereit, Vollbild) und testen dabei, ob Ton, Vollbild und Verbindung funktionieren. Prüfen Sie im Technik-Check vor allem:</p>
+  <ul class="tight">
+    <li>Hören Sie bei einem absichtlichen Verlassen des Vollbilds das Signal am Schülerrechner und im Pult?</li>
+    <li>Läuft der Safe Exam Browser auf allen Rechnern und meldet der Server ihn als gültig?</li>
+    <li>Funktioniert die Anmeldung mit der Karte (auch der QR-Code) auf jedem Gerät?</li>
+    <li>Bleibt die Verbindung stabil, wenn alle Rechner gleichzeitig aktiv sind?</li>
+  </ul>
+  <figure class="narrow">
+    <img src="img/215-technik-check.jpg" alt="Technik-Check">
+    <figcaption><b>{fig}</b> Die Klausurseite eines Technik-Checks (Entwurf, noch ohne Aufgaben)</figcaption>
+  </figure>
+</section>

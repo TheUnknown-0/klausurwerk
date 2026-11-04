@@ -149,11 +149,11 @@ $task($exam, $g, 'text', [
 ]);
 $task($exam, null, 'code', [
     'title' => 'Fibonacci in Python',
-    'body_md' => "Implementiere die Funktion `fib(n)`, die die n-te Fibonacci-Zahl zurückgibt (`fib(0) = 0`, `fib(1) = 1`).\n\nDas Hauptprogramm liest eine Zahl ein und gibt `fib(n)` aus.",
+    'body_md' => "Implementiere die Funktion `fib(n)`, die die n-te Fibonacci-Zahl zurückgibt (`fib(0) = 0`, `fib(1) = 1`).\n\nDas Hauptprogramm (unter `if __name__ == \"__main__\":`) liest eine Zahl ein und gibt `fib(n)` aus.",
     'points' => 6, 'operator_id' => $operator('implementieren'), 'afb' => 'II',
     'config' => ['language' => 'python', 'main_file' => 'main.py', 'allow_new_files' => false, 'stdin' => '',
         'sample_tests' => [['name' => 'n = 10', 'input' => "10\n", 'expected_output' => '55', 'compare' => 'trim']]],
-    'files' => [['filename' => 'main.py', 'content' => "def fib(n):\n    # TODO\n    return 0\n\n\nn = int(input(\"n = \"))\nprint(fib(n))\n", 'is_readonly' => false]],
+    'files' => [['filename' => 'main.py', 'content' => "def fib(n):\n    # TODO\n    return 0\n\n\nif __name__ == \"__main__\":\n    n = int(input(\"n = \"))\n    print(fib(n))\n", 'is_readonly' => false]],
     'model_answer' => "def fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n",
     'tests' => [
         ['name' => 'fib(0)', 'type' => 'python_assert', 'code' => 'assert fib(0) == 0', 'points' => 1],

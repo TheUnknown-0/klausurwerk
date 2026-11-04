@@ -80,3 +80,20 @@ function bundle(string $name, string $baseUrl = ''): string
 {
     return asset('build/' . $name, $baseUrl);
 }
+
+/**
+ * Inline-Icon aus dem Sprite /assets/img/icons.svg (Lucide, ISC-Lizenz).
+ * Statt Emoji verwenden. $name ohne Präfix, z. B. icon('lock'), icon('trash-2').
+ * Dekorativ (aria-hidden); bei reinen Icon-Knöpfen braucht der Knopf ein aria-label.
+ */
+function icon(string $name, string $class = ''): string
+{
+    static $base = null;
+    if ($base === null) {
+        $base = asset('img/icons.svg', rtrim((string) (getenv('BASE_URL') ?: ''), '/'));
+    }
+    $name = preg_replace('/[^a-z0-9-]/', '', $name) ?? '';
+
+    return '<svg class="icon' . ($class !== '' ? ' ' . e($class) : '') . '" aria-hidden="true" focusable="false">'
+        . '<use href="' . e($base) . '#i-' . $name . '"></use></svg>';
+}

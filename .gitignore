@@ -18,3 +18,13 @@ tests/e2e/shots/
 tests/e2e/__pycache__/
 __pycache__/
 *.pyc
+handbuch/__pycache__/
+handbuch/states/
+handbuch/manual/_build.html
+handbuch/manual/_pass.pdf
+handbuch/manual/_cover.pdf
+# Handbuch: Bilder und PDFs werden nach dem Redesign neu erzeugt
+handbuch/shots/
+handbuch/manual/img/
+handbuch/*.pdf
+handbuch/data/*.pdf

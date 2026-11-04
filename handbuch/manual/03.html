@@ -1,0 +1,195 @@
+<section class="chapter" id="k3" data-title="Verwaltung">
+  <div class="chapter-head">
+    <div class="big">03</div>
+    <div class="kicker">Kapitel 3</div>
+    <h1>Verwaltung</h1>
+    <p class="lead">Schule, Lehrkräfte, Schüler, Kurse, Zugangskarten, Räume, Notenschlüssel, Operatoren, Berechtigungen, Aufbewahrung und Audit-Log.</p>
+    <div class="for">Für <span class="role r-admin">Admin</span> und, soweit freigeschaltet, <span class="role r-teacher">Lehrkraft</span></div>
+  </div>
+
+  <p>Die Verwaltung finden Sie in der Seitenleiste unter <b>Verwaltung</b> (Benutzer, Zugangskarten, Notenschlüssel, Operatoren, Berechtigungen, Einstellungen, Aufbewahrung, Audit-Log) und <b>Unterricht</b> (Kurse, Räume). Admins sehen alles. Lehrkräfte sehen nur die Bereiche, für die sie ein Recht haben (Anhang A). Standardmäßig dürfen Lehrkräfte Schüler anlegen, importieren, bearbeiten, Passwörter zurücksetzen, Zugangskarten drucken, den Nachteilsausgleich festlegen sowie Kurse und Räume verwalten.</p>
+
+  <h2 id="k3-1"><span class="num">3.1</span>Einstellungen</h2>
+  <p><span class="nav">Verwaltung › Einstellungen</span> bündelt alles, was die ganze Schule betrifft.</p>
+  <figure>
+    <img src="img/120-einstellungen-1.jpg" alt="Einstellungen">
+    <figcaption><b>{fig}</b> Einstellungen: Logo, Schulname, Name der Anwendung, öffentliche Adresse</figcaption>
+  </figure>
+  <ul>
+    <li><b>Schullogo</b>: PNG, JPG, WebP oder SVG, höchstens 2 MB. Es erscheint in der Seitenleiste und auf der Anmeldeseite. Ohne Logo wird ein Platzhalter angezeigt.</li>
+    <li><b>Schulname</b>: steht auf Zugangskarten und PDF-Ausdrucken (auch auf den Ergebnis-PDFs).</li>
+    <li><b>Name der Anwendung</b>: Titel in Seitenleiste und Browser-Tab, Standard „Klausurwerk“.</li>
+    <li><b>Öffentliche Adresse</b>: zum Beispiel <code>https://klausuren.meine-schule.de</code>. Wird für den QR-Code auf den Zugangskarten und in der SEB-Datei benötigt (Abschnitt 2.4).</li>
+    <li><b>Anmeldung von Lehrkräften</b>: Schalter für den Anmeldecode per E-Mail (Abschnitt 2.6).</li>
+    <li><b>Takt der Live-Ansichten</b>: <b>Herzschlag der Schüleransicht</b> (Standard 2000 ms) bestimmt, wie oft ein Gerät dem Server meldet, dass es da ist. <b>Abruf im Pult</b> (Standard 1500 ms) bestimmt, wie oft das Pult den Stand der Klasse abfragt. Kleinere Werte zeigen Änderungen schneller, belasten aber den Server stärker. <span class="ui">Auf Standard zurücksetzen</span> stellt beide Werte wieder her.</li>
+    <li><b>Seitenpasswort</b>: optionaler Vorhang vor der gesamten Anwendung. Wer die Adresse kennt, braucht dann zuerst ein gemeinsames Passwort (mindestens 8 Zeichen). Nützlich, solange das System noch nicht öffentlich sein soll. Nur Admins können es ändern.</li>
+    <li><b>Test-Mail</b>: sendet eine Probemail an eine Adresse Ihrer Wahl.</li>
+  </ul>
+  <figure>
+    <img src="img/121-einstellungen-2.jpg" alt="Einstellungen unten">
+    <figcaption><b>{fig}</b> Weiter unten: Anmeldung der Lehrkräfte, Takt der Live-Ansichten, Seitenpasswort</figcaption>
+  </figure>
+
+  <h2 id="k3-2"><span class="num">3.2</span>Benutzer anlegen: Lehrkräfte, Admins, Schüler</h2>
+  <p>Die Liste unter <span class="nav">Verwaltung › Benutzer</span> zeigt alle Konten mit Benutzername, Name, Rolle, Kursen, Status und letztem Login. Filtern können Sie nach Suchbegriff, <b>Rolle</b>, <b>Kurs</b> und <b>Status</b> (alle, nur aktive, nur inaktive). Schüler mit Nachteilsausgleich tragen den Zusatz „Nachteilsausgleich +25 %“.</p>
+  <figure>
+    <img src="img/130-benutzer-liste.jpg" alt="Benutzerliste">
+    <figcaption><b>{fig}</b> Die Benutzerliste mit Filtern und den Knöpfen Zugangskarten, CSV-Import und Neuer Benutzer</figcaption>
+  </figure>
+  <h3>Neuen Benutzer anlegen</h3>
+  <ol class="steps">
+    <li><span class="ui p">Neuer Benutzer</span> wählen.</li>
+    <li><b>Rolle</b> wählen: Administrator:in, Lehrkraft oder Schüler:in. Admins dürfen alle drei anlegen; Lehrkräfte mit dem Recht „Schüler:innen anlegen“ nur Schüler.</li>
+    <li><b>Vorname</b> und <b>Nachname</b> eintragen. Bei Schülern wird der <b>Benutzername</b> automatisch als <code>vorname.nachname</code> vorgeschlagen (Umlaute werden aufgelöst, bei Doppelungen wird durchgezählt). Sie können ihn überschreiben.</li>
+    <li>Bei Lehrkräften und Admins die <b>E-Mail-Adresse</b> angeben (für Anmeldecodes) und ein <b>Passwort</b> setzen. <b>Passwort automatisch erzeugen</b> erzeugt eines und zeigt es einmalig an. <b>Beim nächsten Login ein neues Passwort wählen lassen</b> erzwingt die Änderung bei der ersten Anmeldung.</li>
+    <li>Bei Schülern die <b>Kurse</b> ankreuzen und bei Bedarf den <b>Nachteilsausgleich</b> eintragen (3.5).</li>
+    <li><span class="ui p">Anlegen</span>. Bei Schülern erzeugt Klausurwerk ein Passwort, das auf der Zugangskarte (3.4) gedruckt wird.</li>
+  </ol>
+  <figure class="narrow">
+    <img src="img/132-benutzer-neu-ausgefuellt.jpg" alt="Neuer Schüler">
+    <figcaption><b>{fig}</b> Ein neuer Schüler: Der Benutzername wird aus dem Namen vorgeschlagen</figcaption>
+  </figure>
+  <h3>Benutzer bearbeiten, Passwort zurücksetzen, löschen</h3>
+  <p>Über <span class="ui">Bearbeiten</span> in der Liste öffnen Sie ein Konto. Name, Benutzername, Kurse, Nachteilsausgleich und der Schalter <b>Konto ist aktiv</b> sind änderbar. Ein inaktives Konto kann sich nicht anmelden, bleibt aber erhalten. Unten auf der Seite stehen die Abschnitte <b>Zugangskarte</b> (neues Passwort und neue Karte) und <b>Konto löschen</b>.</p>
+  <div class="box warn"><span class="t">Benutzername nach dem Druck der Karte</span><p>Ändert sich der Name oder Benutzername, passt die schon gedruckte Karte nicht mehr. Drucken Sie die Karte dann neu (3.4).</p></div>
+  <div class="box danger"><span class="t">Löschen lässt sich nicht rückgängig machen</span><p>Beim Löschen eines Schülers verschwinden auch seine Antworten und Bewertungen. Wenn Sie nur verhindern wollen, dass sich jemand anmeldet, setzen Sie das Konto stattdessen auf inaktiv.</p></div>
+  <figure>
+    <img src="img/133-benutzer-bearbeiten-na.jpg" alt="Benutzer bearbeiten">
+    <figcaption><b>{fig}</b> Konto bearbeiten: Kurse, Nachteilsausgleich und Aktivstatus</figcaption>
+  </figure>
+
+  <h2 id="k3-3"><span class="num">3.3</span>Schüler per CSV importieren</h2>
+  <p>Für ganze Klassen ist der CSV-Import schneller. Sie finden ihn über <span class="ui">CSV-Import</span> auf der Benutzerseite.</p>
+  <h4>Aufbau der Datei</h4>
+  <ul>
+    <li>Erste Zeile ist die Kopfzeile. Trenner Semikolon oder Komma, Zeichensatz UTF-8 oder Windows-1252 (so exportiert Excel).</li>
+    <li>Pflicht: <b>Vorname</b>, <b>Nachname</b>, <b>Kurs</b> (zum Beispiel <code>10a</code> oder <code>11 Info</code>). Optional: <b>Benutzername</b> (sonst <code>vorname.nachname</code>) und <b>Nachteilsausgleich</b> in Prozent.</li>
+    <li>Höchstens 2 MB und 2000 Zeilen. Fehlende Kurse werden angelegt.</li>
+  </ul>
+  <div class="mono-block">Vorname;Nachname;Kurs;Benutzername;Nachteilsausgleich
+Anna;Müller;10a;;
+Jonas;Schröder;10a;jonas.s;25
+Lena;Fischer;10a;;</div>
+  <ol class="steps">
+    <li>Datei unter <b>CSV-Datei</b> auswählen und <span class="ui p">Vorschau erstellen</span> wählen. Es wird noch nichts gespeichert.</li>
+    <li>Die Vorschau zeigt Kennzahlen (werden angelegt, werden übersprungen, mit Fehlern, neue Kurse) und eine Tabelle je Zeile mit dem Status „neu“, „übersprungen“ oder einer Fehlermeldung. Für <b>neue Kurse</b> wählen Sie die Klassenstufe aus (sie wird aus dem Namen geraten, wo das nicht geht, bitte wählen). Sie werden Hauptlehrkraft der neuen Kurse.</li>
+    <li><span class="ui p">3 Schüler:innen importieren</span> führt den Import aus. <span class="ui">Abbrechen</span> verwirft die Vorschau.</li>
+    <li>Die Ergebnisseite bietet an, direkt die Zugangskarten zu drucken (3.4) oder die gerade importierten Schüler wieder zu löschen, falls etwas schiefging.</li>
+  </ol>
+  <figure>
+    <img src="img/136-import-vorschau.jpg" alt="Import-Vorschau">
+    <figcaption><b>{fig}</b> Vorschau des Imports: drei neue Schüler, ein neuer Kurs „10a“</figcaption>
+  </figure>
+
+  <h2 id="k3-4"><span class="num">3.4</span>Zugangskarten</h2>
+  <p>Schüler melden sich mit einer festen <b>Zugangskarte</b> an. Auf ihr stehen Name, Kurs, Benutzername, Passwort und ein QR-Code, der Benutzername und Passwort ins Anmeldeformular einträgt. Es passen 8 Karten auf eine A4-Seite.</p>
+  <figure>
+    <img src="img/150-zugangskarten.jpg" alt="Zugangskarten drucken">
+    <figcaption><b>{fig}</b> Zugangskarten drucken: Kurs wählen oder einzelne Personen suchen, Bestätigung ankreuzen</figcaption>
+  </figure>
+  <ol class="steps">
+    <li><span class="nav">Verwaltung › Zugangskarten</span> öffnen (oder <span class="ui">Zugangskarten für den Kurs</span> auf der Kursseite).</li>
+    <li>Unter <b>1. Kurs wählen</b> einen Kurs auswählen. Oder unter <b>Einzelne Personen suchen</b> Namen eingeben und ankreuzen. Die Auswahl bleibt beim Weitersuchen erhalten.</li>
+    <li>Das Kästchen „Ich weiß, dass dabei neue Passwörter erzeugt werden und die alten Karten dieser Personen ungültig werden.“ ankreuzen.</li>
+    <li><span class="ui p">Karten drucken</span> (höchstens 600 Karten auf einmal) erzeugt ein PDF.</li>
+  </ol>
+  <figure class="doc">
+    <img src="img/pdf-zugangskarten-1.jpg" alt="Zugangskarten-PDF">
+    <figcaption><b>{fig}</b> Das PDF der Zugangskarten: Name, Kurs, Benutzername, Passwort und QR-Code</figcaption>
+  </figure>
+  <div class="box danger"><span class="t">Beim Drucken werden neue Passwörter erzeugt</span><p>Alle alten Karten der ausgewählten Personen sind sofort ungültig. Das PDF enthält die Passwörter im Klartext und wird nirgends gespeichert. Drucken Sie es sofort aus und löschen Sie die Datei danach. Drucken Sie nie am Vortag einer Klausur für den ganzen Kurs neu, ohne die alten Karten einzusammeln.</p></div>
+  <p><b>Zurücksetzen einer einzelnen Karte</b> (Schüler hat die Karte verloren): auf der Seite des Benutzers den Abschnitt <b>Zugangskarte</b> öffnen und neues Passwort bzw. neue Karte ausstellen. Intern zählt eine <code>card_version</code> hoch, die alte Karte ist damit ungültig.</p>
+
+  <h2 id="k3-5"><span class="num">3.5</span>Nachteilsausgleich</h2>
+  <p>Der Nachteilsausgleich hängt dauerhaft an der Person und wird bei jeder Klausur automatisch angewendet. Im Formular des Schülers tragen Sie unter <b>Nachteilsausgleich (Prozent Zusatzzeit)</b> zum Beispiel 25 ein (0 bedeutet keinen) und können eine <b>Notiz zum Nachteilsausgleich</b> hinterlegen, die nur Lehrkräfte sehen. Dafür brauchen Sie das Recht „Nachteilsausgleich festlegen“.</p>
+  <p>Die individuelle Endzeit ergibt sich aus: <b>Start + Dauer × (1 + Nachteilsausgleich) + gutgeschriebene Minuten + Pausenzeit</b>. Bei 90 Minuten und 25 % sind das 112,5 Minuten. Im Pult sieht die Kachel dieser Person die längere Restzeit (Kapitel 5). Die Zusatzzeit wird bereits im Warteraum berechnet.</p>
+
+  <h2 id="k3-6"><span class="num">3.6</span>Kurse</h2>
+  <p>Kurse (<span class="nav">Unterricht › Kurse</span>) gruppieren Schüler. Eine Klausur hängt an einem Kurs, und nur dessen Mitglieder können teilnehmen. Die Liste zeigt Kurs, Klassenstufe, Schuljahr, Fach, Hauptlehrkraft und Mitgliederzahl; <b>Archivierte anzeigen</b> blendet abgeschlossene Kurse ein.</p>
+  <figure>
+    <img src="img/141-kurs-detail.jpg" alt="Kursseite">
+    <figcaption><b>{fig}</b> Die Kursseite: Hauptlehrkraft, Notenschlüssel, Mitglieder, Klausuren des Kurses</figcaption>
+  </figure>
+  <ol class="steps">
+    <li><span class="ui p">Neuer Kurs</span>: <b>Kursname</b> (zum Beispiel „Inf-Q1“), <b>Klassenstufe</b> (5 bis 13), <b>Schuljahr</b> (Format 2026/27), <b>Fach</b>, <b>Hauptlehrkraft</b>.</li>
+    <li><b>Notenschlüssel</b>: „Standard der Klassenstufe“ lassen, es sei denn, der Kurs weicht ab (3.8).</li>
+    <li><b>Weitere Lehrkräfte (Vertretung, Team-Teaching)</b> ankreuzen: Sie sehen den Kurs ebenfalls.</li>
+    <li>Auf der Kursseite fügen Sie über <b>Schüler:in hinzufügen</b> (mindestens zwei Buchstaben tippen) Mitglieder hinzu, in der Tabelle entfernen Sie sie mit <span class="ui d">Entfernen</span>. Die Tabelle zeigt auch Nachteilsausgleich und das Datum der Karte.</li>
+    <li><span class="ui">Archivieren</span> blendet einen Kurs am Schuljahresende aus; <span class="ui d">Kurs löschen</span> entfernt ihn endgültig.</li>
+  </ol>
+  <p>Lehrkräfte sehen standardmäßig nur ihre eigenen Kurse. Mit dem Recht „Alle Kurse bearbeiten“ (zum Beispiel für die Fachbereichsleitung) auch die der Kollegen.</p>
+
+  <h2 id="k3-7"><span class="num">3.7</span>Räume und Sitzplan</h2>
+  <p>Ein Raum (<span class="nav">Unterricht › Räume</span>) besteht aus einem Raster mit <b>Spalten</b> und <b>Zeilen</b>, zum Beispiel „R 204 (Informatik)“ mit 6 × 4 Plätzen. Er wird einer Klausur zugeordnet. Im Pult werden die Kacheln der Schüler wie die Sitzordnung im Raum angeordnet (Kapitel 5.4). Die Anordnung wird je Raum gespeichert und beim nächsten Mal als Vorschlag verwendet.</p>
+  <figure>
+    <img src="img/171-raum-sitzplan.jpg" alt="Sitzplan eines Raumes">
+    <figcaption><b>{fig}</b> Der Raum „R 204 (Informatik)“ mit den gespeicherten Plätzen; die Tafel ist oben</figcaption>
+  </figure>
+  <ul>
+    <li><b>Neuer Raum</b> auf der Raumliste: Name, Spalten, Zeilen.</li>
+    <li><b>Raum bearbeiten</b>: Name und Raster ändern. Bei einer Verkleinerung bleiben Plätze außerhalb des Rasters erhalten und werden oben angezeigt.</li>
+    <li>Das ✕ an einem Platz löscht diesen gespeicherten Platz, <span class="ui">Alle Plätze leeren</span> setzt den ganzen Raum zurück.</li>
+    <li>Wer wo sitzt, legen Sie nicht hier, sondern im Pult per Ziehen fest.</li>
+  </ul>
+
+  <h2 id="k3-8"><span class="num">3.8</span>Notenschlüssel je Klassenstufe</h2>
+  <p>Unter <span class="nav">Verwaltung › Notenschlüssel</span> gilt je Klassenstufe ein <b>Standard</b>. Ohne Standard lässt sich eine Klausur dieser Stufe nicht benoten. Im Auslieferungszustand sind für Berlin angelegt:</p>
+  <table>
+    <thead><tr><th>Klasse</th><th>Schlüssel</th><th>Typ</th><th>Stufen</th></tr></thead>
+    <tbody>
+      <tr><td>10</td><td>Noten 1 bis 6 (Klasse 10)</td><td>Noten</td><td>16 Stufen: 1+ ab 95 %, 1 ab 90 %, 1- ab 85 %, 2+ ab 80 %, 2 ab 75 %, 2- ab 70 %, 3+ ab 65 %, 3 ab 60 %, 3- ab 55 %, 4+ ab 50 %, 4 ab 45 %, 4- ab 40 %, 5+ ab 33 %, 5 ab 27 %, 5- ab 20 %, 6 ab 0 %</td></tr>
+      <tr><td>11 und 12</td><td>Punkte 0 bis 15</td><td>Punkte</td><td>16 Stufen: 15 Punkte ab 95 % bis 00 Punkte ab 0 %</td></tr>
+    </tbody>
+  </table>
+  <figure>
+    <img src="img/161-notenschluessel-bearbeiten.jpg" alt="Notenschlüssel bearbeiten">
+    <figcaption><b>{fig}</b> Ein Notenschlüssel: Beschriftung, Wert und „Ab Prozent“ je Stufe</figcaption>
+  </figure>
+  <p>Ein Schlüssel hat einen <b>Namen</b>, einen <b>Typ</b> (Noten 1 bis 6 oder Punkte 0 bis 15) und optional eine Klassenstufe, für die er Standard ist („Keine (Vorlage)“ macht ihn zur Vorlage, die einzelne Kurse wählen können). Jede <b>Stufe</b> hat eine <b>Beschriftung</b> (was Schüler sehen, zum Beispiel „2+“), einen <b>Wert</b> (Note 1,7 oder Punktzahl 13, damit wird gerechnet) und <b>Ab Prozent</b>. Die Prozentgrenzen müssen absteigen, die letzte Stufe beginnt bei 0. <span class="ui">Stufe hinzufügen</span> und ✕ ändern die Zahl der Stufen; <span class="ui">Als Vorlage kopieren</span> erzeugt eine Kopie zum Anpassen.</p>
+  <div class="box warn"><span class="t">Bitte gegen die Vorgaben Ihrer Schule prüfen</span><p>Die mitgelieferten Prozentgrenzen sind ein Startwert. Gleichen Sie sie mit den verbindlichen Vorgaben Ihrer Schule und der Fachkonferenz ab, bevor Sie benoten.</p></div>
+
+  <h2 id="k3-9"><span class="num">3.9</span>Operatorenliste</h2>
+  <p>Operatoren sind die Handlungsaufforderungen in Aufgaben („nennen“, „beschreiben“, „implementieren“) mit Anforderungsbereich (AFB). Klausurwerk liefert die Liste für Berlin mit 27 Operatoren aus. Unter <span class="nav">Verwaltung › Operatoren</span> sehen Sie je Operator den AFB (I, I-II, II, II-III, III), die Erläuterung und die Zahl der Aufgaben, die ihn nutzen.</p>
+  <figure>
+    <img src="img/162-operatoren.jpg" alt="Operatorenliste">
+    <figcaption><b>{fig}</b> Die Operatorenliste mit AFB, Erläuterung und Verwendung</figcaption>
+  </figure>
+  <ul>
+    <li>Mit ↑ und ↓ ändern Sie die Reihenfolge, die in der Auswahl beim Anlegen einer Aufgabe und in der Hilfsmittelliste der Schüler gilt.</li>
+    <li><span class="ui">Bearbeiten</span> und <span class="ui d">Löschen</span> ändern bzw. entfernen einen Operator. Vor dem Löschen prüfen Sie die Spalte „Aufgaben“.</li>
+    <li>Unten legt <b>Neuer Operator</b> einen weiteren an: Name, Anforderungsbereich, Erläuterung. Dafür brauchen Lehrkräfte das Recht „Operatorenliste bearbeiten“.</li>
+  </ul>
+  <p>Die Operatoren sind kein Pflichtfeld einer Aufgabe, steuern aber die Auswertung des Klausurspiegels nach Anforderungsbereich (Kapitel 6.9).</p>
+
+  <h2 id="k3-10"><span class="num">3.10</span>Berechtigungen und Gruppen</h2>
+  <p>Admins haben automatisch alle Rechte, Schüler bekommen keine. <b>Lehrkräfte</b> erhalten Rechte direkt, über Berechtigungsgruppen oder als Rollen-Standard. Voraussetzungen werden beim Erteilen automatisch mitgesetzt (wer Schüler importieren darf, muss sie auch anlegen und sehen dürfen). Wird ein Recht entzogen, werden die davon abhängigen Rechte mit entzogen. Die vollständige Tabelle steht im Anhang A.</p>
+  <figure>
+    <img src="img/182-berechtigungen-lehrkraft.jpg" alt="Rechte einer Lehrkraft">
+    <figcaption><b>{fig}</b> Rechte einer Lehrkraft, nach Gruppen geordnet</figcaption>
+  </figure>
+  <ol class="steps">
+    <li><span class="nav">Verwaltung › Berechtigungen</span> öffnen. Unter <b>Benutzer auswählen</b> eine Lehrkraft wählen (oder in der Tabelle <span class="ui">Rechte bearbeiten</span>). Die Tabelle zeigt je Lehrkraft die Zahl der direkten Rechte und der Gruppen.</li>
+    <li>Rechte an- oder abwählen und speichern.</li>
+    <li>Für viele Lehrkräfte mit demselben Profil lohnt eine <b>Berechtigungsgruppe</b>: Über <span class="ui">Berechtigungsgruppen</span> und <span class="ui p">Neue Gruppe</span> legen Sie eine Vorlage an (zum Beispiel „Fachbereichsleitung“ mit „Alle Klausuren betreuen“ und „Alle Kurse bearbeiten“) und weisen sie auf dem Reiter <b>Benutzer</b> zu.</li>
+  </ol>
+
+  <h2 id="k3-11"><span class="num">3.11</span>Aufbewahrungsfristen und Löschen</h2>
+  <p>Klausurdaten sind personenbezogen. Unter <span class="nav">Verwaltung › Aufbewahrung</span> legen Sie Fristen fest:</p>
+  <ul>
+    <li><b>Protokolle (Monate)</b>: Ereignisse (Verstöße, Sperren), Replay-Schritte und Anfragen, gerechnet ab Ende der Klausur. Standard 6 Monate.</li>
+    <li><b>Antworten und Noten (Monate)</b>: die ganze Klausur samt Aufgaben, Antworten, Bewertungen und Dateien, gerechnet ab der Rückgabe. Standard 24 Monate.</li>
+  </ul>
+  <figure class="narrow">
+    <img src="img/180-aufbewahrung.jpg" alt="Aufbewahrung">
+    <figcaption><b>{fig}</b> Aufbewahrungsfristen; „Fällige Klausuren“ erscheinen nach Fristablauf</figcaption>
+  </figure>
+  <p>Nach Ablauf erinnert die Übersicht, und unter <b>Fällige Klausuren</b> erscheinen die betroffenen Klausuren. <b>Gelöscht wird nie automatisch, sondern nur nach Ihrer Bestätigung</b>; jede Löschung steht im Audit-Log. Protokolle (Ereignisse, Replay) lassen sich getrennt von den Klausuren löschen.</p>
+
+  <h2 id="k3-12"><span class="num">3.12</span>Audit-Log</h2>
+  <p><span class="nav">Verwaltung › Audit-Log</span> protokolliert sicherheitsrelevante Aktionen: Anmeldungen, Passwortänderungen, Kartendruck, begonnene Korrektur, übernommene Vorschläge, Freigabe, Export, PDF-Erzeugung, Löschungen. Jeder Eintrag hat Zeitpunkt, Benutzer, Aktion, Schweregrad (Info, Warnung, Kritisch), IP-Adresse und Details.</p>
+  <figure class="narrow">
+    <img src="img/185-audit-log.jpg" alt="Audit-Log">
+    <figcaption><b>{fig}</b> Das Audit-Log mit Filtern</figcaption>
+  </figure>
+  <p>Filtern können Sie nach <b>Aktion / Prefix</b>, <b>Schweregrad</b>, <b>Benutzer</b>, Zeitraum (<b>Von</b>, <b>Bis</b>) und per <b>Volltextsuche</b>. <span class="ui">CSV-Export</span> lädt die gefilterte Liste herunter.</p>
+</section>

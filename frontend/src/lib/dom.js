@@ -97,3 +97,21 @@ export function toast(message, type = 'info', ms = 5000) {
     setTimeout(() => el.remove(), ms);
     return el;
 }
+
+/**
+ * Inline-Icon aus dem Sprite (/assets/img/icons.svg). Statt Emoji verwenden.
+ *   btn.prepend(icon('lock'))
+ * Dekorativ (aria-hidden); Icon-Knöpfe brauchen ein aria-label.
+ */
+export function icon(name, className = '') {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('class', `icon${className ? ` ${className}` : ''}`);
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const use = document.createElementNS(ns, 'use');
+    const base = (document.querySelector('meta[name="base-url"]')?.content ?? '').replace(/\/$/, '');
+    use.setAttribute('href', `${base}/assets/img/icons.svg#i-${String(name).replace(/[^a-z0-9-]/g, '')}`);
+    svg.append(use);
+    return svg;
+}

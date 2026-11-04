@@ -1,0 +1,182 @@
+<section class="chapter" id="k6" data-title="Korrektur und Rückgabe">
+  <div class="chapter-head">
+    <div class="big">06</div>
+    <div class="kicker">Kapitel 6</div>
+    <h1>Korrektur und Rückgabe</h1>
+    <p class="lead">Automatisch vorbewerten, in der Matrix den Überblick behalten, Aufgaben bewerten und kommentieren, Noten berechnen, Ergebnisse als PDF und Excel ausgeben und digital zurückgeben.</p>
+    <div class="for">Für <span class="role r-teacher">Lehrkraft</span> (Hauptlehrkraft und Aufsicht mit „Korrigieren“)</div>
+  </div>
+
+  <h2 id="k6-1"><span class="num">6.1</span>Überblick über den Ablauf</h2>
+  <div class="timeline" style="grid-template-columns:repeat(5,1fr)">
+    <div class="st"><div class="dot">1</div><b>Beendet</b><span>alle Abgaben bestätigt</span></div>
+    <div class="st"><div class="dot">2</div><b>Korrektur beginnen</b><span>Status „In Korrektur“</span></div>
+    <div class="st"><div class="dot">3</div><b>Bewerten</b><span>Vorbewertung, Punkte, Kommentare</span></div>
+    <div class="st"><div class="dot">4</div><b>Ergebnisse</b><span>Note, Rückmeldung, Abschluss</span></div>
+    <div class="st"><div class="dot">5</div><b>Freigeben</b><span>Schüler sehen ihr Ergebnis</span></div>
+  </div>
+  <table>
+    <thead><tr><th>Schritt</th><th>Wer</th><th>Wo</th></tr></thead>
+    <tbody>
+      <tr><td>Korrektur beginnen</td><td>Hauptlehrkraft, Admin, Lehrkraft mit „Korrigieren“</td><td>Klausur, Korrektur</td></tr>
+      <tr><td>Vorbewerten, Punkte, Kommentare</td><td>wie oben</td><td>Korrektur-Übersicht und Einzelansicht</td></tr>
+      <tr><td>Rückmeldung und Abschluss je Person</td><td>wie oben</td><td>Ergebnisse</td></tr>
+      <tr><td>Freigeben, Zurücknehmen, Archivieren, Notenschlüssel wählen</td><td>nur Hauptlehrkraft und Admin</td><td>Ergebnisse</td></tr>
+      <tr><td>Ergebnis ansehen</td><td>Schüler, nur nach Freigabe und eigenem Abschluss</td><td>Ergebnisse</td></tr>
+    </tbody>
+  </table>
+  <div class="box note"><span class="t">Nur in der Phase „In Korrektur“</span><p>Bewerten lässt sich nur, solange die Klausur „In Korrektur“ ist. Davor ist die Korrektur gesperrt, nach der Rückgabe (zurückgegeben, archiviert) nur lesbar. Aufsichten ohne den Schalter „Korrigieren“ haben keinen Zugang zu Korrektur, Ergebnissen und PDF.</p></div>
+
+  <h2 id="k6-2"><span class="num">6.2</span>Korrektur beginnen</h2>
+  <ol class="steps">
+    <li>Beenden Sie die Klausur im Pult (Kapitel 5.14). Auf der Klausurseite erscheint der Bereich „Korrektur“.</li>
+    <li>Öffnen Sie <b>Korrektur</b>. Oben steht der Status „Beendet. Bewertet wird in der Phase ‚In Korrektur‘.“ Klicken Sie auf <span class="ui p">Korrektur beginnen</span>.</li>
+    <li>Die Klausur wechselt in „In Korrektur“, die Bewertungsübersicht erscheint.</li>
+  </ol>
+  <figure>
+    <img src="img/601-korrektur-vor-beginn.jpg" alt="Korrektur vor Beginn">
+    <figcaption><b>{fig}</b> Die Korrektur vor dem Beginn: Knopf „Korrektur beginnen“, „Anonym korrigieren“</figcaption>
+  </figure>
+
+  <h2 id="k6-3"><span class="num">6.3</span>Automatische Vorbewertung</h2>
+  <p>Der Knopf <span class="ui p">Automatisch vorbewerten</span> prüft alle Personen und alle automatisch prüfbaren Aufgaben:</p>
+  <ul>
+    <li><b>Auswahl, Zuordnung, Reihenfolge, Lücken</b>: sofort nach dem Prüfschema des Antworttyps. Vorschlag = Aufgabenpunkte mal Anteil richtig, gerundet auf 0,5.</li>
+    <li><b>Code mit versteckten Tests</b>: je Person und Aufgabe ein Lauf im Runner (mit den erwarteten Ausgaben für Lehrkräfte). Summe der erreichten Testpunkte, gedeckelt auf die Aufgabenpunkte. Haben die Tests keine Punkte, zählt der Anteil bestandener Tests.</li>
+    <li><b>Schaltnetz, Wahrheitstabelle, Automat, UML, ER, Relationenschema, Robo</b>: nach den Verfahren in Kapitel 4.6 (Simulation, Strukturvergleich, Testwelten).</li>
+    <li><b>Keine Antwort</b>: 0 Punkte, vermerkt als „leer“.</li>
+  </ul>
+  <p>Der Lauf geschieht in kleinen Stapeln (je Aufruf höchstens 10 Paare oder 20 Sekunden); der Fortschritt („42 von 42 geprüft“) steht auf der Seite. Fällt der Runner aus, hält der Lauf an. Betroffene Zellen sind rot („!“) und lassen sich mit <span class="ui">Fehlgeschlagene wiederholen</span> später erneut prüfen. <span class="ui">Alles neu berechnen</span> löscht alle Vorschläge (nicht Ihre Punkte) und rechnet neu. In der Einzelansicht prüft <span class="ui">Neu testen</span> eine einzelne Aufgabe, zum Beispiel nach einer korrigierten Testbeschreibung.</p>
+  <figure>
+    <img src="img/603-vorbewertung-laeuft.jpg" alt="Vorbewertung">
+    <figcaption><b>{fig}</b> Der Fortschritt der automatischen Vorbewertung</figcaption>
+  </figure>
+  <div class="box tip"><span class="t">Python-Tests und <code>input()</code></span><p>Tests vom Typ <code>python_assert</code> führen das Programm des Schülers im selben Namensraum aus. Ruft das Programm auf oberster Ebene <code>input()</code> auf, laufen die Funktionstests in einen „EOFError“ (keine Eingabe vorhanden), wie es in Abbildung 6.4 bei <code>fib(0)</code> zu sehen ist. Schreiben Sie die Aufgabe deshalb entweder mit <code>io</code>-Tests (Eingabe und Ausgabe) oder weisen Sie die Schüler an, das Hauptprogramm in <code>if __name__ == "__main__":</code> zu schreiben. Ein Test des Typs <code>python_assert</code> setzt <code>__name__</code> nicht auf <code>"__main__"</code>.</p></div>
+  <p>Vorschläge sind <b>nur Vorschläge</b>: grau und kursiv in der Matrix, bis Sie sie übernehmen. In der Einzelansicht gilt <span class="ui">Vorschlag übernehmen</span>, in der Übersicht <span class="ui">Vorschläge übernehmen (ohne Code)</span> und <span class="ui">Alle Vorschläge übernehmen</span>. Beim Sammelübernehmen bleiben Zellen unberührt, in denen Sie schon bewertet haben.</p>
+
+  <h2 id="k6-4"><span class="num">6.4</span>Die Bewertungsübersicht (Matrix)</h2>
+  <p>Zeilen sind Personen, Spalten Aufgaben (mit Punkten). Oben vier Kennzahlen: <b>Bewertet</b> (von allen Zellen), <b>Nur Vorschlag</b>, <b>Abweichend (Zweitkorrektur)</b>, <b>Teilnehmende</b>. Die letzten beiden Spalten zeigen die <b>Summe</b> der bewerteten Aufgaben und die Summe <b>mit Vorschlägen</b>.</p>
+  <figure>
+    <img src="img/604-matrix-vorschlaege.jpg" alt="Matrix mit Vorschlägen">
+    <figcaption><b>{fig}</b> Matrix nach der Vorbewertung: Vorschläge stehen grau und kursiv, noch nichts ist bewertet</figcaption>
+  </figure>
+  <table>
+    <thead><tr><th>Darstellung</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td>schwarze Zahl</td><td>bewertet (Ihre Punkte, bzw. der Endwert)</td></tr>
+      <tr><td>graue Kursivzahl</td><td>nur Vorschlag der automatischen Prüfung</td></tr>
+      <tr><td>–</td><td>offen</td></tr>
+      <tr><td>gelb hinterlegt, ⚠</td><td>Zweitkorrektur weicht von der Erstkorrektur ab</td></tr>
+      <tr><td>rot, !</td><td>automatische Prüfung fehlgeschlagen</td></tr>
+      <tr><td>⏰</td><td>Änderungen nach Ablauf der Bearbeitungszeit (Überziehung)</td></tr>
+      <tr><td>📋</td><td>Einfügungen innerhalb der Klausur (aus der Klausur kopierter Text)</td></tr>
+      <tr><td>„ohne Abgabe“</td><td>Teilnahme nicht abgegeben (Zustand im Tooltip)</td></tr>
+    </tbody>
+  </table>
+  <p>Mit dem Feld <b>Name suchen</b> und dem Auswahlfeld <b>Alle Personen</b> filtern Sie nach Personen mit offenen Aufgaben, mit abweichender Bewertung, ohne Abgabe oder vollständig bewerteten. Ein Klick auf einen Namen oder eine Zelle öffnet die Einzelansicht.</p>
+  <p><b>Anonym korrigieren:</b> Der Knopf blendet Namen aus und zeigt stabile Nummern („Nr. 7“). Die Namen stehen dann weder auf der Seite noch in den Schnittstellendaten. Die Reihenfolge der Nummern hat nichts mit dem Alphabet zu tun.</p>
+  <figure class="narrow">
+    <img src="img/615-anonym.jpg" alt="Anonym korrigieren">
+    <figcaption><b>{fig}</b> Anonym korrigieren: stabile Nummern statt Namen</figcaption>
+  </figure>
+
+  <h2 id="k6-5"><span class="num">6.5</span>Die Einzelansicht</h2>
+  <p>Links stehen der Aufgabentext (mit dem Kontext übergeordneter Aufgaben), der <b>Erwartungshorizont</b>, die <b>richtige Lösung</b> (bei Auswahl, Zuordnung, Reihenfolge, Lücken) und die <b>Musterlösung</b>. Rechts steht die Antwort der Person (schreibgeschützt), darüber die Bewertung.</p>
+  <figure>
+    <img src="img/610-einzel-code.jpg" alt="Einzelansicht Code">
+    <figcaption><b>{fig}</b> Einzelansicht einer Code-Aufgabe: Erwartungshorizont und Musterlösung links, Bewertung und Testergebnisse rechts</figcaption>
+  </figure>
+  <ul>
+    <li><b>Punkte</b>: 0 bis zur Aufgabenpunktzahl in Schritten von 0,5 (Komma oder Punkt). Gespeichert wird automatisch kurz nach der Eingabe und beim Verlassen des Feldes. <span class="ui">0</span> und <span class="ui">Voll</span> setzen die Extremwerte, <span class="ui">Vorschlag übernehmen (2)</span> übernimmt den Vorschlag.</li>
+    <li><b>Testergebnisse</b>: ausklappbar, je Test bestanden (✓) oder nicht (✗), erreichte Punkte, Meldung, <b>Ausgabe</b> und <b>Fehlerausgabe</b>.</li>
+    <li><b>Hinweise</b>: Überziehung (⏰), Anzahl Einfügungen (📋), „ohne Abgabe“.</li>
+    <li><b>Replay</b>: spielt die Entstehung der Antwort ab (nur mit Zugriff auf das Pult der Klausur).</li>
+  </ul>
+  <h3>Durchblättern: Person für Person oder eine Aufgabe für alle</h3>
+  <p>Oben in der Einzelansicht wählen Sie die Reihenfolge: <b>Person für Person</b> (alle Aufgaben einer Person, dann die nächste) oder <b>Eine Aufgabe für alle</b> (dieselbe Aufgabe bei allen, dann die nächste Aufgabe). Letzteres ist meist schneller und gerechter, weil Sie mit demselben Maßstab bewerten. Über die Auswahlfelder (Person, Aufgabe), die Pfeile und die Knöpfe <span class="ui">← Zurück</span>, <span class="ui p">Weiter →</span> und <span class="ui">Nächste offene Stelle</span> navigieren Sie.</p>
+  <figure>
+    <img src="img/614-eine-aufgabe-fuer-alle.jpg" alt="Eine Aufgabe für alle">
+    <figcaption><b>{fig}</b> „Eine Aufgabe für alle“: dieselbe Aufgabe, Person für Person</figcaption>
+  </figure>
+
+  <h2 id="k6-6"><span class="num">6.6</span>Kommentare</h2>
+  <ul>
+    <li><b>Code</b>: Zeile anklicken (Cursor) oder mehrere Zeilen markieren, dann <span class="ui">Kommentar zu Zeile(n) …</span>. Kommentierte Zeilen sind gelb hinterlegt und tragen eine Sprechblase in der Randspalte; ein Klick darauf springt zum Kommentar.</li>
+    <li><b>Freitext</b>: Textstelle mit der Maus markieren, dann <span class="ui">Auswahl kommentieren</span>. Die Stelle wird hervorgehoben.</li>
+    <li><b>Ganze Aufgabe</b>: <span class="ui">Kommentar zur ganzen Aufgabe</span>.</li>
+  </ul>
+  <p>Mit <span class="kbd">Strg</span> + <span class="kbd">Enter</span> speichern Sie einen Kommentar, mit <span class="kbd">Esc</span> brechen Sie ab. Eigene Kommentare lassen sich bearbeiten und löschen; die Hauptlehrkraft darf alle löschen. Schüler sehen die Kommentare der Lehrkraft, deren Punkte zählen.</p>
+  <figure>
+    <img src="img/611-einzel-kommentar-punkte.jpg" alt="Kommentar">
+    <figcaption><b>{fig}</b> Ein Zeilenkommentar im Code (gelb markiert) und die eingetragenen Punkte</figcaption>
+  </figure>
+  <div class="figrow">
+    <figure><img src="img/612-einzel-text.jpg" alt="Freitext korrigieren"><figcaption><b>{fig}</b> Freitext mit Erwartungshorizont</figcaption></figure>
+    <figure><img src="img/613-einzel-choice.jpg" alt="Auswahl korrigieren"><figcaption><b>{fig}</b> Auswahlaufgabe mit richtiger Lösung</figcaption></figure>
+  </div>
+
+  <h2 id="k6-7"><span class="num">6.7</span>Erst- und Zweitkorrektur</h2>
+  <p>Jede Lehrkraft mit dem Schalter „Korrigieren“ (Kapitel 4.9) bewertet für sich: ein Eintrag je Lehrkraft, Aufgabe und Person.</p>
+  <ul>
+    <li><b>Endwert</b>: der Eintrag der Hauptlehrkraft. Hat sie nichts eingetragen, der einzige vorhandene (bei mehreren der zuletzt geänderte). Die Hauptlehrkraft entscheidet bei Abweichungen.</li>
+    <li><b>Abweichung</b>: in der Matrix gelb (⚠) und in der Einzelansicht als Hinweis mit den fremden Punkten.</li>
+    <li><b>Sichtbarkeit</b>: Die Hauptlehrkraft sieht alle Bewertungen und Kommentare. Hinzugefügte Lehrkräfte sehen zunächst nur ihre eigenen und können <span class="ui">Fremde Bewertungen zeigen</span> einschalten (gilt je Sitzung).</li>
+  </ul>
+  <figure>
+    <img src="img/617-matrix-abweichung.jpg" alt="Abweichung in der Matrix">
+    <figcaption><b>{fig}</b> Eine Zweitkorrektur weicht ab: gelb mit ⚠, die Kennzahl „Abweichend“ zeigt 1</figcaption>
+  </figure>
+  <h3>Tastatur</h3>
+  <p>Mit <span class="kbd">Enter</span> im Punktefeld speichern Sie und springen zur nächsten Zelle, mit <span class="kbd">Alt</span> + Pfeiltasten wechseln Sie Zelle, Person und Aufgabe, mit <span class="kbd">Alt</span> + <span class="kbd">O</span> zur nächsten offenen Zelle (Anhang B).</p>
+
+  <h2 id="k6-8"><span class="num">6.8</span>Ergebnisse, Notenschlüssel und Abschluss</h2>
+  <p>Die Seite <b>Ergebnisse</b> (über <span class="ui">Ergebnisse</span> oben in der Korrektur) zeigt je Person Summe, Prozent und Note, ein Feld für die Rückmeldung und den Abschluss.</p>
+  <figure>
+    <img src="img/620-ergebnisse.jpg" alt="Ergebnisse">
+    <figcaption><b>{fig}</b> Ergebnisse: Rückgabe an Schüler:innen, Einstellungen mit Notenschlüssel, darunter der Klausurspiegel</figcaption>
+  </figure>
+  <ul>
+    <li><b>Notenschlüssel</b>: Standard ist der Schlüssel des Kurses (sonst der Standard der Klassenstufe). Ohne Kurs oder zum Abweichen wählt die Hauptlehrkraft einen Schlüssel aus; die Noten werden sofort neu berechnet. Änderbar nur in der Phase „In Korrektur“. Kopfzeile: „Schlüssel: Punkte 0 bis 15 (Klasse 11)“.</li>
+    <li><b>Rückmeldung</b>: freier Text je Person, wird automatisch gespeichert und erscheint in der Rückgabe und im PDF.</li>
+    <li><b>Abschließen</b>: je Person per Häkchen oder gesammelt über <span class="ui">Alle vollständig bewerteten abschließen</span>. Nur abgeschlossene Personen sehen nach der Freigabe ihr Ergebnis. <b>Wer nach dem Abschluss noch Punkte ändert, setzt den Abschluss dieser Person zurück</b> (Hinweis erscheint), damit nichts ungeprüft ausgeliefert wird.</li>
+    <li><b>Erwartungshorizont bei Rückgabe zeigen</b>: Schalter in den Einstellungen. Ist er an, sehen Schüler zu jeder Aufgabe den Erwartungshorizont, nie aber Musterlösung, Tests oder richtige Antworten. Mit <span class="ui">Speichern</span> übernehmen.</li>
+  </ul>
+  <figure>
+    <img src="img/622-ergebnisse-abgeschlossen.jpg" alt="Ergebnisse abgeschlossen">
+    <figcaption><b>{fig}</b> Alle Personen sind abgeschlossen</figcaption>
+  </figure>
+
+  <h2 id="k6-9"><span class="num">6.9</span>Klausurspiegel</h2>
+  <p>Der Klausurspiegel auf der Ergebnisseite zeigt Anzahl der Arbeiten, Durchschnitt (Prozent und Note), Median, bestes und schwächstes Ergebnis, ein Balkendiagramm der Notenverteilung (mit Tabelle für Screenreader), je Aufgabe Durchschnitt, <b>Lösungsquote</b> und die Zahl der bewerteten Zellen sowie je <b>Anforderungsbereich</b> (AFB I, II, III) die Lösungsquote. Berücksichtigt werden Personen mit Abgabe oder Bewertung; bei Aufgaben zählen nur bewertete Zellen. So sehen Sie, welche Aufgaben zu schwer waren und ob der Anteil der Anforderungsbereiche passt.</p>
+  <figure>
+    <img src="img/621-klausurspiegel.jpg" alt="Klausurspiegel">
+    <figcaption><b>{fig}</b> Der Klausurspiegel: Notenverteilung und Auswertung je Aufgabe</figcaption>
+  </figure>
+
+  <h2 id="k6-10"><span class="num">6.10</span>PDF, Excel und CSV</h2>
+  <ul>
+    <li><b>PDF je Person</b>: <span class="ui">PDF</span> in der Zeile der Person. <span class="ui">Sammel-PDF</span> (oben): je Person eine neue Seite. Inhalt: Kopf mit Schule, Klausur, Kurs, Datum, Name, Punkten und Note; je Aufgabe Nummer, Titel, Punkte, Antwort (Text, Code mit Zeilennummern in Monospace, Diagramm als Bild), Kommentare mit Stellenangabe und die Rückmeldung.</li>
+    <li><b>Excel</b> und <b>CSV</b> (Semikolon, UTF-8 mit BOM) mit Namen, Punkten je Aufgabe, Summe, Prozent, Note und Abschluss. Öffnen Sie die CSV-Datei in Excel über „Daten › Aus Text/CSV“ mit UTF-8, damit Umlaute stimmen.</li>
+  </ul>
+  <figure class="doc">
+    <img src="img/pdf-ergebnis-1.jpg" alt="Ergebnis-PDF">
+    <figcaption><b>{fig}</b> Das PDF einer Person mit Kopf, Antworten, Punkten und Kommentaren</figcaption>
+  </figure>
+  <p>PDF-Erzeugung und Export werden im Audit-Log protokolliert.</p>
+
+  <h2 id="k6-11"><span class="num">6.11</span>Freigabe, Rückgabe und Zurücknehmen</h2>
+  <ol class="steps">
+    <li>Prüfen Sie, dass alle gewünschten Personen abgeschlossen sind.</li>
+    <li>Klicken Sie auf <span class="ui p">Ergebnisse freigeben</span> und bestätigen Sie. Ein Hinweis nennt, wie viele Personen noch nicht abgeschlossen sind: Sie sehen nichts.</li>
+    <li>Die Klausur wechselt in „Zurückgegeben“. Die Schüler sehen ihr Ergebnis unter „Ergebnisse“ (Kapitel 7.12).</li>
+  </ol>
+  <div class="figrow">
+    <figure><img src="img/623-freigeben-dialog.jpg" alt="Freigeben"><figcaption><b>{fig}</b> Bestätigung der Freigabe</figcaption></figure>
+    <figure><img src="img/x-701-ergebnis-ansicht.jpg" alt="Ergebnis beim Schüler"><figcaption><b>{fig}</b> So sieht die Schülerin ihr Ergebnis</figcaption></figure>
+  </div>
+  <ul>
+    <li><b>Freigabe zurücknehmen</b>: zurück in „In Korrektur“, Schüler sehen nichts mehr, Bewertung wieder möglich. Nützlich, wenn Ihnen ein Fehler auffällt.</li>
+    <li><b>Archivieren</b>: nur aus „Zurückgegeben“; danach ist die Rückgabe für Schüler beendet.</li>
+  </ul>
+  <div class="box note"><span class="t">Aufbewahrung</span><p>Bewertungen, Kommentare und Ergebnisse hängen an der Teilnahme und fallen mit ihr unter die Aufbewahrungsfristen der Klausur (Kapitel 3.11).</p></div>
+</section>

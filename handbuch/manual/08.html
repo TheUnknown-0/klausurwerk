@@ -1,0 +1,213 @@
+<section class="chapter" id="ka" data-title="Anhang A: Rechte-Tabelle">
+  <div class="chapter-head">
+    <div class="big">A</div>
+    <div class="kicker">Anhang A</div>
+    <h1>Rechte-Tabelle</h1>
+    <p class="lead">Welche Rolle was darf: globale Rechte der Lehrkräfte und Rechte an einer einzelnen Klausur.</p>
+    <div class="for">Für <span class="role r-admin">Admin</span> <span class="role r-teacher">Lehrkraft</span></div>
+  </div>
+
+  <h2 id="ka-1"><span class="num">A.1</span>Globale Rechte (Verwaltung)</h2>
+  <p>Admins haben alle Rechte. Schüler haben keine granularen Rechte. Die Spalte „Standard“ zeigt, was jede Lehrkraft ohne Zusatzvergabe hat. Eine Voraussetzung wird beim Erteilen automatisch mitvergeben; wird ein Recht entzogen, entfallen die davon abhängigen Rechte.</p>
+  <table class="perm">
+    <thead><tr><th>Gruppe</th><th>Recht</th><th class="c">Admin</th><th class="c">Lehrkraft (Standard)</th><th>Voraussetzung</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="4">Klausuren</td><td>Klausuren erstellen</td><td class="c yes">ja</td><td class="c yes">ja</td><td></td></tr>
+      <tr><td>Archiv früherer Klausuren durchsuchen</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Klausuren erstellen</td></tr>
+      <tr><td>Klausuren importieren/exportieren</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Klausuren erstellen</td></tr>
+      <tr><td>Alle Klausuren betreuen (auch fremde)</td><td class="c yes">ja</td><td class="c no">nein</td><td></td></tr>
+      <tr><td rowspan="3">Kurse</td><td>Kurse sehen</td><td class="c yes">ja</td><td class="c yes">ja</td><td></td></tr>
+      <tr><td>Eigene Kurse anlegen und bearbeiten</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Kurse sehen</td></tr>
+      <tr><td>Alle Kurse bearbeiten</td><td class="c yes">ja</td><td class="c no">nein</td><td>Eigene Kurse anlegen und bearbeiten</td></tr>
+      <tr><td rowspan="8">Benutzer</td><td>Benutzer sehen</td><td class="c yes">ja</td><td class="c yes">ja</td><td></td></tr>
+      <tr><td>Schüler:innen anlegen</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Benutzer sehen</td></tr>
+      <tr><td>Schüler:innen bearbeiten</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Benutzer sehen</td></tr>
+      <tr><td>Schüler:innen löschen</td><td class="c yes">ja</td><td class="c no">nein</td><td>Benutzer sehen</td></tr>
+      <tr><td>Schüler:innen per CSV importieren</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Schüler:innen anlegen</td></tr>
+      <tr><td>Passwörter zurücksetzen</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Benutzer sehen</td></tr>
+      <tr><td>Zugangskarten drucken</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Passwörter zurücksetzen</td></tr>
+      <tr><td>Nachteilsausgleich festlegen</td><td class="c yes">ja</td><td class="c yes">ja</td><td>Benutzer sehen</td></tr>
+      <tr><td rowspan="3">Räume und Stammdaten</td><td>Räume verwalten</td><td class="c yes">ja</td><td class="c yes">ja</td><td></td></tr>
+      <tr><td>Operatorenliste bearbeiten</td><td class="c yes">ja</td><td class="c no">nein</td><td></td></tr>
+      <tr><td>Notenschlüssel bearbeiten</td><td class="c yes">ja</td><td class="c no">nein</td><td></td></tr>
+      <tr><td rowspan="3">Berechtigungen</td><td>Berechtigungen sehen</td><td class="c yes">ja</td><td class="c no">nein</td><td>Benutzer sehen</td></tr>
+      <tr><td>Berechtigungen vergeben</td><td class="c yes">ja</td><td class="c no">nein</td><td>Berechtigungen sehen</td></tr>
+      <tr><td>Berechtigungsgruppen verwalten</td><td class="c yes">ja</td><td class="c no">nein</td><td>Berechtigungen sehen</td></tr>
+      <tr><td rowspan="4">System</td><td>Einstellungen sehen</td><td class="c yes">ja</td><td class="c no">nein</td><td></td></tr>
+      <tr><td>Einstellungen bearbeiten</td><td class="c yes">ja</td><td class="c no">nein</td><td>Einstellungen sehen</td></tr>
+      <tr><td>Aufbewahrungsfristen und Löschung</td><td class="c yes">ja</td><td class="c no">nein</td><td>Einstellungen sehen</td></tr>
+      <tr><td>Audit-Log sehen</td><td class="c yes">ja</td><td class="c no">nein</td><td></td></tr>
+    </tbody>
+  </table>
+  <p>Die Seitenpasswort-Einstellung, Lehrkräfte anlegen und Admin-Konten anlegen sind nur Admins vorbehalten.</p>
+
+  <h2 id="ka-2"><span class="num">A.2</span>Rechte an einer einzelnen Klausur</h2>
+  <p>Diese Rechte laufen nicht über die Tabelle oben, sondern über die Rolle an der Klausur (Hauptlehrkraft oder hinzugefügte Aufsicht) und über das globale Recht „Alle Klausuren betreuen“.</p>
+  <table class="perm">
+    <thead><tr><th>Fähigkeit</th><th>Was sie umfasst</th><th class="c">Admin und „Alle Klausuren“</th><th class="c">Hauptlehr&shy;kraft</th><th class="c">Aufsicht</th><th class="c">Aufsicht + Lösungen</th><th class="c">Aufsicht + Korrigieren</th></tr></thead>
+    <tbody>
+      <tr><td><code>view</code></td><td>Klausur sehen, Vorschau</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c yes">ja</td></tr>
+      <tr><td><code>monitor</code></td><td>Pult bedienen, Antworten live sehen, Replay</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c yes">ja</td></tr>
+      <tr><td><code>solutions</code></td><td>Musterlösung, Erwartungshorizont, Tests sehen</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c no">nein</td><td class="c yes">ja</td><td class="c yes">ja</td></tr>
+      <tr><td><code>grade</code></td><td>Korrektur, Ergebnisse, Export, PDF</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c no">nein</td><td class="c no">nein</td><td class="c yes">ja</td></tr>
+      <tr><td><code>edit</code></td><td>Aufgaben und Einstellungen bearbeiten</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c no">nein</td><td class="c no">nein</td><td class="c no">nein</td></tr>
+      <tr><td><code>manage</code></td><td>Statuswechsel, Freigeben, Zurücknehmen, Archivieren, Notenschlüssel, Lehrkräfte, Löschen</td><td class="c yes">ja</td><td class="c yes">ja</td><td class="c no">nein</td><td class="c no">nein</td><td class="c no">nein</td></tr>
+    </tbody>
+  </table>
+  <p>Schüler haben an Klausuren nur ihre eigene Teilnahme und, nach Freigabe und eigenem Abschluss, ihr eigenes Ergebnis.</p>
+</section>
+
+<section class="chapter" id="kb" data-title="Anhang B: Tastenkürzel">
+  <div class="chapter-head">
+    <div class="big">B</div>
+    <div class="kicker">Anhang B</div>
+    <h1>Tastenkürzel</h1>
+    <p class="lead">Die wichtigsten Tasten in Schüleransicht, Pult und Korrektur.</p>
+    <div class="for">Für <span class="role r-teacher">Lehrkraft</span> <span class="role r-student">Schüler:in</span></div>
+  </div>
+  <h3>Schüleransicht</h3>
+  <table>
+    <thead><tr><th>Taste</th><th>Wirkung</th></tr></thead>
+    <tbody>
+      <tr><td><span class="kbd">Alt</span> + <span class="kbd">←</span> / <span class="kbd">→</span></td><td>vorige / nächste Aufgabe</td></tr>
+      <tr><td><span class="kbd">Strg</span> + <span class="kbd">Enter</span></td><td>Code ausführen (Programmieraufgaben und Robo)</td></tr>
+      <tr><td><span class="kbd">Tab</span>, <span class="kbd">Enter</span></td><td>in Diagrammen: nächstes Element wählen, in die Eigenschaften springen</td></tr>
+      <tr><td><span class="kbd">Strg</span> + <span class="kbd">Z</span> / <span class="kbd">Strg</span> + <span class="kbd">Y</span></td><td>im Editor rückgängig / wiederholen</td></tr>
+      <tr><td><span class="kbd">F12</span>, <span class="kbd">Strg</span> + <span class="kbd">U</span>, Rechtsklick</td><td>werden abgefangen (Hinweis an die Lehrkraft bei Verdacht auf Entwicklerwerkzeuge)</td></tr>
+    </tbody>
+  </table>
+  <h3>Pult</h3>
+  <table>
+    <thead><tr><th>Taste</th><th>Wirkung</th></tr></thead>
+    <tbody>
+      <tr><td>Klick auf eine Kachel</td><td>Kachel wählen</td></tr>
+      <tr><td><span class="kbd">Strg</span> + Klick</td><td>mehrere Kacheln wählen</td></tr>
+      <tr><td><span class="kbd">Alt</span> + Pfeiltasten</td><td>gewählte Kachel auf dem Sitzplan verschieben (Alternative zum Ziehen)</td></tr>
+    </tbody>
+  </table>
+  <h3>Korrektur</h3>
+  <table>
+    <thead><tr><th>Taste</th><th>Wirkung</th></tr></thead>
+    <tbody>
+      <tr><td><span class="kbd">Enter</span> im Punktefeld</td><td>speichern und zur nächsten Zelle (in der gewählten Reihenfolge)</td></tr>
+      <tr><td><span class="kbd">Alt</span> + <span class="kbd">→</span> / <span class="kbd">←</span></td><td>nächste / vorherige Zelle in der gewählten Reihenfolge</td></tr>
+      <tr><td><span class="kbd">Alt</span> + <span class="kbd">↓</span> / <span class="kbd">↑</span></td><td>nächste / vorherige Person bzw. Aufgabe (die jeweils andere Achse)</td></tr>
+      <tr><td><span class="kbd">Alt</span> + <span class="kbd">O</span></td><td>nächste noch offene Zelle</td></tr>
+      <tr><td><span class="kbd">Strg</span> + <span class="kbd">Enter</span> im Kommentarfeld</td><td>Kommentar speichern</td></tr>
+      <tr><td><span class="kbd">Esc</span> im Kommentarfeld</td><td>Eingabe abbrechen</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="chapter" id="kc" data-title="Anhang C: Ereignistypen und Alarme">
+  <div class="chapter-head">
+    <div class="big">C</div>
+    <div class="kicker">Anhang C</div>
+    <h1>Ereignistypen und Alarme</h1>
+    <p class="lead">Was im Ereignisprotokoll des Pults erscheint, wie schwer es wiegt und was es auslöst.</p>
+    <div class="for">Für <span class="role r-teacher">Lehrkraft</span></div>
+  </div>
+  <p>Jedes Ereignis hat einen Schweregrad: <b>Info</b>, <b>Warnung</b> oder <b>Alarm</b>. Alarme lösen im Pult Ton und Meldung aus, färben die Kachel rot und sperren den Schüler, wenn „Bei Verstoß sperren“ an ist.</p>
+  <table>
+    <thead><tr><th>Ereignis</th><th>Schwere</th><th>Auslöser</th></tr></thead>
+    <tbody>
+      <tr><td>ist beigetreten</td><td>Info</td><td>Beitritt in den Warteraum</td></tr>
+      <tr><td>ist bereit</td><td>Info</td><td>„Bereit“ geklickt, Ton und Vollbild freigeschaltet</td></tr>
+      <tr><td>Vollbild verlassen</td><td>Alarm</td><td>Der Schüler hat den Vollbildmodus beendet</td></tr>
+      <tr><td>Fenster oder Tab gewechselt</td><td>Alarm</td><td>Tab oder Fenster verborgen, minimiert</td></tr>
+      <tr><td>Fokus verloren</td><td>Alarm (ab Toleranz) / Info</td><td>Zum Beispiel Alt+Tab. Unterhalb der Toleranz nur Info</td></tr>
+      <tr><td>Zweiter Tab</td><td>Alarm</td><td>Die Klausur wurde in einem zweiten Tab geöffnet</td></tr>
+      <tr><td>SEB fehlt</td><td>Alarm</td><td>Klausur verlangt den Safe Exam Browser, die Anfrage hat keinen gültigen Config Key</td></tr>
+      <tr><td>Einfügen blockiert</td><td>Warnung</td><td>Einfügen von außen (Länge im Protokoll)</td></tr>
+      <tr><td>Einfügen von außen</td><td>Warnung</td><td>Einfügen von außen bei Einstellung „erlaubt, aber protokolliert“</td></tr>
+      <tr><td>Ablegen blockiert</td><td>Warnung</td><td>Ziehen und Ablegen von außen</td></tr>
+      <tr><td>Verdacht auf Entwicklerwerkzeuge</td><td>Warnung</td><td>Heuristik (Fenstergrößen-Differenz, Debugger-Zeit). Kein Beweis</td></tr>
+      <tr><td>Neu geladen</td><td>Warnung</td><td>Seite neu geladen</td></tr>
+      <tr><td>Verbindung verloren</td><td>Warnung</td><td>Der Server hat länger als 10 Sekunden keinen Herzschlag erhalten</td></tr>
+      <tr><td>Verbindung wiederhergestellt</td><td>Info</td><td>Herzschlag wieder da</td></tr>
+      <tr><td>Gerätewechsel angefragt</td><td>Warnung</td><td>Anmeldung an einem anderen Gerät</td></tr>
+      <tr><td>Fenstergröße geändert</td><td>Info</td><td>Größenänderung (Breite und Höhe im Protokoll)</td></tr>
+      <tr><td>Zeit abgelaufen</td><td>Info</td><td>Die Zeit der Person ist um. Nur ein Signal, es wird nichts gesperrt</td></tr>
+      <tr><td>Zustand geändert</td><td>Info</td><td>Jeder Zustandswechsel mit von, nach, Grund und auslösender Person</td></tr>
+      <tr><td>Durchsage</td><td>Info</td><td>Durchsage gesendet</td></tr>
+      <tr><td>Hand gehoben / Hand unten</td><td>Info</td><td>Hand heben und Quittieren</td></tr>
+      <tr><td>Zeit verlängert</td><td>Info</td><td>Minuten gutgeschrieben</td></tr>
+    </tbody>
+  </table>
+  <h3>Zustände einer Teilnahme</h3>
+  <table>
+    <thead><tr><th>Zustand</th><th>Bedeutung</th><th>Schüleransicht</th></tr></thead>
+    <tbody>
+      <tr><td>Im Warteraum</td><td>Beigetreten, wartet auf den Start</td><td>Warteseite</td></tr>
+      <tr><td>Arbeitet</td><td>Bearbeitet die Klausur</td><td>Klausur</td></tr>
+      <tr><td>Gesperrt</td><td>Verstoß, wartet auf Freigabe</td><td>Sperrbildschirm mit Grund und „Freigabe anfragen“</td></tr>
+      <tr><td>Abwesend</td><td>Von der Lehrkraft gesetzt (Toilette)</td><td>„Du bist abgemeldet (Toilette)“</td></tr>
+      <tr><td>Pausiert</td><td>Pause (einzeln oder alle), die Uhr steht</td><td>„Die Klausur ist pausiert“</td></tr>
+      <tr><td>Abgabe angefragt</td><td>Schüler will abgeben</td><td>„Abgabe wird bestätigt“, Bearbeitung gesperrt</td></tr>
+      <tr><td>Abgegeben</td><td>Von der Lehrkraft bestätigt</td><td>Bestätigungsseite</td></tr>
+      <tr><td>Gerät wartet</td><td>Gerätewechsel angefragt</td><td>„Warte auf Freigabe für dieses Gerät“</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="chapter" id="kd" data-title="Anhang D: Häufige Fragen und Fehlerbehebung">
+  <div class="chapter-head">
+    <div class="big">D</div>
+    <div class="kicker">Anhang D</div>
+    <h1>Häufige Fragen und Fehlerbehebung</h1>
+    <p class="lead">Kurze Antworten auf Fragen, die erfahrungsgemäß am Klausurtag und davor auftauchen.</p>
+    <div class="for">Für alle Rollen</div>
+  </div>
+  <table>
+    <thead><tr><th>Frage</th><th>Antwort</th></tr></thead>
+    <tbody>
+      <tr><td><b>Ein Schüler sieht die Klausur nicht in „Meine Klausuren“.</b></td><td>Ist er Mitglied des Kurses der Klausur (Kursseite prüfen)? Ist der Warteraum geöffnet? Ist sein Konto aktiv? Bei Klausurcode: Hat er ihn?</td></tr>
+      <tr><td><b>Ein Schüler hat seine Karte vergessen oder verloren.</b></td><td>Neue Karte für diese Person drucken (Verwaltung › Zugangskarten, einzelne Person). Die alte Karte wird ungültig. Alternativ das Passwort zurücksetzen.</td></tr>
+      <tr><td><b>Das Pult zeigt jemanden als „offline“.</b></td><td>Es kommt seit mehr als 10 Sekunden kein Herzschlag. Prüfen Sie WLAN und Browser des Schülers. Sobald die Verbindung zurück ist, erscheint „Verbindung wiederhergestellt“. Seine Eingaben sind lokal gesichert und werden nachgesendet.</td></tr>
+      <tr><td><b>Beim Schüler ertönt der Ton nicht.</b></td><td>Der Ton wird erst durch den Klick auf „Bereit“ freigeschaltet. Gerät stummgeschaltet? Im Technik-Check vorher prüfen.</td></tr>
+      <tr><td><b>Ein Schüler wurde ohne eigenes Zutun gesperrt (Fehlalarm).</b></td><td>Typisch sind Systemdialoge und Benachrichtigungen. Freigeben, im Ereignisprotokoll nachsehen und bei Bedarf die Toleranz für kurze Fokusverluste erhöhen (Einstellungen).</td></tr>
+      <tr><td><b>Java-Aufgaben antworten sehr langsam.</b></td><td>Der Runner ist ausgelastet. Läufe warten in einer Warteschlange. <code>RUNNER_MAX_PARALLEL</code> und CPU erhöhen (Kapitel 2.7).</td></tr>
+      <tr><td><b>Python startet nicht oder <code>input()</code> hängt.</b></td><td>Cross-Origin-Isolation fehlt, wenn ein Proxy die Köpfe entfernt oder die Seite ohne HTTPS läuft. Siehe Kapitel 2.10.</td></tr>
+      <tr><td><b>Ich habe einen Fehler in einer Aufgabe gefunden, nachdem die Klausur gestartet ist.</b></td><td>Texte lassen sich noch ändern, die Struktur nicht. Informieren Sie alle per Durchsage. Punkte lassen sich in der Korrektur anpassen.</td></tr>
+      <tr><td><b>Kann ich einem Schüler nachträglich Zeit geben?</b></td><td>Ja: Kachel wählen und <span class="ui">+5 min</span>, <span class="ui">+10 min</span> oder <span class="ui">Zeit …</span> (Kapitel 5.9).</td></tr>
+      <tr><td><b>Wie sehe ich, ob der letzte Stand angekommen ist?</b></td><td>Auf der Kachel steht „gespeichert vor … s“. Beim Bestätigen der Abgabe zeigt das Pult, ob der Stand vollständig ist oder das Gerät offline war.</td></tr>
+      <tr><td><b>Ein Schüler hat sich an einem anderen Gerät angemeldet.</b></td><td>Es erscheint eine Anfrage „Gerätewechsel“. Freigeben, wenn plausibel (Kapitel 5.11).</td></tr>
+      <tr><td><b>Können Schüler die Musterlösung sehen?</b></td><td>Nein. Nur den Erwartungshorizont, und nur, wenn Sie das bei der Rückgabe einschalten.</td></tr>
+      <tr><td><b>Der Notenschlüssel fehlt, die Klausur lässt sich nicht benoten.</b></td><td>Für die Klassenstufe ist kein Standard festgelegt. Unter Notenschlüssel anlegen (Kapitel 3.8) oder in den Ergebnissen einen Schlüssel wählen.</td></tr>
+      <tr><td><b>Ich habe Ergebnisse freigegeben und will etwas ändern.</b></td><td>„Freigabe zurücknehmen“: Die Klausur ist wieder in Korrektur, Schüler sehen nichts mehr.</td></tr>
+      <tr><td><b>Die Seite zeigt „Keine Rechte“.</b></td><td>Der Lehrkraft fehlt ein Recht (Anhang A). Admin kontaktieren.</td></tr>
+      <tr><td><b>Gelöschte Klausur wiederherstellen?</b></td><td>Nicht möglich. Aus der Datensicherung einspielen (Kapitel 2.9).</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="chapter" id="ke" data-title="Anhang E: Textvorlage Datenschutzhinweis">
+  <div class="chapter-head">
+    <div class="big">E</div>
+    <div class="kicker">Anhang E</div>
+    <h1>Textvorlage Datenschutzhinweis</h1>
+    <p class="lead">Ein Entwurf für das Informationsschreiben an Schüler und Eltern. Bitte von der Schule prüfen und anpassen.</p>
+    <div class="for">Für <span class="role r-admin">Admin</span> <span class="role r-teacher">Lehrkraft</span></div>
+  </div>
+  <div class="box warn"><span class="t">Wichtig: rechtliche Prüfung</span><p>Dieser Text ist eine <b>Vorlage</b> und keine Rechtsberatung. Die rechtliche Prüfung und Freigabe, insbesondere die Einordnung nach dem Berliner Schulgesetz, der Datenschutz-Grundverordnung und dem Berliner Datenschutzgesetz, liegt bei der Schule und der oder dem <b>Datenschutzbeauftragten</b>. Ergänzen Sie alle Angaben in eckigen Klammern. Prüfen Sie, ob ein Verzeichnis der Verarbeitungstätigkeiten, eine Datenschutz-Folgenabschätzung und die Information der Schulgemeinschaft nötig sind.</p></div>
+  <div class="handout">
+    <h3>Information zur Verarbeitung personenbezogener Daten bei Informatik-Klausuren mit „Klausurwerk“</h3>
+    <p>Liebe Schülerinnen und Schüler, liebe Eltern und Erziehungsberechtigte,</p>
+    <p>im Fach Informatik schreiben wir Klausuren und Übungen am Computer mit der Anwendung „Klausurwerk“. Sie läuft auf einem Server der Schule [bzw. des Schulträgers: Ort angeben]. Hier erfahren Sie, welche Daten dabei verarbeitet werden.</p>
+    <p><b>Verantwortlich:</b> [Name und Anschrift der Schule]. <b>Datenschutzbeauftragte/r:</b> [Name, Kontakt].</p>
+    <p><b>Zweck:</b> Durchführung, Beaufsichtigung, Bewertung und Rückgabe von Klausuren und Übungen sowie Sicherung eines ordnungsgemäßen Prüfungsablaufs. <b>Rechtsgrundlage:</b> [von der Schule einzutragen, zum Beispiel Schulgesetz des Landes Berlin und die dazu ergangenen Verordnungen].</p>
+    <p><b>Welche Daten werden verarbeitet?</b></p>
+    <ul>
+      <li>Stammdaten: Name, Benutzername, Kurs, bei Bedarf ein Nachteilsausgleich (Prozent Zusatzzeit mit Notiz, nur für Lehrkräfte sichtbar).</li>
+      <li>Klausurinhalte: Ihre Antworten, Programmcode, Zeichnungen und deren Entstehung (einzelne Änderungsschritte mit Zeitstempel, damit die Lehrkraft die Entstehung einer Antwort nachvollziehen kann).</li>
+      <li>Ablaufdaten: Zeitpunkte von Beitritt, Start und Abgabe, Zustandswechsel (zum Beispiel Pause, Sperre), Meldungen wie „Vollbild verlassen“, „Fenster gewechselt“, „Einfügen blockiert“, „Verbindung verloren“, Hand heben und Durchsagen, Fenstergröße.</li>
+      <li>Bewertung: Punkte, Kommentare, Rückmeldung und Note.</li>
+      <li>Technische Daten: Eine Kennung des Geräts (Cookie) und die IP-Adresse bei der Anmeldung.</li>
+    </ul>
+    <p><b>Was nicht geschieht:</b> Es gibt <b>keine Kamera-, Mikrofon- oder Bildschirmübertragung</b>. Die Lehrkraft sieht den Inhalt der Antworten und das Ereignisprotokoll, aber nicht Ihren Bildschirm. Die Überwachung erkennt nur, ob die Klausurseite verlassen wurde; sie erkennt keine anderen Geräte und Unterlagen. Eine automatische Bewertung eines Verstoßes findet nicht statt: Über Konsequenzen entscheidet die aufsichtführende Lehrkraft.</p>
+    <p><b>Wer hat Zugriff?</b> Die Hauptlehrkraft der Klausur, die von ihr hinzugefügten Lehrkräfte entsprechend ihrer Rechte und die Administratoren des Systems. Sie selbst sehen nur Ihre eigenen Daten. Eine Weitergabe an Dritte erfolgt nicht [Ausnahmen eintragen]. Die Anwendung lädt keine Inhalte aus dem Internet nach und nutzt keine Analyse- oder Werbedienste.</p>
+    <p><b>Speicherdauer:</b> Protokolle (Ereignisse, Änderungsschritte) werden nach [6] Monaten, Antworten und Noten nach [24] Monaten gelöscht, jeweils nach dem Ende bzw. der Rückgabe der Klausur [Fristen von der Schule festlegen lassen; sie sind im System einstellbar]. Das Löschen geschieht nur nach Bestätigung durch die Administration und wird protokolliert.</p>
+    <p><b>Ihre Rechte:</b> Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch sowie Beschwerde bei der Berliner Beauftragten für Datenschutz und Informationsfreiheit. Wenden Sie sich bitte an [Kontakt].</p>
+    <p>[Ort, Datum] &nbsp;&nbsp; [Schulleitung]</p>
+  </div>
+</section>

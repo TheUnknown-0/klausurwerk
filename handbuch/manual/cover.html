@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><title>Titel</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  @page { size: A4; margin: 0; }
+  html, body { margin: 0; width: 210mm; height: 297mm; overflow: hidden; }
+  body { background: #f4f5f9; position: relative; color: #12142a; }
+  .abs { position: absolute; }
+
+  /* Hintergrund */
+  .bg-svg { position: absolute; inset: 0; width: 210mm; height: 297mm; }
+  .sun { position: absolute; width: 168mm; height: 168mm; border-radius: 50%; right: -62mm; top: -78mm;
+         background: radial-gradient(circle at 35% 65%, #5b54d6 0%, #3730a3 45%, #2b2580 100%); }
+  .sun-ring { position: absolute; width: 196mm; height: 196mm; border-radius: 50%; right: -76mm; top: -92mm;
+              border: 0.35mm solid rgba(55, 48, 163, .35); }
+  .sun-ring2 { position: absolute; width: 226mm; height: 226mm; border-radius: 50%; right: -91mm; top: -107mm;
+               border: 0.3mm dashed rgba(55, 48, 163, .25); }
+  .glow { position: absolute; width: 150mm; height: 150mm; border-radius: 50%; left: -70mm; top: 150mm;
+          background: radial-gradient(circle, rgba(214, 216, 240, .95) 0%, rgba(214, 216, 240, 0) 70%); }
+
+  /* Kopf */
+  .top { left: 18mm; right: 18mm; top: 15mm; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 3.2mm; }
+  .mark { width: 11mm; height: 11mm; border-radius: 3mm; background: #3730a3; color: #fff; display: flex; align-items: center;
+          justify-content: center; font-weight: 800; font-size: 17pt; box-shadow: 0 1.6mm 4mm rgba(30, 25, 110, .28); }
+  .brand b { font-size: 13.5pt; font-weight: 800; letter-spacing: -.01em; display: block; line-height: 1.1; }
+  .brand span { font-size: 7.4pt; color: #3d4163; letter-spacing: .04em; }
+  .meta { text-align: right; font-size: 7.4pt; color: #fff; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; line-height: 1.6; }
+
+  /* Titel */
+  .title { left: 18mm; top: 40mm; width: 132mm; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 2mm; font-size: 8pt; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #2b2580;
+             background: rgba(55, 48, 163, .1); border-radius: 99mm; padding: 1.2mm 3.4mm; margin-bottom: 4.5mm; }
+  .eyebrow i { width: 1.6mm; height: 1.6mm; border-radius: 50%; background: #3730a3; display: inline-block; }
+  h1.big { font-family: 'Serif4', Georgia, serif; font-weight: 400; font-size: 46pt; line-height: .97; margin: 0 0 4.5mm; letter-spacing: -.035em; }
+  h1.big em { font-style: normal; color: #3730a3; }
+  .lead { font-size: 10.5pt; line-height: 1.5; color: #3d4163; margin: 0 0 4.5mm; max-width: 118mm; }
+  .chapters { display: flex; flex-wrap: wrap; gap: 1.2mm 1.2mm; max-width: 118mm; }
+  .chapters span { font-size: 6.2pt; font-weight: 600; color: #3d4163; background: #fff; border: 0.25mm solid #dfe2ec; border-radius: 99mm;
+                   padding: 0.7mm 2.2mm 0.8mm; white-space: nowrap; }
+  .chapters span b { color: #3730a3; font-weight: 800; margin-right: 1mm; }
+
+  /* Bühne */
+  .browser { left: 16mm; top: 128mm; width: 150mm; border-radius: 3mm; overflow: hidden; background: #fff;
+             box-shadow: 0 1mm 2mm rgba(18, 20, 42, .08), 0 8mm 20mm rgba(18, 20, 42, .22); transform: rotate(-2.2deg); border: 0.3mm solid #dfe2ec; }
+  .browser .bar { height: 7.4mm; background: #e6e8f0; display: flex; align-items: center; gap: 1.6mm; padding: 0 3mm; border-bottom: 0.25mm solid #dfe2ec; }
+  .browser .dot { width: 2.1mm; height: 2.1mm; border-radius: 50%; }
+  .browser .url { margin-left: 3mm; flex: 1; height: 4.4mm; border-radius: 99mm; background: #fff; font-size: 5.6pt; color: #6b6f8e;
+                  display: flex; align-items: center; padding: 0 2.6mm; font-family: 'Plex', monospace; }
+  .browser .url b { color: #059669; font-weight: 500; margin-right: 1mm; }
+  .browser img { display: block; width: 100%; height: 78mm; object-fit: cover; object-position: top left; }
+
+  /* Smartphone */
+  .phone { right: 12mm; top: 141mm; width: 46mm; height: 96mm; transform: rotate(5deg); hyphens: manual; }
+  .phone .frame { position: absolute; inset: 0; border-radius: 8.4mm; padding: 1.9mm;
+                  background: linear-gradient(145deg, #4a3f38 0%, #12142a 38%, #12142a 62%, #574a41 100%);
+                  box-shadow: 0 0 0 0.35mm #9b8b7f, 0 0 0 0.7mm #12142a, 0 10mm 22mm rgba(18, 20, 42, .42), 0 2mm 4mm rgba(18, 20, 42, .3); }
+  .phone .btn { position: absolute; width: 0.9mm; background: linear-gradient(90deg, #3d4163, #12142a); border-radius: 0.5mm; }
+  .phone .b-act { left: -1.2mm; top: 15mm; height: 4.5mm; }
+  .phone .b-up { left: -1.2mm; top: 23mm; height: 8mm; }
+  .phone .b-down { left: -1.2mm; top: 33mm; height: 8mm; }
+  .phone .b-pow { right: -1.2mm; top: 25mm; height: 12mm; background: linear-gradient(270deg, #3d4163, #12142a); }
+  .phone .screen { position: relative; width: 100%; height: 100%; border-radius: 6.6mm; overflow: hidden; background: #f4f5f9; display: flex; flex-direction: column; }
+  .phone .status { height: 6.4mm; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 4.2mm 0 5mm; font-size: 6.4pt; font-weight: 700; color: #12142a; position: relative; }
+  .phone .island { position: absolute; left: 50%; top: 1.3mm; transform: translateX(-50%); width: 13mm; height: 3.6mm; border-radius: 99mm; background: #0d0a08; }
+  .phone .island::after { content: ''; position: absolute; right: 1.5mm; top: 1.05mm; width: 1.5mm; height: 1.5mm; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #4b5a7a, #10131c 70%); }
+  .phone .icons { display: flex; align-items: center; gap: 0.9mm; }
+  .phone .browserbar { flex: none; padding: 0.6mm 2.4mm 1.6mm; }
+  .phone .urlpill { height: 5.4mm; border-radius: 99mm; background: #fff; box-shadow: 0 0.3mm 1mm rgba(18, 20, 42, .15); display: flex; align-items: center; gap: 1.2mm;
+                    padding: 0 2.4mm; font-size: 5.6pt; color: #12142a; }
+  .phone .urlpill .host { flex: 1; text-align: center; font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
+  .phone .urlpill .host small { color: #6b6f8e; font-weight: 500; }
+  .phone .content { flex: 1; overflow: hidden; position: relative; border-top: 0.2mm solid #dfe2ec; }
+  .phone .content img { width: 100%; display: block; margin-top: -1mm; }
+  .phone .toolbar { flex: none; height: 7.2mm; background: rgba(247, 243, 239, .96); border-top: 0.2mm solid #dfe2ec; display: flex; align-items: center; justify-content: space-around; padding: 0 2mm 1.6mm; }
+  .phone .home { position: absolute; bottom: 1.2mm; left: 50%; transform: translateX(-50%); width: 14mm; height: 1mm; border-radius: 99mm; background: #12142a; }
+  .phone .glare { position: absolute; inset: 0; border-radius: 6.6mm; pointer-events: none;
+                  background: linear-gradient(118deg, rgba(255, 255, 255, .28) 0%, rgba(255, 255, 255, .06) 30%, rgba(255, 255, 255, 0) 46%); }
+  .phone .toast { position: absolute; left: 2.4mm; right: 2.4mm; top: 13.6mm; z-index: 2; background: rgba(255, 255, 255, .97); border-radius: 2.6mm;
+                  box-shadow: 0 1.6mm 4mm rgba(18, 20, 42, .22); padding: 1.6mm 2.2mm; display: flex; gap: 1.6mm; align-items: center; }
+  .phone .toast .ap { width: 5.2mm; height: 5.2mm; border-radius: 1.4mm; background: #3730a3; color: #fff; font-weight: 800; font-size: 7pt; display: flex; align-items: center; justify-content: center; flex: none; }
+  .phone .toast b { display: block; font-size: 5.6pt; }
+  .phone .toast span { display: block; font-size: 5.1pt; color: #3d4163; line-height: 1.3; }
+  .phone .toast em { font-style: normal; font-size: 4.8pt; color: #6b6f8e; margin-left: auto; align-self: flex-start; }
+
+  .paper { left: 9mm; top: 196mm; width: 54mm; background: #fff; box-shadow: 0 6mm 14mm rgba(18, 20, 42, .25); transform: rotate(-7deg);
+           border-radius: 0.8mm; overflow: hidden; }
+  .paper img { width: 100%; display: block; }
+  .paper .tag { position: absolute; right: 2mm; bottom: 2mm; font-size: 5.6pt; font-weight: 700; color: #fff; background: #12142a; border-radius: 99mm; padding: 0.6mm 2mm; }
+
+  .qrcard { left: 140mm; top: 101mm; width: 50mm; border-radius: 2.6mm; overflow: hidden; background: #fff;
+            box-shadow: 0 5mm 12mm rgba(18, 20, 42, .25); transform: rotate(7deg); border: 0.3mm solid #dfe2ec; }
+  .qrcard img { width: 100%; display: block; }
+
+  /* Kennzahlen-Chips */
+  .chip { background: #fff; border-radius: 3mm; padding: 2.2mm 3.2mm; box-shadow: 0 3mm 8mm rgba(18, 20, 42, .18); display: flex; align-items: center; gap: 2.4mm; }
+  .chip .ic { width: 7.5mm; height: 7.5mm; border-radius: 2.2mm; display: flex; align-items: center; justify-content: center; font-size: 10pt; }
+  .chip b { display: block; font-size: 11.5pt; font-weight: 800; line-height: 1; letter-spacing: -.01em; }
+  .chip span { display: block; font-size: 6.2pt; color: #3d4163; margin-top: 0.6mm; white-space: nowrap; }
+  .c1 { left: 11mm; top: 163mm; transform: rotate(-3deg); }
+  .c2 { left: 86mm; top: 222mm; transform: rotate(-1deg); }
+  .c3 { right: 50mm; top: 236mm; transform: rotate(4deg); }
+
+  /* Zeitstrahl */
+  .flow { left: 18mm; right: 18mm; top: 251mm; }
+  .flow .lbl { font-size: 6.6pt; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #2b2580; margin-bottom: 2.6mm; }
+  .flow .row { display: grid; grid-template-columns: repeat(7, 1fr); position: relative; }
+  .flow .row::before { content: ''; position: absolute; left: 6%; right: 6%; top: 3.3mm; height: 0.5mm; background: linear-gradient(90deg, #c9c7ee, #3730a3); border-radius: 99mm; }
+  .flow .st { text-align: center; position: relative; }
+  .flow .n { width: 7mm; height: 7mm; margin: 0 auto 1.6mm; border-radius: 50%; background: #fff; border: 0.5mm solid #3730a3; color: #3730a3;
+             font-size: 7pt; font-weight: 800; display: flex; align-items: center; justify-content: center; position: relative; }
+  .flow .st:last-child .n { background: #3730a3; color: #fff; }
+  .flow .st b { display: block; font-size: 7pt; font-weight: 700; }
+  .flow .st span { display: block; font-size: 5.8pt; color: #3d4163; line-height: 1.3; margin-top: 0.4mm; }
+
+  /* Fuß */
+  .foot { left: 18mm; right: 18mm; bottom: 11mm; display: flex; justify-content: space-between; align-items: center;
+          border-top: 0.3mm solid #dfe2ec; padding-top: 4mm; }
+  .roles { display: flex; gap: 1.6mm; }
+  .roles .role { font-size: 7pt; padding: 1mm 2.8mm; }
+  .ver { text-align: right; font-size: 7pt; color: #3d4163; line-height: 1.45; }
+  .ver b { color: #12142a; font-size: 8.5pt; }
+
+  .seal { right: 22mm; top: 58mm; width: 31mm; height: 31mm; border-radius: 50%; background: #12142a; color: #fff; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; text-align: center; transform: rotate(10deg); box-shadow: 0 4mm 10mm rgba(18, 20, 42, .3); }
+  .seal b { font-family: 'Serif4', Georgia, serif; font-weight: 400; font-size: 21pt; line-height: 1; }
+  .seal span { font-size: 5.6pt; letter-spacing: .14em; text-transform: uppercase; margin-top: 1mm; opacity: .85; line-height: 1.5; }
+  .seal::after { content: ''; position: absolute; inset: 1.6mm; border-radius: 50%; border: 0.25mm dashed rgba(255, 255, 255, .45); }
+
+  .stud { left: 104mm; top: 176mm; width: 88mm; border-radius: 2.4mm; overflow: hidden; background: #fff; transform: rotate(3deg);
+          box-shadow: 0 1mm 2mm rgba(18,20,42,.08), 0 8mm 20mm rgba(18,20,42,.28); border: 0.3mm solid #dfe2ec; }
+  .stud img { display: block; width: 100%; }
+  .alarm { left: 12mm; top: 212mm; width: 62mm; border-radius: 2.4mm; overflow: hidden; background: #fff; transform: rotate(-4deg);
+           box-shadow: 0 6mm 14mm rgba(18,20,42,.25); border: 0.3mm solid #dfe2ec; }
+  .alarm img { display: block; width: 100%; }
+</style></head>
+<body>
+  <svg class="bg-svg" viewBox="0 0 210 297" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <pattern id="dots" width="4.2" height="4.2" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.28" fill="#3730a3" opacity=".22"/></pattern>
+      <linearGradient id="fade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity="1"/></linearGradient>
+      <mask id="m"><rect width="210" height="297" fill="url(#fade)"/></mask>
+    </defs>
+    <rect x="0" y="96" width="210" height="160" fill="url(#dots)" mask="url(#m)"/>
+    <g fill="none" stroke="#3730a3" stroke-width=".18" opacity=".28">
+      <path d="M-10 270 C 40 240, 80 290, 130 262 S 200 250, 230 268"/><path d="M-10 276 C 40 246, 80 296, 130 268 S 200 256, 230 274"/>
+    </g>
+  </svg>
+  <div class="glow"></div>
+  <div class="sun-ring2"></div><div class="sun-ring"></div><div class="sun"></div>
+
+  <div class="abs top">
+    <div class="brand"><div class="mark">K</div><div><b>Klausurwerk</b><span>Informatik-Klausuren im Browser</span></div></div>
+    <div class="meta">Handbuch<br>Ausgabe 2026/27</div>
+  </div>
+
+  <div class="abs title">
+    <div class="eyebrow"><i></i>@@PART@@</div>
+    <h1 class="big">Alles für Ihre<br><em style="white-space:nowrap">Klausur</em></h1>
+    <p class="lead">Von der Installation über die Vorbereitung und das Pult am Klausurtag bis zu Korrektur und Rückgabe, Schritt für Schritt erklärt.</p>
+    <div class="chapters">
+      <span><b>1</b>Überblick</span><span><b>2</b>Installation</span><span><b>3</b>Verwaltung</span><span><b>4</b>Vorbereiten</span>
+      <span><b>5</b>Klausurtag</span><span><b>6</b>Korrektur</span><span><b>7</b>Schüler:innen</span><span><b>A–E</b>Anhang</span>
+    </div>
+  </div>
+
+  <div class="abs seal"><b>16</b><span>Antwort-<br>typen</span></div>
+
+  <div class="abs browser">
+    <div class="bar">
+      <span class="dot" style="background:#e0705c"></span><span class="dot" style="background:#e6b24e"></span><span class="dot" style="background:#6dbb73"></span>
+      <div class="url"><b>🔒</b>klausurwerk.meine-schule.de/klausuren/1/pult</div>
+    </div>
+    <img src="img/cover/pult.jpg">
+  </div>
+  <div class="abs stud"><img src="img/cover/student.jpg"></div>
+  <div class="abs alarm"><img src="img/cover/alarm.jpg"></div>
+
+  <div class="abs chip c1"><div class="ic" style="background:#dcf2ea">✅</div><div><b>Pult live</b><span>Kacheln wie der Sitzplan</span></div></div>
+  <div class="abs chip c2"><div class="ic" style="background:#e4e3f4">🔒</div><div><b>Lösungen sicher</b><span>nie im Schüler-Browser</span></div></div>
+
+  <div class="abs flow">
+    <div class="lbl">Der Weg zur zurückgegebenen Klausur</div>
+    <div class="row">
+      <div class="st"><div class="n">1</div><b>Anlegen</b><span>Aufgaben, Einstellungen</span></div>
+      <div class="st"><div class="n">2</div><b>Bereit</b><span>Vorschau, SEB</span></div>
+      <div class="st"><div class="n">3</div><b>Warteraum</b><span>Beitritt, Bereit</span></div>
+      <div class="st"><div class="n">4</div><b>Läuft</b><span>Pult, Alarme</span></div>
+      <div class="st"><div class="n">5</div><b>Beendet</b><span>Abgaben bestätigt</span></div>
+      <div class="st"><div class="n">6</div><b>Korrektur</b><span>Punkte, Note</span></div>
+      <div class="st"><div class="n">7</div><b>Rückgabe</b><span>Freigabe, PDF</span></div>
+    </div>
+  </div>
+
+  <div class="abs foot">
+    <div class="roles"><span class="role r-admin">Admin</span><span class="role r-teacher">Lehrkraft</span><span class="role r-student">Schüler:in</span></div>
+    <div class="ver"><b>Version 1.0</b><br>Stand November 2026</div>
+  </div>
+</body></html>

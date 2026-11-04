@@ -1,0 +1,140 @@
+<section class="chapter" id="k2" data-title="Installation und Betrieb">
+  <div class="chapter-head">
+    <div class="big">02</div>
+    <div class="kicker">Kapitel 2</div>
+    <h1>Installation und Betrieb</h1>
+    <p class="lead">Klausurwerk mit Docker Compose aufsetzen, den Setup-Assistenten durchlaufen, den Runner verstehen und die Anwendung dauerhaft betreiben.</p>
+    <div class="for">Für <span class="role r-admin">Admin</span></div>
+  </div>
+
+  <h2 id="k2-1"><span class="num">2.1</span>Voraussetzungen und Architektur</h2>
+  <p>Klausurwerk besteht aus drei Containern, die gemeinsam mit Docker Compose gestartet werden:</p>
+  <table>
+    <thead><tr><th>Dienst</th><th>Aufgabe</th></tr></thead>
+    <tbody>
+      <tr><td><code>app</code></td><td>PHP 8.3 mit Apache. Liefert Oberfläche und Schnittstellen aus, hängt am Netz des Reverse-Proxys (<code>proxy_network</code>) und am internen Runner-Netz. Hört im Container auf Port 80, auf dem Host standardmäßig auf Port <b>9030</b>.</td></tr>
+      <tr><td><code>db</code></td><td>MariaDB 11.4. Alle Daten (Konten, Klausuren, Antworten, Bewertungen) liegen im Volume <code>db_data</code>.</td></tr>
+      <tr><td><code>runner</code></td><td>Führt Java-Code (und versteckte Tests) abgeschottet aus. Hängt nur am internen Netz <code>runner_net</code> ohne Internetzugang und ist von außen nicht erreichbar.</td></tr>
+    </tbody>
+  </table>
+  <p><b>Mindestanforderung:</b> 2 CPU-Kerne und 4 GB Arbeitsspeicher für einen Raum mit etwa 35 Schülern. Für mehrere Räume gleichzeitig erhöhen Sie <code>RUNNER_CPUS</code>, <code>RUNNER_MEM_LIMIT</code> und <code>RUNNER_MAX_PARALLEL</code>. Benötigt werden Docker mit dem Compose-Plugin und ein Reverse-Proxy, der das Netz <code>proxy_network</code> bereitstellt und HTTPS terminiert.</p>
+  <div class="box note"><span class="t">Python und SQL laufen im Browser</span><p>Nur Java-Aufgaben belasten den Server. Python (Pyodide) und SQL (SQLite als WebAssembly) rechnen im Browser des Schülers. Die Kapazität des Runners ist deshalb nur für Java-Klausuren und die automatische Vorbewertung in der Korrektur relevant.</p></div>
+
+  <h2 id="k2-2"><span class="num">2.2</span>Erster Start</h2>
+  <ol class="steps">
+    <li>Projektordner auf den Server kopieren (oder aus Git klonen) und die Vorlage der Konfiguration kopieren: <code>cp .env.example .env</code>.</li>
+    <li>In <code>.env</code> die Pflichtwerte setzen: <code>DB_PASS</code>, <code>DB_ROOT_PASS</code> und <code>RUNNER_TOKEN</code> (zum Beispiel mit <code>openssl rand -hex 32</code>).</li>
+    <li>Das Netz des Reverse-Proxys anlegen, falls es noch nicht existiert: <code>docker network create proxy_network</code>.</li>
+    <li>Bauen und starten: <code>docker compose up -d --build</code>. Der erste Build lädt Basis-Images und Laufzeiten und dauert einige Minuten.</li>
+    <li>Im Browser <code>http://localhost:9030</code> (oder die Adresse hinter dem Reverse-Proxy) öffnen. Beim ersten Aufruf erscheint der <b>Setup-Assistent</b>.</li>
+  </ol>
+  <div class="mono-block">cp .env.example .env
+# DB_PASS, DB_ROOT_PASS und RUNNER_TOKEN setzen
+docker network create proxy_network
+docker compose up -d --build
+docker compose ps</div>
+  <h3>Der Setup-Assistent</h3>
+  <p>Der Assistent erscheint nur, solange es noch kein Konto gibt. Er fragt nach <b>Vorname</b>, <b>Nachname</b>, <b>Benutzername</b>, <b>E-Mail (für Anmeldecodes)</b>, <b>Passwort</b> (mindestens 8 Zeichen), <b>Passwort wiederholen</b> und dem <b>Namen der Schule</b>. Damit wird das erste Admin-Konto angelegt. Danach ist die Seite <span class="path">/setup</span> nicht mehr nutzbar, und Sie landen auf der Anmeldeseite.</p>
+  <figure class="narrow">
+    <img src="img/c-100-login.jpg" alt="Anmeldeseite">
+    <figcaption><b>{fig}</b> Die Anmeldeseite mit dem Schulnamen unter dem Logo</figcaption>
+  </figure>
+  <div class="box tip"><span class="t">Gesund oder nicht?</span><p>Prüfen Sie nach dem Start <span class="path">/healthz</span> (antwortet <code>ok</code>, wenn die Anwendung läuft) und <span class="path">/readyz</span> (<code>200</code>, wenn auch die Datenbank erreichbar ist, sonst <code>503</code>). Beide Adressen funktionieren ohne Anmeldung und eignen sich für Überwachungswerkzeuge.</p></div>
+
+  <h2 id="k2-3"><span class="num">2.3</span>Die Datei .env</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Standard</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td><code>DB_NAME</code>, <code>DB_USER</code></td><td><code>klausurwerk</code></td><td>Name und Benutzer der Datenbank.</td></tr>
+      <tr><td><code>DB_PASS</code>, <code>DB_ROOT_PASS</code></td><td><i>leer</i></td><td><b>Pflicht.</b> Passwort des Datenbankbenutzers und des Root-Benutzers.</td></tr>
+      <tr><td><code>RUNNER_TOKEN</code></td><td><i>leer</i></td><td><b>Pflicht.</b> Gemeinsames Geheimnis zwischen App und Runner. Ohne Token antwortet der Runner mit 503.</td></tr>
+      <tr><td><code>APP_PORT</code></td><td><code>9030</code></td><td>Port auf dem Host.</td></tr>
+      <tr><td><code>APP_ENV</code></td><td><code>production</code></td><td><code>development</code> zeigt Fehlerdetails an. Im Betrieb nicht verwenden.</td></tr>
+      <tr><td><code>BASE_URL</code></td><td><code>/</code></td><td>Basispfad, wenn die Anwendung in einem Unterverzeichnis läuft.</td></tr>
+      <tr><td><code>TRUSTED_PROXIES</code></td><td><i>leer</i></td><td>Adressen der eigenen Reverse-Proxys. Nur diese dürfen <code>X-Forwarded-For</code> setzen. Leer heißt: niemand.</td></tr>
+      <tr><td><code>RUNNER_MAX_PARALLEL</code></td><td><code>4</code></td><td>Gleichzeitig laufende Java-Läufe. Weitere warten in der Warteschlange.</td></tr>
+      <tr><td><code>RUNNER_MAX_SECONDS</code></td><td><code>10</code></td><td>CPU-Zeit je Lauf.</td></tr>
+      <tr><td><code>RUNNER_MAX_MEMORY_MB</code></td><td><code>256</code></td><td>Java-Heap je Lauf.</td></tr>
+      <tr><td><code>RUNNER_MEM_LIMIT</code>, <code>RUNNER_CPUS</code></td><td><code>2g</code>, <code>2</code></td><td>Grenzen des Runner-Containers insgesamt.</td></tr>
+      <tr><td><code>MAIL_HOST</code>, <code>MAIL_PORT</code>, <code>MAIL_ENCRYPTION</code>, <code>MAIL_USER</code>, <code>MAIL_PASS</code>, <code>MAIL_FROM_ADDRESS</code>, <code>MAIL_FROM_NAME</code></td><td>leer, <code>587</code>, <code>tls</code>, leer, leer, leer, <code>Klausurwerk</code></td><td>SMTP-Zugang für Anmeldecodes. <b>Leer heißt: Codes sind abgeschaltet</b>, Lehrkräfte melden sich nur mit Passwort an.</td></tr>
+      <tr><td><code>APP_IMAGE</code>, <code>RUNNER_IMAGE</code></td><td>lokal gebaut</td><td>Fertige Images aus der GitHub Container Registry statt lokalem Build (siehe 2.5).</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="k2-4"><span class="num">2.4</span>Reverse-Proxy und HTTPS</h2>
+  <p>Im Betrieb steht ein Reverse-Proxy (zum Beispiel Nginx Proxy Manager, Traefik oder Caddy) vor der Anwendung. Er terminiert HTTPS und leitet auf den Container <code>klausurwerk-app</code> (Port 80) im Netz <code>proxy_network</code> weiter. Wichtig:</p>
+  <ul>
+    <li>Tragen Sie die Adresse des Proxys in <code>TRUSTED_PROXIES</code> ein, damit Anmeldedrossel und Audit-Log die echte Adresse der Clients sehen.</li>
+    <li>Die Anwendung setzt strenge Sicherheitsköpfe (Content Security Policy, Cross-Origin-Isolation). <b>Der Proxy darf diese Köpfe nicht entfernen oder überschreiben.</b> Ohne Cross-Origin-Isolation kann Python-<code>input()</code> im Browser nicht auf Eingaben warten.</li>
+    <li>WebSockets sind nicht nötig. Die Live-Ansichten arbeiten mit kurzem Abruf (Polling).</li>
+    <li>Tragen Sie unter <span class="nav">Verwaltung › Einstellungen</span> die <b>Öffentliche Adresse</b> ein. Sie steckt im QR-Code der Zugangskarten und in der SEB-Datei. Ohne Eintrag wird die Adresse verwendet, mit der Sie gerade zugreifen, auf dem Server oft <code>localhost</code>, was auf den Karten wertlos ist.</li>
+  </ul>
+
+  <h2 id="k2-5"><span class="num">2.5</span>Fertige Images aus der GHCR</h2>
+  <p>Statt lokal zu bauen, kann der Server fertige Images aus der GitHub Container Registry ziehen. Setzen Sie in <code>.env</code>:</p>
+  <div class="mono-block">APP_IMAGE=ghcr.io/theunknown-0/klausurwerk-app:latest
+RUNNER_IMAGE=ghcr.io/theunknown-0/klausurwerk-runner:latest</div>
+  <p>und starten Sie mit <code>docker compose pull &amp;&amp; docker compose up -d</code>. Die Images entstehen automatisch über GitHub Actions.</p>
+
+  <h2 id="k2-6"><span class="num">2.6</span>Mailserver und Anmeldecode</h2>
+  <p>Lehrkräfte und Admins können sich zusätzlich mit einem sechsstelligen <b>Anmeldecode per E-Mail</b> absichern (zweiter Faktor). Das funktioniert nur, wenn <code>MAIL_HOST</code> und <code>MAIL_FROM_ADDRESS</code> gesetzt sind. Solange das fehlt, zeigt die Übersicht des Admins einen gelben Hinweis, und Lehrkräfte melden sich nur mit Passwort an.</p>
+  <ol class="steps">
+    <li>SMTP-Zugangsdaten in <code>.env</code> eintragen und mit <code>docker compose up -d</code> neu starten.</li>
+    <li>Unter <span class="nav">Verwaltung › Einstellungen</span> im Abschnitt <b>Test-Mail</b> eine <b>Empfängeradresse</b> eintragen und <span class="ui">Test-Mail senden</span> wählen.</li>
+    <li>Kommt die Mail an, lassen Sie <b>Anmeldecode per E-Mail für Lehrkräfte und Admins (zweiter Faktor)</b> angekreuzt.</li>
+  </ol>
+  <p>Der Schalter kann auch abgeschaltet werden, falls der Mailserver ausfällt. Schüler melden sich nie mit Code an, sondern mit der Zugangskarte.</p>
+
+  <h2 id="k2-7"><span class="num">2.7</span>Der Runner: Grenzen und Kapazität</h2>
+  <p>Der Runner kompiliert und startet Java-Programme in einem abgeschotteten Kindprozess, ohne Netz, mit Zeit-, Speicher- und Prozesslimit, schreibgeschütztem Dateisystem und flüchtigem Arbeitsverzeichnis. Er unterstützt Java 21 und 25 und führt außerdem die versteckten Tests der Korrektur sowie die Robo-Testwelten aus.</p>
+  <table>
+    <thead><tr><th>Was</th><th>Grenze</th></tr></thead>
+    <tbody>
+      <tr><td>Dateien je Lauf</td><td>höchstens 20, zusammen 1 MB, Namen aus Buchstaben, Ziffern, <code>_ . -</code></td></tr>
+      <tr><td>CPU-Zeit je Lauf</td><td><code>RUNNER_MAX_SECONDS</code> (Standard 10 Sekunden)</td></tr>
+      <tr><td>Wandzeit</td><td>interaktiv 120 Sekunden, bei vorgegebener Eingabe und bei Tests CPU-Zeit plus wenige Sekunden</td></tr>
+      <tr><td>Java-Heap</td><td><code>RUNNER_MAX_MEMORY_MB</code> (256 MB), echter Speicher höchstens Heap plus 384 MB</td></tr>
+      <tr><td>Threads / Prozesse</td><td>100 Threads, 40 Prozesse je Lauf</td></tr>
+      <tr><td>Ausgabe</td><td>1 MB (bei Tests 256 KB), danach Abbruch mit Hinweis</td></tr>
+      <tr><td>Platte je Lauf</td><td>64 MB und 4000 Einträge</td></tr>
+      <tr><td>Parallelität</td><td><code>RUNNER_MAX_PARALLEL</code> laufende Läufe, weitere warten; höchstens 64 aktive Läufe, darüber Fehler 429</td></tr>
+    </tbody>
+  </table>
+  <p><b>Faustregel:</b> Mit 4 parallelen Läufen und etwa zwei Sekunden je Kompilierung schafft der Runner rund zwei Läufe pro Sekunde. 35 Schüler, die gelegentlich auf <span class="ui">Ausführen</span> klicken, sind unkritisch. Wenn eine ganze Klasse gleichzeitig Java startet (zum Beispiel nach einer Durchsage), entstehen kurze Wartezeiten. Dann hilft ein höheres <code>RUNNER_MAX_PARALLEL</code> bei ausreichend CPU-Kernen.</p>
+  <div class="box warn"><span class="t">Ehrliche Grenzen der Isolation</span>
+    <p>Alle Läufe teilen sich im Container einen Benutzer. Ein gezielter Angriff könnte Dateien eines gleichzeitig laufenden fremden Laufs lesen (die Verzeichnisse sind zufällig benannt und gesperrt). Eine Thread- oder Fork-Bombe kann andere Läufe für Sekundenbruchteile stören, der Container selbst bleibt unversehrt. Für Schulklausuren ist das vertretbar; der Runner hat keinen Netzzugang und kann keine Daten nach außen senden. Er ist kein Hochsicherheits-Sandkasten.</p></div>
+
+  <h2 id="k2-8"><span class="num">2.8</span>Updates</h2>
+  <ol class="steps">
+    <li>Sichern Sie vorher die Datenbank (2.9).</li>
+    <li>Neuen Stand holen: bei lokalem Build <code>git pull</code> und <code>docker compose up -d --build</code>, bei GHCR-Images <code>docker compose pull &amp;&amp; docker compose up -d</code>.</li>
+    <li>Datenbankmigrationen laufen beim Start des App-Containers automatisch, abgesichert durch eine Datenbanksperre.</li>
+    <li>Prüfen Sie <span class="path">/readyz</span> und melden Sie sich einmal an.</li>
+  </ol>
+  <div class="box danger"><span class="t">Nicht mitten in einer Klausur aktualisieren</span><p>Beim Neustart des App-Containers sind die Live-Ansichten für Sekunden nicht erreichbar. Schüler schreiben dank lokaler Sicherung weiter, aber planen Sie Updates außerhalb von Klausurzeiten.</p></div>
+
+  <h2 id="k2-9"><span class="num">2.9</span>Datensicherung</h2>
+  <p>Zwei Dinge müssen gesichert werden: die <b>Datenbank</b> und das Volume <code>uploads</code> (Material, hochgeladene Dateien, Logo).</p>
+  <div class="mono-block"># Datenbank sichern
+docker compose exec -T -e MYSQL_PWD="$DB_ROOT_PASS" db mariadb-dump -uroot klausurwerk &gt; backup.sql
+# Hochgeladene Dateien sichern
+docker run --rm -v klausurwerk_uploads:/data -v "$(pwd)":/backup alpine tar czf /backup/uploads.tar.gz -C /data .</div>
+  <p>Zum Wiederherstellen stoppen Sie die App, spielen den Dump mit <code>mariadb</code> in eine leere Datenbank ein und entpacken das Archiv ins Volume. Der Name des Volumes hängt vom Projektordner ab (<code>docker volume ls</code>).</p>
+  <div class="box warn"><span class="t">Einmal vor dem ersten Einsatz proben</span><p>Eine Sicherung, die nie zurückgespielt wurde, ist keine. Testen Sie die Wiederherstellung einmal auf einem Testsystem, bevor Sie sich in einer Klausurphase darauf verlassen.</p></div>
+
+  <h2 id="k2-10"><span class="num">2.10</span>Betrieb und Fehlerbehebung</h2>
+  <p>Alle Container haben Healthchecks und die Einstellung <code>restart: unless-stopped</code>, starten also nach einem Neustart des Servers von selbst. Die Protokolle sind auf 3 Dateien à 10 MB begrenzt.</p>
+  <table>
+    <thead><tr><th>Symptom</th><th>Ursache und Abhilfe</th></tr></thead>
+    <tbody>
+      <tr><td>Seite nicht erreichbar</td><td><code>docker compose ps</code>: Läuft <code>app</code>? <code>docker compose logs app</code> lesen. Häufig fehlt das externe Netz <code>proxy_network</code> (<code>docker network create proxy_network</code>).</td></tr>
+      <tr><td><span class="path">/readyz</span> liefert 503</td><td>Datenbank nicht erreichbar oder noch nicht bereit: <code>docker compose logs db</code>, <code>DB_PASS</code> in <code>.env</code> prüfen.</td></tr>
+      <tr><td>Java-Aufgaben melden „Runner nicht erreichbar“</td><td><code>RUNNER_TOKEN</code> fehlt oder ist in App und Runner verschieden; Runner-Container läuft nicht (<code>docker compose logs runner</code>).</td></tr>
+      <tr><td>Python-<code>input()</code> hängt, „SharedArrayBuffer“-Fehler</td><td>Der Proxy entfernt die Köpfe für Cross-Origin-Isolation, oder die Seite wird nicht über HTTPS ausgeliefert.</td></tr>
+      <tr><td>QR-Code der Zugangskarte führt auf <code>localhost</code></td><td>Unter Einstellungen die <b>Öffentliche Adresse</b> eintragen und die Karten neu drucken.</td></tr>
+      <tr><td>Lehrkraft kommt nicht ohne Code hinein</td><td>E-Mail-Versand nicht eingerichtet, aber zweiter Faktor aktiv? Schalter in den Einstellungen abschalten oder Mailserver prüfen.</td></tr>
+      <tr><td>Anwendung hinter dem Proxy zeigt alle Clients mit derselben Adresse</td><td><code>TRUSTED_PROXIES</code> setzen.</td></tr>
+      <tr><td>Fehlerseite ohne Details</td><td>Gewollt. Mit <code>APP_ENV=development</code> würden Details angezeigt; nur auf Testsystemen.</td></tr>
+    </tbody>
+  </table>
+</section>

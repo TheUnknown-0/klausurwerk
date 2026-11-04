@@ -1,0 +1,210 @@
+<section class="chapter" id="k5" data-title="Am Klausurtag: das Pult">
+  <div class="chapter-head">
+    <div class="big">05</div>
+    <div class="kicker">Kapitel 5</div>
+    <h1>Am Klausurtag: das Pult</h1>
+    <p class="lead">Warteraum öffnen, Klausur starten, den Raum im Blick behalten, auf Alarme reagieren und die Klausur sauber beenden.</p>
+    <div class="for">Für <span class="role r-teacher">Lehrkraft</span></div>
+  </div>
+
+  <p>Das <b>Pult</b> ist die Schaltzentrale der Lehrkraft während der Klausur. Sie öffnen es über <span class="ui">Pult öffnen</span> auf der Klausurseite. Es zeigt jede Person als <b>Kachel</b>, ordnet die Kacheln wie die Sitzordnung im Raum an und aktualisiert sich alle 1,5 Sekunden. Auch Aufsichten, die Sie hinzugefügt haben, können das Pult bedienen.</p>
+  <div class="box tip"><span class="t">Checkliste für den Klausurtag</span>
+    <ul class="tight">
+      <li>Klausur steht auf „Bereit“, Vorschau einmal geprüft.</li>
+      <li>Alle Schüler haben ihre Zugangskarte; Ersatzkarten bereit.</li>
+      <li>Raum und Sitzplan gewählt; Aufsicht eingewiesen und als Lehrkraft hinzugefügt.</li>
+      <li>Ihr Ton ist an: Im Pult einmal <span class="ui">Ton aktivieren</span> klicken. Lautstärke prüfen.</li>
+      <li>Falls SEB verlangt wird: Datei auf allen Rechnern geöffnet.</li>
+      <li>Klausurcode (falls verlangt) an die Tafel geschrieben.</li>
+      <li>Java: Runner läuft (Kapitel 2). Technik-Check am Vortag war erfolgreich.</li>
+      <li>Ersatzrechner und Papier für den Notfall bereit.</li>
+    </ul></div>
+
+  <h2 id="k5-1"><span class="num">5.1</span>Warteraum öffnen</h2>
+  <p>Ist die Klausur „Bereit“, öffnen Sie das Pult. Es zeigt die Klausur mit Status „Bereit“ und den Knopf <span class="ui p">Warteraum öffnen</span>.</p>
+  <figure>
+    <img src="img/x-216-pult-bereit.jpg" alt="Pult bereit">
+    <figcaption><b>{fig}</b> Das Pult einer Klausur im Zustand „Bereit“</figcaption>
+  </figure>
+  <ol class="steps">
+    <li>Klicken Sie auf <span class="ui p">Warteraum öffnen</span>. Der Status wechselt zu „Warteraum offen“, oben erscheint „Warteraum: 0 Personen“, und eine Meldung „Warteraum geöffnet“ bestätigt es.</li>
+    <li>Die Klausur erscheint jetzt bei den Schülern unter „Meine Klausuren“. Sie öffnen sie, lesen die Regeln und klicken <span class="ui">Bereit</span>.</li>
+    <li>Im Pult erscheint jede Person als Kachel: erst „Nicht beigetreten“ (gestrichelter Rahmen), dann „Im Warteraum“ (Beitritt), dann mit Häkchen „bereit“. Das Ereignisprotokoll rechts meldet jeden Beitritt und jedes „bereit“.</li>
+  </ol>
+  <div class="figrow">
+    <figure><img src="img/x-400-pult-warteraum-leer.jpg" alt="Leerer Warteraum"><figcaption><b>{fig}</b> Warteraum offen, noch niemand beigetreten</figcaption></figure>
+    <figure><img src="img/x-402-pult-warteraum-voll.jpg" alt="Voller Warteraum"><figcaption><b>{fig}</b> Alle sechs sind im Warteraum und bereit</figcaption></figure>
+  </div>
+  <div class="box note"><span class="t">Der Klausurcode</span><p>Wenn Sie „Klausurcode verlangen“ eingestellt haben, steht der 6-stellige Code im Pult. Nennen Sie ihn im Raum; wer ihn nicht kennt, kommt nicht in den Warteraum. Sie können ihn neu erzeugen, wenn er sich herumgesprochen hat.</p></div>
+
+  <h2 id="k5-2"><span class="num">5.2</span>Start</h2>
+  <p>Warten Sie, bis alle da und „bereit“ sind. Im Kopf des Pults zählt „Warteraum: n Personen“, und die Kennzahlen zeigen „6/6 Online“.</p>
+  <ol class="steps">
+    <li>Klicken Sie auf <span class="ui p">Starten</span>.</li>
+    <li>Es öffnet sich ein eigener Dialog „Klausur starten“: „Die Klausur jetzt für alle starten? 6 Personen sind im Warteraum. Die Uhr (90 min) läuft sofort.“ Bestätigen Sie mit <span class="ui p">Jetzt starten</span>.</li>
+    <li>Die Uhr läuft für alle: „Restzeit (Grundzeit) 1:29:57“. Das Pult zeigt „Klausur gestartet“, die Kacheln wechseln auf „Arbeitet“, und jede Kachel zeigt die persönliche Restzeit (Nachteilsausgleich schon eingerechnet).</li>
+    <li>Bei den Schülern erscheint „Es geht los“; ein Klick auf „Klicke, um zu beginnen“ startet sie im Vollbild.</li>
+  </ol>
+  <div class="figrow">
+    <figure><img src="img/x-403-pult-start-dialog.jpg" alt="Start-Dialog"><figcaption><b>{fig}</b> Der Bestätigungsdialog „Klausur starten“</figcaption></figure>
+    <figure><img src="img/x-404-pult-laeuft.jpg" alt="Läuft"><figcaption><b>{fig}</b> Das Pult unmittelbar nach dem Start</figcaption></figure>
+  </div>
+  <p>Wer später kommt, tritt trotzdem bei und bekommt die Restzeit. Ist jemand gar nicht im Warteraum, startet die Klausur trotzdem: Er kann später beitreten, Sie können ihm Zeit dazugeben (5.9).</p>
+
+  <h2 id="k5-3"><span class="num">5.3</span>Kacheln, Farben und Kennzahlen</h2>
+  <figure>
+    <img src="img/x-411-pult-arbeitet.jpg" alt="Pult läuft">
+    <figcaption><b>{fig}</b> Das Pult während der Klausur: Kennzahlen, Aktionsleiste, Sitzplan mit Kacheln, Anfragen, Ereignisse</figcaption>
+  </figure>
+  <h3>Kopfbereich</h3>
+  <p>Links Titel und Status („Läuft“), daneben die Restzeit der Grundzeit. Darunter die Knöpfe <span class="ui">Alle pausieren</span> (5.8), <span class="ui d">Klausur beenden</span> (5.14), <span class="ui">Durchsage an alle</span> (5.10), <span class="ui">Ton an</span> (Stummschalter für den Pult-Ton), <span class="ui">Vorschau</span> und <span class="ui">Klausur</span> (zurück zur Klausurseite). Fünf Kennzahlen zählen live: <b>Online</b>, <b>Arbeiten</b>, <b>Gesperrt</b>, <b>Abgegeben</b> und <b>Hände</b>.</p>
+  <h3>Eine Kachel</h3>
+  <p>Jede Kachel zeigt: <b>Name</b>, <b>Zustand</b> in Worten, drei Symbole für <b>Vollbild</b> (⛶), <b>Fokus</b> (◎) und <b>Verbindung</b> (●, grün oder rot), <b>Fortschritt</b> (bearbeitete Aufgaben, zum Beispiel „8/8“ mit Balken), die <b>persönliche Restzeit</b> und „gespeichert vor … min“ (letzter Autosave, oder „noch nichts gespeichert“). Hebt jemand die Hand, erscheint ein ✋ in der Kachel. Das 🔍 öffnet die Details (5.12).</p>
+  <table>
+    <thead><tr><th>Farbe der Kachel</th><th>Zustand</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td>gestrichelt, grau</td><td>Nicht beigetreten</td><td>Der Platz ist zugeordnet, die Person ist noch nicht da.</td></tr>
+      <tr><td>blau</td><td>Im Warteraum</td><td>Beigetreten, wartet auf den Start.</td></tr>
+      <tr><td>grün</td><td>Arbeitet</td><td>Alles in Ordnung.</td></tr>
+      <tr><td>rot</td><td>Gesperrt</td><td>Verstoß: Die Person wartet auf Ihre Freigabe.</td></tr>
+      <tr><td>grau mit rotem Hinweis „Bitte um Freigabe“</td><td>Abwesend</td><td>Sie haben die Person abwesend gesetzt (Toilette). Der Hinweis erscheint, wenn sie zurück ist und die Freigabe anfragt.</td></tr>
+      <tr><td>gelb/orange Rand</td><td>Pausiert oder Abgabe angefragt</td><td>Pause (einzeln oder alle) beziehungsweise Abgabewunsch.</td></tr>
+      <tr><td>ausgegraut</td><td>Abgegeben</td><td>Abgabe bestätigt.</td></tr>
+      <tr><td>mit rotem Punkt „offline“</td><td>Verbindung weg</td><td>Seit über 10 Sekunden kein Herzschlag.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="k5-4"><span class="num">5.4</span>Sitzplan: Kacheln ziehen</h2>
+  <p>Ist der Klausur ein Raum zugeordnet, sehen Sie dessen Raster. Ziehen Sie eine Kachel mit der Maus auf einen freien oder belegten Platz (belegte Plätze werden getauscht), oder wählen Sie sie und verschieben Sie sie mit <span class="kbd">Alt</span> + Pfeiltasten. Die Anordnung wird je Raum gespeichert und beim nächsten Mal als Vorschlag verwendet. So entspricht das Pult genau der Sitzordnung im Raum, und Sie finden den Schüler, dessen Kachel rot wird, sofort. Der Raum wird in Kapitel 3.7 angelegt.</p>
+  <div class="box warn"><span class="t">Bildschirmbreite</span><p>Bei einem schmalen Browserfenster (zum Beispiel 1440 Pixel breit mit geöffneter Seitenleiste) kann eine sechste Spalte des Sitzplans am rechten Rand abgeschnitten sein. Verkleinern Sie dann die Browseransicht mit <span class="kbd">Strg</span> + <span class="kbd">−</span> oder blenden Sie die Seitenleiste mit dem Menüknopf ☰ aus.</p></div>
+
+  <h2 id="k5-5"><span class="num">5.5</span>Alarme mit Ton</h2>
+  <p>Verlässt ein Schüler das Vollbild, wechselt er Tab oder Fenster oder öffnet die Klausur ein zweites Mal, geschieht gleichzeitig:</p>
+  <ul>
+    <li>Beim <b>Schüler</b>: Bildschirm gesperrt, Signalton, Meldung „Die Lehrkraft wurde benachrichtigt.“</li>
+    <li>Im <b>Pult</b>: derselbe Ton, ein roter Alarmstreifen oben („Noah Schulz hat Fenster oder Tab gewechselt“, mit <span class="ui">Details</span> und ✕ zum Schließen), die Kachel wird rot („Gesperrt“), und im Ereignisprotokoll steht ein Eintrag mit Schwere „Alarm“.</li>
+  </ul>
+  <figure>
+    <img src="img/x-412-pult-alarm.jpg" alt="Alarm im Pult">
+    <figcaption><b>{fig}</b> Alarm: roter Streifen, rote Kachel, Alarm im Ereignisprotokoll</figcaption>
+  </figure>
+  <div class="box warn"><span class="t">Ton aktivieren nicht vergessen</span><p>Browser spielen Ton erst nach einer Aktion ab. Klicken Sie einmal auf <span class="ui p">Ton aktivieren</span>, wenn Sie das Pult geöffnet haben. Mit <span class="ui">Ton an</span> schalten Sie den Ton stumm oder wieder ein. Ein Verstoß wird immer im Protokoll festgehalten, auch wenn der Ton aus war.</p></div>
+  <p>Kurze Fokusverluste unter der eingestellten Toleranz (Standard 300 Millisekunden) werden nur als Info protokolliert und lösen keinen Alarm aus. Alle Ereignisse und ihre Schwere stehen im Anhang C.</p>
+
+  <h2 id="k5-6"><span class="num">5.6</span>Freigeben und Sperren</h2>
+  <p><b>Freigeben:</b> Klicken Sie die rote Kachel an (sie wird umrandet, in der Aktionsleiste steht „1 ausgewählt“) und dann auf <span class="ui">Freigeben</span>. Der Schüler kommt zurück ins Klausurfenster, wo ein Klick auf den Vollbild-Knopf die Arbeit fortsetzt. Alle seine Antworten sind erhalten.</p>
+  <figure>
+    <img src="img/x-413-pult-kachel-gewaehlt.jpg" alt="Kachel gewählt">
+    <figcaption><b>{fig}</b> Eine Kachel ist gewählt; die Aktionsleiste zeigt Freigeben, Sperren, Abwesend, Pause, Zeit, Abgeben, Durchsage</figcaption>
+  </figure>
+  <p><b>Sperren:</b> Mit <span class="ui">Sperren</span> sperren Sie einen Schüler von Hand, zum Beispiel wenn Sie einen Täuschungsversuch beobachten. Er sieht den Sperrbildschirm und muss die Freigabe anfragen.</p>
+  <p><b>Mehrere Personen:</b> Mit <span class="kbd">Strg</span> + Klick wählen Sie mehrere Kacheln, <span class="ui">Alle auswählen</span> wählt alle, <span class="ui">Auswahl aufheben</span> hebt auf. Die Aktionen wirken dann auf alle gewählten Personen.</p>
+  <p><b>Anfrage ablehnen:</b> Fragt ein gesperrter Schüler die Freigabe an, erscheint seine Anfrage rechts unter <b>Anfragen</b> mit <span class="ui">Freigeben</span> und <span class="ui">Ablehnen</span>. Bei „Ablehnen“ bleibt er gesperrt.</p>
+
+  <h2 id="k5-7"><span class="num">5.7</span>Abwesend (Toilette)</h2>
+  <p>Möchte ein Schüler kurz hinaus, wählen Sie seine Kachel und klicken auf <span class="ui">Abwesend (Toilette)</span>. Es öffnet sich ein Bestätigungsdialog. Danach ist die Kachel grau; der Schüler sieht „Du bist abgemeldet (Toilette)“. Die Zeitregel stellen Sie vorher in den Klausureinstellungen ein: Standardmäßig läuft die Uhr weiter („Abwesenheit hält die Uhr an“ ist aus).</p>
+  <ol class="steps">
+    <li>Kachel wählen, <span class="ui">Abwesend (Toilette)</span>, bestätigen.</li>
+    <li>Kommt der Schüler zurück, klickt er auf <span class="ui">Ich bin zurück, Freigabe anfragen</span>. Seine Kachel zeigt „Bitte um Freigabe“, rechts erscheint eine Anfrage.</li>
+    <li>Klicken Sie auf <span class="ui">Freigeben</span>. Er arbeitet weiter.</li>
+  </ol>
+  <div class="figrow">
+    <figure><img src="img/x-417-pult-toilette-dialog.jpg" alt="Abwesend Dialog"><figcaption><b>{fig}</b> Dialog beim Setzen auf „Abwesend“</figcaption></figure>
+    <figure><img src="img/x-418-pult-freigabe-anfrage.jpg" alt="Freigabe Anfrage"><figcaption><b>{fig}</b> Der Schüler ist zurück und bittet um Freigabe</figcaption></figure>
+  </div>
+
+  <h2 id="k5-8"><span class="num">5.8</span>Pause</h2>
+  <p>Mit <span class="ui">Pause</span> (für gewählte Personen) oder <span class="ui">Alle pausieren</span> (für alle) halten Sie die Uhr an und sperren die Bildschirme: „Die Uhr hält für alle an und alle Bildschirme werden gesperrt. Fortfahren?“. Die Schüler sehen „Die Klausur ist pausiert. Die Uhr steht. Es geht weiter, sobald die Lehrkraft die Pause beendet.“ Der Status der Klausur wird „Pausiert“. Beenden Sie die Pause mit <span class="ui">Fortsetzen</span> (für gewählte Personen) bzw. dem Knopf <span class="ui">Alle fortsetzen</span>. Die Pausenzeit wird bei der Endzeit jeder Person automatisch ausgeglichen.</p>
+  <div class="figrow">
+    <figure><img src="img/x-428-pult-pause-dialog.jpg" alt="Pause Dialog"><figcaption><b>{fig}</b> Bestätigung der Pause für alle</figcaption></figure>
+    <figure><img src="img/x-528-pause.jpg" alt="Pause beim Schüler"><figcaption><b>{fig}</b> So sieht der Schüler die Pause</figcaption></figure>
+  </div>
+
+  <h2 id="k5-9"><span class="num">5.9</span>Zeit verlängern</h2>
+  <p>Wählen Sie eine oder mehrere Kacheln und klicken Sie auf <span class="ui">+5 min</span> oder <span class="ui">+10 min</span>. Für andere Werte öffnet <span class="ui">Zeit …</span> einen Dialog, in dem Sie die Minuten eintragen. Die Zeit wird der Person gutgeschrieben, die Restzeit der Kachel ändert sich sofort, und das Ereignisprotokoll hält es fest. Das Ende der Person ist: Start + Dauer × (1 + Nachteilsausgleich) + gutgeschriebene Minuten + Pausenzeit.</p>
+  <figure class="narrow">
+    <img src="img/x-416-pult-zeit-dialog.jpg" alt="Zeit-Dialog">
+    <figcaption><b>{fig}</b> Der Dialog „Zeit …“ zum Gutschreiben einer beliebigen Zeit</figcaption>
+  </figure>
+
+  <h2 id="k5-10"><span class="num">5.10</span>Durchsage</h2>
+  <p>Mit <span class="ui">Durchsage an alle</span> (oder <span class="ui">Durchsage</span> für die gewählten Personen) schicken Sie einen Text, der bei den Schülern als blauer Streifen oben erscheint und im Protokoll steht. Nutzen Sie sie für Hinweise („Aufgabe 2: Die Funktion heißt fib“) oder Korrekturen einer Aufgabenstellung.</p>
+  <div class="figrow">
+    <figure><img src="img/x-419-pult-durchsage-dialog.jpg" alt="Durchsage Dialog"><figcaption><b>{fig}</b> Durchsage verfassen</figcaption></figure>
+    <figure><img src="img/x-524-durchsage-banner.jpg" alt="Durchsage Schüler"><figcaption><b>{fig}</b> Bei den Schülern erscheint sie als Streifen</figcaption></figure>
+  </div>
+
+  <h2 id="k5-11"><span class="num">5.11</span>Hand heben, Anfragen und Gerätewechsel</h2>
+  <p>Rechts im Pult steht der Bereich <b>Anfragen</b>. Dort erscheinen:</p>
+  <ul>
+    <li><b>Hand gehoben</b>: Der Schüler hat <span class="ui">Hand</span> geklickt. Seine Kachel zeigt ✋, die Kennzahl „Hände“ steigt. Gehen Sie hin, helfen Sie, und klicken Sie auf <span class="ui">Quittieren</span>.</li>
+    <li><b>Bitte um Freigabe</b>: gesperrt oder zurück von der Toilette. <span class="ui">Freigeben</span> oder <span class="ui">Ablehnen</span>.</li>
+    <li><b>Abgabe</b>: Der Schüler will abgeben. <span class="ui">Bestätigen</span> oder <span class="ui">Ablehnen</span> (5.13).</li>
+    <li><b>Gerätewechsel</b>: Dieselbe Person hat sich an einem anderen Gerät angemeldet. Sie sehen „Gerätewechsel angefragt“ mit <span class="ui">Freigeben</span> und <span class="ui">Ablehnen</span>. Bei Freigabe wird das neue Gerät gebunden, das alte gesperrt, und der letzte Stand wird übernommen.</li>
+  </ul>
+  <div class="figrow">
+    <figure><img src="img/x-415-pult-hand.jpg" alt="Hand gehoben"><figcaption><b>{fig}</b> Hand gehoben: ✋ in der Kachel und Eintrag unter „Anfragen“</figcaption></figure>
+    <figure><img src="img/x-423-pult-geraetewechsel.jpg" alt="Gerätewechsel"><figcaption><b>{fig}</b> Eine Gerätewechsel-Anfrage</figcaption></figure>
+  </div>
+  <div class="box note"><span class="t">Gerätewechsel prüfen</span><p>Fragen Sie nach, bevor Sie freigeben: Hat der Rechner wirklich einen Defekt? Ein Gerätewechsel ist der übliche Weg, wenn der Rechner ausfällt, aber auch der Weg, auf dem jemand versuchen könnte, an zwei Geräten zu arbeiten. Das alte Gerät wird nach der Freigabe gesperrt.</p></div>
+
+  <h2 id="k5-12"><span class="num">5.12</span>Mitlesen, Ereignisprotokoll und Replay</h2>
+  <p>Das 🔍 in einer Kachel öffnet rechts ein <b>Detailfenster</b> mit den Reitern <b>Antworten</b>, <b>Protokoll</b> und <b>Zeit &amp; Gerät</b> sowie den Aktionen für diese Person.</p>
+  <ul>
+    <li><b>Antworten („Mitlesen“)</b>: Alle Antworten der Person, alle 2 Sekunden aktualisiert, mit Version und „gespeichert vor …“. Das ist die Antwort auf „Wo steht der Schüler gerade?“. Aufgabentexte lassen sich über „Aufgabentext“ aufklappen.</li>
+    <li><b>Protokoll</b>: Der Zeitstrahl der Ereignisse dieser Person (Beitritt, Bereit, Verstöße, Zustandswechsel, Durchsagen).</li>
+    <li><b>Zeit &amp; Gerät</b>: Zusatzminuten, Pausenzeit, Endzeit, Gerätebindung.</li>
+    <li><b>Replay</b> (Knopf neben jeder Aufgabe): spielt die Entstehung der Antwort ab. Zeitleiste, Abspielen mit 1x, 4x oder 16x, rote Marken für Einfügungen, gelbe für Überziehung nach dem Zeitende. Pausen über einer Minute werden verkürzt. Fehlen Schritte, weist das Replay darauf hin.</li>
+  </ul>
+  <p>Das <b>Ereignisprotokoll</b> der ganzen Klausur steht rechts im Pult. Filtern Sie es nach <b>Schwere</b> (Alarm, Warnung, Info), <b>Art</b> (zum Beispiel „ist beigetreten“, „ist bereit“, „Zustand geändert“) und <b>Person</b>. Ein Klick auf einen Namen im Protokoll wählt die Person.</p>
+  <figure>
+    <img src="img/x-420-pult-detail-antworten.jpg" alt="Detailfenster">
+    <figcaption><b>{fig}</b> Das Detailfenster einer Person mit den Antworten zum Mitlesen</figcaption>
+  </figure>
+  <figure>
+    <img src="img/x-424-replay.jpg" alt="Replay">
+    <figcaption><b>{fig}</b> Das Replay einer Antwort mit Zeitleiste, Geschwindigkeit und Marken für Einfügungen</figcaption>
+  </figure>
+
+  <h2 id="k5-13"><span class="num">5.13</span>Zeitende und Abgabe</h2>
+  <p><b>Das Zeitende gibt nichts ab.</b> Wenn die Zeit einer Person abläuft, ertönt ein Signal bei ihr und im Pult, ein Eintrag „Zeit abgelaufen“ steht im Protokoll, und die Kachel zeigt die abgelaufene Zeit. Es wird nichts gesperrt. Der Schüler kann weiterschreiben; Änderungen ab diesem Moment werden als <b>Überziehung</b> markiert und sind im Replay (gelb) und in der Korrektur (⏰) sichtbar. Erst wenn Sie abgeben, ist Schluss.</p>
+  <h3>Abgabe durch den Schüler</h3>
+  <ol class="steps">
+    <li>Der Schüler klickt <span class="ui">Abgeben</span> und bestätigt eine Sicherheitsabfrage. Seine Bearbeitung ist gesperrt.</li>
+    <li>Im Pult erscheint unter Anfragen „Abgabe“ mit <span class="ui">Bestätigen</span> und <span class="ui">Ablehnen</span>. Das Pult zeigt, ob der letzte Stand vollständig angekommen ist („vollständig“ oder „letzter Stand vor 40 s, Gerät offline“).</li>
+    <li>Bestätigen Sie, wenn alles passt: Der Zustand wird „Abgegeben“. Lehnen Sie ab, geht es für den Schüler weiter. <span class="ui">Abgabe zurücknehmen</span> öffnet eine bestätigte Abgabe wieder.</li>
+  </ol>
+  <h3>Abgabe durch Sie</h3>
+  <p>Wählen Sie Kacheln (oder <span class="ui">Alle auswählen</span>) und klicken Sie auf <span class="ui">Abgeben</span>. Ein Dialog fragt nach; mit <span class="ui p">Abgeben</span> sammeln Sie ein. Das ist der übliche Weg am Ende der Zeit, auch wenn der Abgabe-Knopf für Schüler ausgeschaltet ist. Der Server nimmt immer den letzten Stand und prüft, dass alle Änderungen bis zur letzten Sequenznummer angekommen sind.</p>
+  <figure>
+    <img src="img/x-433-pult-abgeben-dialog.jpg" alt="Abgeben Dialog">
+    <figcaption><b>{fig}</b> Der Dialog beim Abgeben für alle gewählten Personen</figcaption>
+  </figure>
+
+  <h2 id="k5-14"><span class="num">5.14</span>Klausur beenden</h2>
+  <p>Sind alle Abgaben bestätigt (Kennzahl „Abgegeben: 6/6“), klicken Sie auf <span class="ui d">Klausur beenden</span> und bestätigen im Dialog. Der Status wird „Beendet“; die Schüler sehen die Bestätigungsseite. Danach beginnen Sie die Korrektur (Kapitel 6). Beenden Sie die Klausur erst, wenn alle abgegeben haben: Nicht abgegebene Teilnahmen werden dann beim Beenden mit abgegeben, bleiben aber in der Korrektur als „ohne Abgabe“ gekennzeichnet, wenn sie nie abgegeben haben.</p>
+  <div class="figrow">
+    <figure><img src="img/x-434-pult-alle-abgegeben.jpg" alt="Alle abgegeben"><figcaption><b>{fig}</b> Alle Abgaben sind bestätigt</figcaption></figure>
+    <figure><img src="img/x-436-pult-beendet.jpg" alt="Beendet"><figcaption><b>{fig}</b> Die Klausur ist beendet</figcaption></figure>
+  </div>
+
+  <h2 id="k5-15"><span class="num">5.15</span>Typische Situationen</h2>
+  <h3>Der Rechner eines Schülers stürzt ab</h3>
+  <ol class="steps">
+    <li>Seine Kachel wird „offline“ (roter Punkt). Seine bis dahin gespeicherten Antworten sind sicher, der letzte lokale Stand liegt im Browser des Rechners.</li>
+    <li>Lässt sich der Rechner neu starten: Der Schüler meldet sich an, öffnet die Klausur und klickt „Klicke, um zu beginnen“. Sein Stand ist zurück, ein Eintrag „Neu geladen“ steht im Protokoll.</li>
+    <li>Ist der Rechner defekt: Er meldet sich am Ersatzgerät an, sieht „Warte auf Freigabe für dieses Gerät“, und Sie geben den Gerätewechsel unter Anfragen frei. Schreiben Sie ihm bei Bedarf mit <span class="ui">+10 min</span> die verlorene Zeit gut.</li>
+  </ol>
+  <h3>Das WLAN fällt aus</h3>
+  <p>Schüler schreiben weiter; oben bei ihnen steht „offline, wird gespeichert, sobald die Verbindung da ist“. Im Pult werden die Kacheln „offline“ und das Protokoll meldet „Verbindung verloren“. Wenn das Netz zurück ist, sendet jeder Rechner seinen Stand nach. Geben Sie erst ab, wenn die Kacheln wieder „gespeichert vor wenigen Sekunden“ zeigen. Fällt das Netz länger aus, nutzen Sie <span class="ui">Alle pausieren</span> und schreiben Sie die Zeit gut.</p>
+  <h3>Ein Schüler kommt zu spät</h3>
+  <p>Er tritt wie alle bei und klickt „Bereit“. Läuft die Klausur schon, kommt er direkt hinein und hat die Restzeit der Klausur. Schreiben Sie ihm mit <span class="ui">Zeit …</span> die verpasste Zeit gut, wenn Sie das möchten.</p>
+  <h3>Nachteilsausgleich</h3>
+  <p>Der Nachteilsausgleich ist an der Person gespeichert (Kapitel 3.5) und wird automatisch angewendet: Emma Wagner (+25 %) hat bei 90 Minuten Dauer eine Restzeit von 1:52 statt 1:30. Sie sehen es an ihrer Kachel. Beim Zeitende der anderen Schüler läuft ihre Uhr noch. Sie müssen nichts einstellen. Geben Sie sie erst nach ihrer eigenen Zeit ab.</p>
+  <h3>Ein versehentlicher Verstoß</h3>
+  <p>Ein Schüler hat aus Versehen ein Systemfenster angeklickt und ist gesperrt. Öffnen Sie sein Detailfenster, schauen Sie im Protokoll, was passiert ist (Zeit, Ereignis, Dauer), und geben Sie frei. Hat er nicht gegen Regeln verstoßen, ist es ein Fehlalarm; notieren Sie die Entscheidung. Bei vielen Fehlalarmen erhöhen Sie in den Klausureinstellungen die Toleranz für kurze Fokusverluste.</p>
+  <h3>Ein Schüler wird beim Täuschen erwischt</h3>
+  <p>Sperren Sie ihn mit <span class="ui">Sperren</span>, lesen Sie seine Antworten im Detailfenster mit und dokumentieren Sie den Vorfall nach den Regeln Ihrer Schule. Das Protokoll und das Replay liefern Belege, entscheiden müssen Sie selbst.</p>
+  <h3>Eine Aufgabe ist fehlerhaft</h3>
+  <p>Senden Sie eine <b>Durchsage</b> an alle. Texte der Aufgaben lassen sich im Editor noch ändern (nicht die Struktur). Punkte passen Sie später in der Korrektur an.</p>
+</section>

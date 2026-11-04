@@ -1,0 +1,83 @@
+<section class="chapter" id="k1" data-title="Überblick">
+  <div class="chapter-head">
+    <div class="big">01</div>
+    <div class="kicker">Kapitel 1</div>
+    <h1>Überblick</h1>
+    <p class="lead">Was Klausurwerk kann, wer damit arbeitet, wie eine Klausur von der Anlage bis zur Rückgabe verläuft und was technisch nicht möglich ist.</p>
+    <div class="for">Für alle Rollen</div>
+  </div>
+
+  <p>Klausurwerk ist eine Webanwendung für Informatik-Klausuren in den Klassen 10 bis 12. Schüler schreiben die Klausur im Browser im Vollbild: Sie programmieren in <b>Java</b>, <b>Python</b> und <b>SQL</b>, beantworten Freitext-, Auswahl- und Lückenaufgaben, zeichnen UML-, ER- und Automatendiagramme, Struktogramme und Schaltungen und programmieren eine Figur in der Gitterwelt „Robo“. Lehrkräfte sehen im <b>Pult</b> live, wer wo steht, wer die Klausur verlassen hat und wer Hilfe braucht. Nach der Klausur korrigieren sie in derselben Anwendung, vergeben Noten und geben die Ergebnisse digital zurück.</p>
+  <p>Die Anwendung läuft auf einem eigenen Server der Schule (Docker Compose). Es gibt keinen Cloud-Dienst. Alle benötigten Bibliotheken (Schriften, Python im Browser, SQL, Formelsatz) liegen auf dem Server, zur Laufzeit werden keine Inhalte aus dem Internet nachgeladen.</p>
+
+  <h2 id="k1-1"><span class="num">1.1</span>Die drei Rollen</h2>
+  <p>Jedes Konto hat genau eine Rolle. Die Rolle bestimmt, welche Bereiche in der Seitenleiste erscheinen.</p>
+  <div class="grid3">
+    <div class="card"><span class="role r-admin">Admin</span><p>In der Oberfläche „Administrator:in“. Hat automatisch alle Rechte: legt Lehrkräfte an, stellt die Schule ein, verwaltet Schüler, Kurse, Räume, Notenschlüssel, Operatoren, Aufbewahrungsfristen und sieht das Audit-Log.</p></div>
+    <div class="card"><span class="role r-teacher">Lehrkraft</span><p>Erstellt Klausuren, Übungen und Technik-Checks, überwacht sie im Pult, korrigiert und gibt zurück. Verwaltet ihre Kurse und Schüler. Weitere Rechte vergibt der Admin einzeln (Kapitel 3.8).</p></div>
+    <div class="card"><span class="role r-student">Schüler:in</span><p>Meldet sich mit der Zugangskarte an, tritt dem Warteraum bei, schreibt die Klausur und sieht nach der Freigabe das eigene Ergebnis. Sieht nie die Daten anderer.</p></div>
+  </div>
+  <p>An einer einzelnen Klausur gibt es zusätzlich Rechte, die nicht an der Rolle hängen: Die erstellende Lehrkraft ist <b>Hauptlehrkraft</b> der Klausur. Sie kann weitere Lehrkräfte als <b>Aufsicht</b> hinzufügen. Aufsichten dürfen immer das Pult bedienen; Lösungen sehen und Korrigieren müssen ihnen einzeln erlaubt werden (Kapitel 4.9).</p>
+
+  <h2 id="k1-2"><span class="num">1.2</span>Der Weg einer Klausur</h2>
+  <p>Jede Klausur durchläuft dieselben Zustände. Der aktuelle Zustand steht als Marke neben dem Titel.</p>
+  <div class="timeline">
+    <div class="st"><div class="dot">1</div><b>Entwurf</b><span>Aufgaben, Einstellungen, weitere Lehrkräfte</span><div class="when">Kapitel 4</div></div>
+    <div class="st"><div class="dot">2</div><b>Bereit</b><span>gegen Änderungen gesperrt, Vorschau und SEB-Datei</span><div class="when">Kapitel 4</div></div>
+    <div class="st"><div class="dot">3</div><b>Warteraum</b><span>Schüler treten bei und klicken „Bereit“</span><div class="when">Kapitel 5</div></div>
+    <div class="st"><div class="dot">4</div><b>Läuft</b><span>Start durch die Lehrkraft, Uhr läuft für alle</span><div class="when">Kapitel 5</div></div>
+    <div class="st"><div class="dot">5</div><b>Beendet</b><span>alle Abgaben bestätigt</span><div class="when">Kapitel 5</div></div>
+    <div class="st"><div class="dot">6</div><b>In Korrektur</b><span>Punkte, Kommentare, Note</span><div class="when">Kapitel 6</div></div>
+    <div class="st"><div class="dot">7</div><b>Zurückgegeben</b><span>Freigabe, danach Archiv</span><div class="when">Kapitel 6</div></div>
+  </div>
+  <p>Zwischen „Läuft“ und „Beendet“ gibt es den Zustand „Pausiert“. Aus „Bereit“ kommen Sie mit <span class="ui">Zurück in den Entwurf</span> wieder in die Bearbeitung. Nach der Rückgabe lässt sich die Freigabe zurücknehmen, dann ist die Klausur wieder „In Korrektur“. Am Ende steht „Archiviert“.</p>
+
+  <h2 id="k1-3"><span class="num">1.3</span>Die drei Modi</h2>
+  <table>
+    <thead><tr><th>Modus</th><th>Zweck</th><th>Eigenschaften</th></tr></thead>
+    <tbody>
+      <tr><td><b>Klausur</b></td><td>Benotete Leistungserhebung</td><td>Überwachung (Vollbild, Fokus, Einfügen), Sperre bei Verstoß, feste Dauer, Abgabe wird von der Lehrkraft bestätigt, Korrektur und Noten.</td></tr>
+      <tr><td><b>Übung</b></td><td>Üben im Unterricht</td><td>Keine Überwachung, Uhr optional (die Dauer darf leer bleiben), Beispieltests sind für Schüler sofort sichtbar.</td></tr>
+      <tr><td><b>Probe (Technik-Check)</b></td><td>Vor der Klausur prüfen, ob Rechner, Ton, Vollbild und Verbindung funktionieren</td><td>Keine Aufgaben nötig. Prüft genau die Dinge, die in der Klausur zählen, vor allem den Ton bei einem Verstoß.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="k1-4"><span class="num">1.4</span>Was Klausurwerk kann</h2>
+  <ul>
+    <li><b>16 Antworttypen</b> (Kapitel 4.6): Programmcode, Freitext, Multiple Choice, Zuordnung, Reihenfolge, Lückentext, Freihandzeichnung, UML-Klassendiagramm, Struktogramm, Programmablaufplan, Schaltnetz, Wahrheitstabelle, endlicher Automat, ER-Diagramm, Relationenschema und Robo.</li>
+    <li><b>Code ausführen</b>: Python und SQL laufen direkt im Browser, Java läuft abgeschottet im Runner-Container auf dem Server. Python-<code>input()</code> wartet echt auf die Eingabe, es gibt eine Turtle-Grafik.</li>
+    <li><b>Überwachung</b>: Vollbild, Fokus, Tabwechsel, Einfügen von außen, zweiter Tab, Verbindungsabbruch. Bei einem Verstoß ertönt bei Schüler und Lehrkraft ein Signal, der Bildschirm des Schülers wird gesperrt, bis die Lehrkraft freigibt.</li>
+    <li><b>Pult</b>: Kacheln wie die Sitzordnung im Raum, Zustände live, Mitlesen, Replay, Zeit verlängern, Pause, Abwesend (Toilette), Durchsagen, Hand heben, Gerätewechsel.</li>
+    <li><b>Ausfallsicherheit</b>: Autosave nach jeder Änderung, lokale Sicherung im Browser (IndexedDB), Nachsenden nach Verbindungsabbruch. Das Pult zeigt, ob der letzte Stand vollständig angekommen ist.</li>
+    <li><b>Korrektur</b>: automatische Vorbewertung, Erwartungshorizont daneben, Zeilenkommentare, Zweitkorrektur, Notenschlüssel, Klausurspiegel, PDF und Excel, digitale Rückgabe.</li>
+    <li><b>Nachteilsausgleich</b> je Person, der automatisch auf die Zeit angerechnet wird.</li>
+    <li><b>Safe Exam Browser</b> optional, mit erzeugter <code>.seb</code>-Datei und serverseitiger Prüfung.</li>
+  </ul>
+
+  <h2 id="k1-5"><span class="num">1.5</span>Was technisch geht und was nicht</h2>
+  <p>Diese Grenzen sollten Sie kennen, bevor Sie Klausurwerk einsetzen. Sie bestimmen, was die Aufsicht im Raum weiterhin leisten muss.</p>
+  <div class="box tip"><span class="t">Lösungen sind sicher</span>
+    <p>Musterlösung, Erwartungshorizont und versteckte Tests liegen in eigenen Datenbanktabellen und verlassen den Server nie in Richtung Schüler-Browser. Kein Endpunkt, den eine Schüler-Sitzung aufrufen darf, liest diese Tabellen. Ein automatischer Test prüft das für jede Route.</p></div>
+  <div class="box warn"><span class="t">Der Quellcode der Oberfläche lässt sich im normalen Browser nicht verstecken</span>
+    <p>Was der Browser ausführt, kann man mit <span class="kbd">F12</span> lesen. Klausurwerk macht es unattraktiv: Die Schüler-Bundles sind minifiziert und verschleiert, Rechtsklick und die üblichen Tastenkürzel für die Entwicklerwerkzeuge werden abgefangen, und ein Verdacht auf geöffnete Entwicklerwerkzeuge wird im Pult gemeldet. Das ist ein Hinweis, kein Beweis. Wirklich gesperrt sind die Werkzeuge nur im <b>Safe Exam Browser</b>.</p></div>
+  <table>
+    <thead><tr><th>Wird erkannt</th><th>Wird nicht erkannt (Aufgabe der Aufsicht)</th></tr></thead>
+    <tbody><tr>
+      <td><ul class="tight"><li>Vollbild verlassen</li><li>Tab oder Fenster gewechselt, minimiert</li><li>Fokus verloren (zum Beispiel Alt+Tab)</li><li>Einfügen von Text, der nicht aus der Klausur stammt</li><li>zweiter Tab mit derselben Klausur</li><li>Verbindungsabbruch, Neuladen, Fenstergröße geändert</li><li>Verdacht auf Entwicklerwerkzeuge</li><li>fehlender Safe Exam Browser</li></ul></td>
+      <td><ul class="tight"><li>Handy unter dem Tisch</li><li>zweiter Rechner</li><li>Zettel und Bücher</li><li>zweiter Monitor, auf den nur geschaut wird</li><li>Absprachen zwischen Schülern</li></ul></td>
+    </tr></tbody>
+  </table>
+  <p>Keine Bildschirmübertragung, keine Kamera, kein Mikrofon: Die Browserrichtlinie der Anwendung sperrt diese Zugriffe. Das Pult zeigt den Inhalt der Antworten („Mitlesen“) und das Ereignisprotokoll, aber nicht den Bildschirm.</p>
+  <div class="box note"><span class="t">Ton beim Verstoß</span><p>Browser spielen Ton erst nach einer Nutzeraktion ab. Der Knopf <span class="ui">Bereit</span> im Warteraum schaltet den Ton auf dem Schülerrechner frei, der Knopf <span class="ui">Ton aktivieren</span> im Pult tut dasselbe für die Lehrkraft. Danach funktioniert das Signal auch, wenn das Fenster im Hintergrund ist. Der Technik-Check (Probe) testet genau das.</p></div>
+
+  <h2 id="k1-6"><span class="num">1.6</span>Aufbau der Oberfläche</h2>
+  <p>Nach der Anmeldung sehen Admins und Lehrkräfte links die Seitenleiste mit den Bereichen <b>Unterricht</b> (Übersicht, Klausuren, Archiv, Kurse, Räume) und <b>Verwaltung</b> (Benutzer, Zugangskarten, Notenschlüssel, Operatoren, Berechtigungen, Einstellungen, Aufbewahrung, Audit-Log). Was Sie sehen, hängt von Ihrer Rolle und Ihren Rechten ab. Oben rechts wechselt der Knopf <span class="ui">◐</span> zwischen hellem und dunklem Erscheinungsbild; das Benutzermenü daneben enthält <span class="ui">Abmelden</span>.</p>
+  <figure>
+    <img src="img/f-110-dashboard-admin.jpg" alt="Übersicht des Admins">
+    <figcaption><b>{fig}</b> Die Übersicht des Admins nach der Anmeldung, links die Seitenleiste</figcaption>
+  </figure>
+  <figure class="narrow">
+    <img src="img/f-111-dunkelmodus.jpg" alt="Dunkelmodus">
+    <figcaption><b>{fig}</b> Dasselbe im dunklen Erscheinungsbild</figcaption>
+  </figure>
+</section>
