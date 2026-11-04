@@ -449,3 +449,19 @@ Bitte zu jedem kurz Bescheid geben; bei einigen habe ich eine Empfehlung.
 9. **Server-Leistung.** Für den Java-Runner plane ich 2 CPU-Kerne und 2 GB RAM zusätzlich ein, mit
    Warteschlange bei Überlast. Was hat dein Server?
 10. **GitHub.** Name des Repos und GitHub-Konto bzw. Organisation für die GHCR.
+
+## 18. Entscheidungen zum Abschluss (4. November 2026)
+
+- **Java bleibt im Runner auf dem Server.** CheerpJ (Java im Browser) wird nicht eingebaut: keine
+  Lizenzfrage, der Runner ist umgesetzt, abgeschottet (eigene UID, seccomp, keine Kanäle zwischen
+  Läufen) und getestet.
+- **Restrisiken akzeptiert.** Zeitstempel einer Antwort kommen vom Schülerrechner (der Server prüft
+  und begrenzt sie), und ein gezielt präpariertes Programm kann in der automatischen Prüfung ein
+  „bestanden“ vortäuschen. Automatische Bewertungen bleiben deshalb Vorschläge, die die Lehrkraft
+  bestätigt.
+- **Noch offen, später:**
+  - Test mit echtem Safe Exam Browser: unverschlüsselte und verschlüsselte `.seb`-Datei öffnen,
+    „Nur mit Safe Exam Browser“ aktivieren, optional Browser Exam Key eintragen. Wenn der Server
+    steht.
+  - Einrichtung auf dem echten Server: Domain, Reverse-Proxy mit HTTPS (Cross-Origin-Isolation
+    prüfen), SMTP, dann Probelauf. Die Domain steht noch nicht fest.
