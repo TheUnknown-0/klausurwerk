@@ -25,8 +25,9 @@ $badge = static function (string $status) use ($statusLabels): string {
     </div>
 </div>
 
-<section class="card" aria-labelledby="open-title">
-    <div class="card-header"><h2 id="open-title" style="margin:0;font-size:1.1rem;">Offene Klausuren</h2></div>
+<div class="stack">
+<section aria-labelledby="open-title">
+    <h2 id="open-title">Offene Klausuren</h2>
     <?php if ($open === []): ?>
         <div class="empty-state card-body">
             <p class="text-soft">Gerade ist keine Klausur geöffnet. Sobald deine Lehrkraft den Warteraum öffnet, erscheint sie hier.</p>
@@ -54,8 +55,8 @@ $badge = static function (string $status) use ($statusLabels): string {
 </section>
 
 <?php if ($practice !== []): ?>
-    <section class="card" style="margin-top:20px;" aria-labelledby="practice-title">
-        <div class="card-header"><h2 id="practice-title" style="margin:0;font-size:1.1rem;">Übungen</h2></div>
+    <section class="mt-2" aria-labelledby="practice-title">
+        <h2 id="practice-title">Übungen</h2>
         <div class="table-wrap">
             <table class="data-table">
                 <thead><tr><th>Übung</th><th>Kurs</th><th>Status</th><th></th></tr></thead>
@@ -77,8 +78,8 @@ $badge = static function (string $status) use ($statusLabels): string {
 <?php endif; ?>
 
 <?php if ($finished !== []): ?>
-    <section class="card" style="margin-top:20px;" aria-labelledby="done-title">
-        <div class="card-header"><h2 id="done-title" style="margin:0;font-size:1.1rem;">Beendete Klausuren</h2></div>
+    <section class="mt-2" aria-labelledby="done-title">
+        <h2 id="done-title">Beendete Klausuren</h2>
         <div class="table-wrap">
             <table class="data-table">
                 <thead><tr><th>Klausur</th><th>Kurs</th><th>Status</th><th></th></tr></thead>
@@ -102,3 +103,4 @@ $badge = static function (string $status) use ($statusLabels): string {
         </div>
     </section>
 <?php endif; ?>
+</div>

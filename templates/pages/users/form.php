@@ -114,7 +114,7 @@ $val = static fn (string $key, string $default = ''): string => (string) ($value
                 <div class="input-group">
                     <input class="input" type="password" id="password" name="password" autocomplete="new-password"
                            minlength="<?= e((string) $minPasswordLength) ?>">
-                    <button class="input-icon-btn" type="button" data-toggle-password="password" aria-label="Passwort anzeigen" aria-pressed="false">👁</button>
+                    <button class="input-icon-btn" type="button" data-toggle-password="password" aria-label="Passwort anzeigen" aria-pressed="false"><?= icon('eye') ?></button>
                 </div>
                 <div class="hint">Mindestens <?= e((string) $minPasswordLength) ?> Zeichen.</div>
             </div>
@@ -201,7 +201,7 @@ $val = static fn (string $key, string $default = ''): string => (string) ($value
     <div class="grid-2 max-w-lg">
         <?php if ($user['role'] === 'student' && $canCards && (int) $user['is_active'] === 1): ?>
             <div class="card card-pad">
-                <h3 class="mt-0">🪪 Zugangskarte</h3>
+                <h3 class="mt-0 card-icon-title"><?= icon('id-card') ?> Zugangskarte</h3>
                 <p class="text-sm text-soft">
                     Setzt ein neues Passwort und gibt die Karte als PDF aus. Die bisherige Karte wird ungültig.
                     <?php if ($user['card_issued_at'] !== null): ?>
@@ -216,7 +216,7 @@ $val = static fn (string $key, string $default = ''): string => (string) ($value
             </div>
         <?php elseif ($user['role'] !== 'student' && $canReset): ?>
             <div class="card card-pad">
-                <h3 class="mt-0">🔑 Passwort zurücksetzen</h3>
+                <h3 class="mt-0 card-icon-title"><?= icon('key-round') ?> Passwort zurücksetzen</h3>
                 <p class="text-sm text-soft">Erzeugt ein neues Passwort, das einmalig angezeigt wird. Die Person muss es beim Login ändern.</p>
                 <form method="post" action="<?= e($base . '/' . (int) $user['id'] . '/passwort') ?>"
                       data-confirm="Neues Passwort erzeugen? Das alte gilt dann nicht mehr.">
@@ -228,7 +228,7 @@ $val = static fn (string $key, string $default = ''): string => (string) ($value
 
         <?php if ($canDelete && !$isSelf): ?>
             <div class="card card-pad">
-                <h3 class="mt-0">🗑️ Konto löschen</h3>
+                <h3 class="mt-0 card-icon-title"><?= icon('trash-2') ?> Konto löschen</h3>
                 <p class="text-sm text-soft">
                     Löscht das Konto samt Teilnahmen und Antworten. Das lässt sich nicht rückgängig machen.
                     Zum Sperren ohne Löschen stattdessen „Konto ist aktiv“ abwählen.

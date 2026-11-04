@@ -68,7 +68,7 @@ export function createGuiView(container, { onEvent = () => {} } = {}) {
 
     const title = h('span', { class: 'kwgui-title' });
     const note = h('span', { class: 'kwgui-note', role: 'status' });
-    const bar = h('div', { class: 'kwgui-bar' }, h('span', { class: 'kwgui-dots', 'aria-hidden': 'true' }, '● ● ●'), title, note);
+    const bar = h('div', { class: 'kwgui-bar' }, h('span', { class: 'kwgui-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), title, note);
     const stage = h('div', { class: 'kwgui-window', role: 'group', 'aria-label': 'Fenster des Programms' });
     const scroller = h('div', { class: 'kwgui-scroller' }, stage);
     const empty = h('p', { class: 'kwgui-empty' }, 'Noch kein Fenster. Das Programm zeigt es an, sobald es läuft.');

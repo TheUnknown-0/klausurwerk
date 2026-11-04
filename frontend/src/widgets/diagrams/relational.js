@@ -3,14 +3,14 @@
  * Tabellen-Editor mit Spalten, Primärschlüssel und Fremdschlüssel (Auswahl der Zielspalte).
  * Darstellung: Tabelle(_id_, name, ↑kurs_id), Primärschlüssel unterstrichen, Fremdschlüssel mit Pfeil.
  */
-import { h } from '../../lib/dom.js';
+import { h, icon } from '../../lib/dom.js';
 import { registerAnswerWidget } from '../../lib/widgets.js';
 import { asObject, clone } from './core/model-util.js';
 import {
     fkTargets, freeId, normalizeSchema, renameReferences, renameTableReferences, schemaSegments,
 } from './core/tables-model.js';
 import { bindUndoKeys, createTracker, textLinesPng } from './core/simple.js';
-import { smallButton } from './core/form.js';
+import { smallButton, withIcon } from './core/form.js';
 
 let counter = 0;
 
@@ -110,7 +110,7 @@ export const RelationalWidget = {
                     readOnly ? null : h('div', { class: 'rel-actions' },
                         smallButton('↑', () => mutate((m) => { [m.tables[ti - 1], m.tables[ti]] = [m.tables[ti], m.tables[ti - 1]]; }, { rebuild: true }), { 'aria-label': `Tabelle ${t.name || ti + 1} nach oben`, disabled: ti === 0 }),
                         smallButton('↓', () => mutate((m) => { [m.tables[ti + 1], m.tables[ti]] = [m.tables[ti], m.tables[ti + 1]]; }, { rebuild: true }), { 'aria-label': `Tabelle ${t.name || ti + 1} nach unten`, disabled: ti === model.tables.length - 1 }),
-                        smallButton('✕ Tabelle', () => mutate((m) => { m.tables.splice(ti, 1); }, { rebuild: true }), { 'aria-label': `Tabelle ${t.name || ti + 1} löschen` })));
+                        smallButton(withIcon('x', 'Tabelle'), () => mutate((m) => { m.tables.splice(ti, 1); }, { rebuild: true }), { 'aria-label': `Tabelle ${t.name || ti + 1} löschen` })));
                 const nameInput = head.children[1];
                 nameInput.addEventListener('input', () => {
                     const old = tableById(model, t.id)?.name ?? '';
@@ -154,7 +154,7 @@ export const RelationalWidget = {
                         readOnly ? null : h('div', { class: 'rel-actions' },
                             smallButton('↑', () => mutate((m) => { const cs = tableById(m, t.id).columns; [cs[ci - 1], cs[ci]] = [cs[ci], cs[ci - 1]]; }, { rebuild: true }), { 'aria-label': 'Spalte nach oben', disabled: ci === 0 }),
                             smallButton('↓', () => mutate((m) => { const cs = tableById(m, t.id).columns; [cs[ci + 1], cs[ci]] = [cs[ci], cs[ci + 1]]; }, { rebuild: true }), { 'aria-label': 'Spalte nach unten', disabled: ci === t.columns.length - 1 }),
-                            smallButton('✕', () => mutate((m) => { tableById(m, t.id).columns.splice(ci, 1); }, { rebuild: true }), { 'aria-label': `Spalte ${c.name || ci + 1} entfernen` }))));
+                            smallButton(icon('x'), () => mutate((m) => { tableById(m, t.id).columns.splice(ci, 1); }, { rebuild: true }), { 'aria-label': `Spalte ${c.name || ci + 1} entfernen` }))));
                 });
                 const card = h('section', { class: 'rel-card', 'aria-label': `Tabelle ${t.name || ti + 1}` }, head, cols,
                     readOnly ? null : smallButton('+ Spalte', () => mutate((m) => {
@@ -193,8 +193,8 @@ export const RelationalWidget = {
                 tracker.touch();
             }
         };
-        const undoBtn = smallButton('↶ Rückgängig', undo, { title: 'Rückgängig (Strg+Z)' });
-        const redoBtn = smallButton('↷ Wiederholen', redo, { title: 'Wiederholen (Strg+Y)' });
+        const undoBtn = smallButton(withIcon('undo-2', 'Rückgängig'), undo, { title: 'Rückgängig (Strg+Z)' });
+        const redoBtn = smallButton(withIcon('redo-2', 'Wiederholen'), redo, { title: 'Wiederholen (Strg+Y)' });
         const addBtn = smallButton('+ Tabelle', () => {
             mutate((m) => {
                 if (m.tables.length < 30) {

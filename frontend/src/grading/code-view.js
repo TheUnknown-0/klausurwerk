@@ -11,7 +11,7 @@
 import { EditorView, gutter, GutterMarker } from '@codemirror/view';
 import { EditorState, StateEffect } from '@codemirror/state';
 import { createCodeEditor } from '../lib/code-editor.js';
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { buildFileList } from '../runtime/files.js';
 import { lineCommentMap } from './logic.js';
 
@@ -30,7 +30,7 @@ class Bubble extends GutterMarker {
     toDOM() {
         const el = document.createElement('span');
         el.className = 'g-bubble';
-        el.textContent = this.count > 0 ? '💬' : '';
+        if (this.count > 0) el.append(icon('message-square'));
         el.title = this.count > 1 ? `${this.count} Kommentare` : 'Kommentar';
         return el;
     }
@@ -60,7 +60,7 @@ export function mountCodeView(container, options) {
     const commentBtn = h('button', {
         type: 'button', class: 'btn btn-sm btn-primary', disabled: true,
         onclick: () => startComment(),
-    }, '💬 Kommentar');
+    }, icon('message-square'), ' Kommentar');
     const hint = h('span', { class: 'text-faint text-sm' }, options.canComment ? 'Markiere Zeilen oder setze den Cursor, dann „Kommentar“ wählen.' : '');
     const toolbar = options.canComment ? h('div', { class: 'g-code-toolbar' }, commentBtn, hint) : null;
     const root = h('div', { class: 'g-codeview' }, tabs, toolbar, hostEl);
@@ -144,9 +144,9 @@ export function mountCodeView(container, options) {
         const sel = selections.get(activeName);
         commentBtn.disabled = !sel;
         if (sel) {
-            commentBtn.textContent = sel.from === sel.to ? `💬 Kommentar zu Zeile ${sel.from}` : `💬 Kommentar zu Zeilen ${sel.from} bis ${sel.to}`;
+            commentBtn.replaceChildren(icon('message-square'), sel.from === sel.to ? ` Kommentar zu Zeile ${sel.from}` : ` Kommentar zu Zeilen ${sel.from} bis ${sel.to}`);
         } else {
-            commentBtn.textContent = '💬 Kommentar';
+            commentBtn.replaceChildren(icon('message-square'), ' Kommentar');
         }
     }
 
@@ -169,9 +169,9 @@ export function mountCodeView(container, options) {
                 title: f.readonly ? `${f.name} (vorgegeben, schreibgeschützt)` : f.name,
                 onclick: () => activate(f.name),
             },
-            f.readonly ? h('span', { 'aria-hidden': 'true' }, '🔒 ') : null,
+            f.readonly ? h('span', { 'aria-hidden': 'true' }, icon('lock'), ' ') : null,
             f.name,
-            count > 0 ? h('span', { class: 'g-tab-count', title: `${count} Kommentare` }, ` 💬${count}`) : null));
+            count > 0 ? h('span', { class: 'g-tab-count', title: `${count} Kommentare` }, ' ', icon('message-square'), String(count)) : null));
         }
     }
 

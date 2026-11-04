@@ -43,13 +43,13 @@ $firstPid = $rows !== [] ? (int) $rows[0]['participation_id'] : 0;
         <?php if ($status === 'finished' && $canGrade): ?>
             <form method="post" action="<?= e($ctx->url('/klausuren/' . $examId . '/korrektur/beginnen')) ?>">
                 <?= $csrf->field() ?>
-                <button class="btn btn-primary" type="submit">▶ Korrektur beginnen</button>
+                <button class="btn btn-primary" type="submit"><?= icon('play') ?> Korrektur beginnen</button>
             </form>
         <?php endif; ?>
         <?php if (in_array($status, ['grading', 'returned', 'archived'], true)): ?>
-            <a class="btn" href="<?= e($ctx->url('/klausuren/' . $examId . '/ergebnisse')) ?>">📊 Ergebnisse</a>
+            <a class="btn" href="<?= e($ctx->url('/klausuren/' . $examId . '/ergebnisse')) ?>"><?= icon('chart-column') ?> Ergebnisse</a>
         <?php endif; ?>
-        <a class="btn" href="<?= e($toggleAnon) ?>"><?= $anonymous ? '👁️ Namen zeigen' : '🙈 Anonym korrigieren' ?></a>
+        <a class="btn" href="<?= e($toggleAnon) ?>"><?= $anonymous ? icon('eye') . ' Namen zeigen' : icon('eye-off') . ' Anonym korrigieren' ?></a>
         <?php if (!$isOwner): ?>
             <a class="btn" href="<?= e($toggleOthers) ?>"><?= $seeOthers ? 'Fremde Bewertungen ausblenden' : 'Fremde Bewertungen zeigen' ?></a>
         <?php endif; ?>
@@ -87,7 +87,7 @@ $firstPid = $rows !== [] ? (int) $rows[0]['participation_id'] : 0;
         <span class="text-danger"><strong data-auto-errors><?= e((string) $auto['errors']) ?></strong> fehlgeschlagen</span><?php endif; ?>.
     </p>
     <div class="cluster">
-        <button class="btn btn-primary" type="button" data-auto-run="">⚙️ Automatisch vorbewerten</button>
+        <button class="btn btn-primary" type="button" data-auto-run=""><?= icon('settings') ?> Automatisch vorbewerten</button>
         <button class="btn" type="button" data-auto-run="errors" <?= $auto['errors'] === 0 ? 'hidden' : '' ?> data-auto-retry>Fehlgeschlagene wiederholen</button>
         <button class="btn" type="button" data-auto-run="all" data-confirm-text="Alle Vorbewertungen löschen und neu berechnen? Deine eigenen Punkte bleiben erhalten.">Alles neu berechnen</button>
         <?php if ($grading): ?>
@@ -102,7 +102,7 @@ $firstPid = $rows !== [] ? (int) $rows[0]['participation_id'] : 0;
 
 <section class="card mt-2" aria-labelledby="matrix-title">
     <div class="card-header g-matrix-head">
-        <h2 class="card-title" id="matrix-title" style="margin:0;">Bewertungsübersicht</h2>
+        <h2 class="card-title" id="matrix-title">Bewertungsübersicht</h2>
         <div class="cluster g-filters">
             <label class="sr-only" for="g-filter-text"><?= $anonymous ? 'Nummer' : 'Name' ?> suchen</label>
             <input class="input" type="search" id="g-filter-text" placeholder="<?= $anonymous ? 'Nummer suchen' : 'Name suchen' ?>" autocomplete="off" data-filter-text>
@@ -174,9 +174,9 @@ $firstPid = $rows !== [] ? (int) $rows[0]['participation_id'] : 0;
                                     <span class="g-pts" aria-hidden="true">–</span>
                                 <?php endif; ?>
                                 <span class="sr-only"><?= e($statusText[$c['status']] ?? '') ?><?= $c['answered'] ? '' : ', keine Antwort' ?></span>
-                                <?php if ($c['status'] === 'diff'): ?><span class="g-flag" title="Zweitkorrektur weicht ab" aria-hidden="true">⚠</span><?php endif; ?>
-                                <?php if ($c['overtime']): ?><span class="g-flag" title="Änderungen nach Ablauf der Zeit" aria-hidden="true">⏰</span><?php endif; ?>
-                                <?php if ($c['pastes'] > 0): ?><span class="g-flag" title="<?= e((string) $c['pastes']) ?> Einfügungen" aria-hidden="true">📋</span><?php endif; ?>
+                                <?php if ($c['status'] === 'diff'): ?><span class="g-flag" title="Zweitkorrektur weicht ab" aria-hidden="true"><?= icon('triangle-alert') ?></span><?php endif; ?>
+                                <?php if ($c['overtime']): ?><span class="g-flag" title="Änderungen nach Ablauf der Zeit" aria-hidden="true"><?= icon('alarm-clock') ?></span><?php endif; ?>
+                                <?php if ($c['pastes'] > 0): ?><span class="g-flag" title="<?= e((string) $c['pastes']) ?> Einfügungen" aria-hidden="true"><?= icon('clipboard-list') ?></span><?php endif; ?>
                             </a>
                         </td>
                     <?php endforeach; ?>
@@ -193,7 +193,7 @@ $firstPid = $rows !== [] ? (int) $rows[0]['participation_id'] : 0;
         <span class="g-cell g-open"><span class="g-pts">–</span></span> offen
         <span class="g-cell g-diff"><span class="g-pts">2</span></span> abweichend
         <span class="g-cell g-error"><span class="g-pts">!</span></span> Fehler
-        <span>⏰ Überziehung</span> <span>📋 Einfügungen</span>
+        <span><?= icon('alarm-clock') ?> Überziehung</span> <span><?= icon('clipboard-list') ?> Einfügungen</span>
     </div>
 </section>
 

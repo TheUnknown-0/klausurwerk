@@ -3,7 +3,7 @@
  * Zustand kommt als JSON-Block (#task-editor-boot), gespeichert wird über die JSON-API
  * unter boot.urls.api (siehe TasksController).
  */
-import { h, toast } from '../lib/dom.js';
+import { h, icon, toast } from '../lib/dom.js';
 import { bootData, post } from '../lib/api.js';
 import { createTaskForm } from './form.js';
 import { button } from './ui.js';
@@ -81,13 +81,13 @@ export function initTaskEditor() {
         if (!locked) {
             const sel = byId(selectedId);
             treeActions.append(
-                button('+ Aufgabe', () => addTask(null)),
-                button('+ Teilaufgabe', () => addTask(sel?.parent_id ?? sel?.id ?? null), { disabled: !sel }),
-                button('↑', () => move('up'), { disabled: !sel, 'aria-label': 'Nach oben' }),
-                button('↓', () => move('down'), { disabled: !sel, 'aria-label': 'Nach unten' }),
-                button('→', () => move('indent'), { disabled: !sel, 'aria-label': 'Zur Teilaufgabe machen', title: 'Zur Teilaufgabe der vorherigen Aufgabe machen' }),
-                button('←', () => move('outdent'), { disabled: !sel, 'aria-label': 'Auf oberste Ebene', title: 'Auf die oberste Ebene holen' }),
-                button('Löschen', () => remove(), { disabled: !sel, class: 'btn btn-sm btn-danger-ghost' }),
+                button([icon('plus'), 'Aufgabe'], () => addTask(null)),
+                button([icon('plus'), 'Teilaufgabe'], () => addTask(sel?.parent_id ?? sel?.id ?? null), { disabled: !sel }),
+                button(icon('arrow-up'), () => move('up'), { disabled: !sel, 'aria-label': 'Nach oben' }),
+                button(icon('arrow-down'), () => move('down'), { disabled: !sel, 'aria-label': 'Nach unten' }),
+                button(icon('arrow-right'), () => move('indent'), { disabled: !sel, 'aria-label': 'Zur Teilaufgabe machen', title: 'Zur Teilaufgabe der vorherigen Aufgabe machen' }),
+                button(icon('arrow-left'), () => move('outdent'), { disabled: !sel, 'aria-label': 'Auf oberste Ebene', title: 'Auf die oberste Ebene holen' }),
+                button([icon('trash-2'), 'Löschen'], () => remove(), { disabled: !sel, class: 'btn btn-sm btn-danger-ghost' }),
             );
         } else {
             treeActions.append(h('span', { class: 'text-sm text-soft' }, 'Struktur gesperrt (Klausur gestartet).'));
@@ -104,7 +104,7 @@ export function initTaskEditor() {
         if (!task) {
             formHost.replaceChildren(h('div', { class: 'te-empty' },
                 h('p', {}, 'Wähle links eine Aufgabe oder lege eine neue an.'),
-                locked ? null : button('+ Erste Aufgabe anlegen', () => addTask(null), { class: 'btn btn-primary' })));
+                locked ? null : button([icon('plus'), 'Erste Aufgabe anlegen'], () => addTask(null), { class: 'btn btn-primary' })));
             setDirty(false);
             return;
         }

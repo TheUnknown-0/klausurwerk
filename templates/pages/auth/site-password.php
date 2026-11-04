@@ -1,5 +1,7 @@
 <?php /** Globales Seitenpasswort ("Zugangscode"). Erwartet optional: $redirect. */ ?>
-<h1 style="font-size:1.35rem;">Zugangscode</h1>
+<link rel="stylesheet" href="<?= e(asset('css/admin.css', $ctx->config['app']['base_url'])) ?>">
+<div class="page-eyebrow">Zugang</div>
+<h1>Zugangscode</h1>
 <p class="text-soft text-sm">Diese Seite ist geschützt. Bitte gib den Zugangscode ein, den du von deiner Schule erhalten hast.</p>
 
 <form method="post" action="">

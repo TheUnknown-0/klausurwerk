@@ -101,7 +101,7 @@ $base = $ctx->url('/admin/zugangskarten');
         </label>
         <div class="cluster mt-2">
             <button class="btn btn-primary" type="submit" data-confirm="Neue Passwörter erzeugen und Karten als PDF ausgeben? Alte Karten werden ungültig.">
-                🪪 Karten drucken
+                <?= icon('id-card') ?> Karten drucken
             </button>
             <span class="text-sm text-soft">Höchstens <?= e((string) $maxCards) ?> Karten auf einmal.</span>
         </div>

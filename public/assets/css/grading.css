@@ -1,55 +1,60 @@
 /* ============================================================
    Klausurwerk: Korrektur, Ergebnisse und Rückgabe
-   Nutzt die Bausteine und Tokens aus app.css (Akzent Indigo).
+   Idee: die Matrix ist der Notenbogen der Lehrkraft, Punkte und
+   Kommentare stehen im Rotstift. Nur Variablen aus app.css.
    ============================================================ */
 
-.sr-only {
-  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
-  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
-}
 .g-small { font-size: 1.05rem; }
-.g-h3 { margin: 18px 0 8px; font-size: 1rem; font-weight: 700; color: var(--ink-soft); }
+.g-h3 { margin: 18px 0 8px; font-family: var(--font-mono); font-size: .72rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); }
 .g-pre { white-space: pre-wrap; margin: 0; }
 
-/* ---------- Übersicht: Matrix ---------- */
+/* ---------- Übersicht: Matrix = Notenbogen ---------- */
 .g-matrix-head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
 .g-filters .input { width: auto; min-width: 12rem; }
 .g-matrix-wrap { max-height: 70vh; overflow: auto; }
 .g-matrix { border-collapse: separate; border-spacing: 0; }
 .g-matrix th, .g-matrix td { white-space: nowrap; }
-.g-matrix thead th { position: sticky; top: 0; z-index: 2; background: var(--surface-2); text-align: center; }
-.g-matrix .g-sticky { position: sticky; left: 0; z-index: 1; background: var(--surface); text-align: left; min-width: 11rem; }
+.g-matrix thead th { position: sticky; top: 0; z-index: 2; background: var(--surface-2); text-align: center; border-bottom: 2px solid var(--rule-line); }
+.g-matrix .g-sticky { position: sticky; left: 0; z-index: 1; background: var(--surface); text-align: left; min-width: 11rem; border-right: 2px solid var(--rule-line); }
 .g-matrix thead .g-sticky { z-index: 3; background: var(--surface-2); }
-.g-task-head a { font-weight: 700; }
-.g-max { display: block; font-size: .72rem; font-weight: 400; color: var(--ink-faint); }
-.g-sum-head, .g-sum { text-align: right; }
-.g-sum-soft { color: var(--ink-faint); }
+.g-matrix tbody th.g-sticky { font-weight: 400; }
+.g-matrix tbody th.g-sticky a { font-family: var(--font-display); font-size: 1.05rem; font-weight: 500; }
+.g-matrix td.g-cell, .g-matrix th.g-task-head { border-left: 1px solid var(--rule-line); }
+.g-task-head a { font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
+.g-max { display: block; font-family: var(--font-mono); font-size: .66rem; font-weight: 400; letter-spacing: .06em; color: var(--ink-faint); }
+.g-sum-head, .g-sum { text-align: right; border-left: 2px solid var(--rule-line); }
+.g-sum { font-family: var(--font-display); font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.g-sum-soft { color: var(--ink-faint); font-weight: 400; border-left: 1px solid var(--rule-line); }
 
 .g-cell { text-align: center; padding: 0 !important; }
-.g-cell a { display: block; padding: 8px 10px; min-width: 3.2rem; color: inherit; text-decoration: none; border-radius: 6px; }
+.g-cell a { display: block; padding: 8px 10px; min-width: 3.2rem; color: inherit; text-decoration: none; }
 .g-cell a:hover, .g-cell a:focus-visible { background: var(--primary-soft); outline: 2px solid var(--primary); outline-offset: -2px; }
 .g-pts { font-variant-numeric: tabular-nums; font-weight: 600; }
+/* Bewertet: Tinte. Vorschlag: kursiv, gepunktet unterstrichen. Offen: Bleistiftstrich. */
 .g-graded .g-pts { color: var(--ink); }
-.g-suggested .g-pts { color: var(--ink-faint); font-style: italic; font-weight: 400; }
+.g-suggested .g-pts { color: var(--ink-soft); font-style: italic; font-weight: 400; border-bottom: 1px dotted var(--ink-faint); }
 .g-open .g-pts { color: var(--ink-faint); font-weight: 400; }
 .g-diff { background: var(--warning-soft); }
 .g-error { background: var(--danger-soft); }
 .g-error .g-pts { color: var(--danger); }
 .g-noanswer .g-pts { opacity: .55; }
-.g-flag { font-size: .72rem; margin-left: 2px; }
+.g-flag { display: inline-flex; margin-left: 3px; color: var(--ink-faint); vertical-align: middle; }
+.g-flag .icon { width: .9em; height: .9em; }
+.g-diff .g-flag { color: var(--warning); }
 .g-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; font-size: .85rem; color: var(--ink-soft); }
-.g-legend .g-cell { display: inline-block; min-width: 2.2rem; padding: 2px 8px !important; border: 1px solid var(--border); border-radius: 6px; }
+.g-legend .g-cell { display: inline-block; min-width: 2.2rem; padding: 2px 8px !important; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); }
 
 /* ---------- Einzelansicht ---------- */
 .g-app { display: flex; flex-direction: column; gap: 14px; }
 .g-toolbar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 14px; }
 .g-navgroup { display: flex; gap: 4px; align-items: center; }
-.g-select { width: auto; max-width: 15rem; }
+.g-select { width: auto; max-width: 13rem; }
 .g-segment { display: inline-flex; gap: 0; }
 .g-segment .btn { border-radius: 0; }
 .g-segment .btn:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
 .g-segment .btn:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
-.g-progress-text { margin-left: auto; }
+.g-segment .btn[aria-pressed="true"] { background: var(--primary); border-color: var(--primary-strong); color: var(--on-primary); }
+.g-progress-text { margin-left: auto; font-family: var(--font-mono); font-size: .74rem; letter-spacing: .04em; }
 
 .g-split { display: grid; grid-template-columns: minmax(260px, 5fr) minmax(0, 7fr); gap: 14px; align-items: start; }
 @media (max-width: 960px) { .g-split { grid-template-columns: 1fr; } }
@@ -57,22 +62,27 @@
 @media (max-width: 960px) { .g-left { position: static; max-height: none; } }
 .g-right { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .g-right.is-loading { opacity: .55; pointer-events: none; }
-.g-task-title { margin: 0 0 8px; font-size: 1.15rem; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.g-task-title { margin: 0 0 8px; font-size: 1.3rem; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .g-task-body { margin-bottom: 14px; }
-.g-context { margin-bottom: 10px; padding: 6px 10px; background: var(--surface-2); border-radius: var(--radius-sm); }
+.g-context { margin-bottom: 10px; padding: 6px 10px; background: var(--surface-2); border-left: 3px solid var(--rule-line); border-radius: var(--radius-sm); }
 .g-context summary { cursor: pointer; font-weight: 600; color: var(--ink-soft); }
-.g-sol-section { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
-.g-sol-section summary { cursor: pointer; font-weight: 700; color: var(--accent-ink); }
+.g-sol-section { margin-top: 12px; border-top: 1px solid var(--rule-line); padding-top: 8px; }
+.g-sol-section summary { cursor: pointer; font-family: var(--font-mono); font-size: .74rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--primary); }
 .g-solution ul, .g-solution ol { margin: 4px 0 0 1.2rem; padding: 0; }
 .g-sol-text p { display: inline; margin: 0; }
 
-.g-person-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.g-person-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--rule-line); }
+.g-person-head strong { font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; margin-right: 4px; }
+.g-person-head .icon { width: 1em; height: 1em; }
 .g-grade { display: flex; flex-direction: column; gap: 10px; }
 .g-grade-row { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
-.g-grade-label { font-weight: 700; }
-.g-points-input { width: 6rem; font-size: 1.25rem; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
-.g-points-max { color: var(--ink-soft); }
+.g-grade-label { font-family: var(--font-mono); font-size: .72rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); }
+/* Die Punkte stehen wie vom Rotstift an den Rand geschrieben. */
+.g-points-input { width: 5.5rem; font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums lining-nums; color: var(--danger); background: transparent; border: 0; border-bottom: 2px solid var(--danger); border-radius: 0; padding: 2px 6px; }
+.g-points-input:focus { box-shadow: none; border-bottom-color: var(--danger); outline: 2px solid var(--danger); outline-offset: 2px; }
+.g-points-max { font-family: var(--font-display); font-size: 1.1rem; color: var(--ink-soft); }
 .g-save-state { min-width: 8rem; color: var(--ink-faint); }
+.g-save-state .icon { width: 1em; height: 1em; }
 .g-others { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .g-grade-nav { align-items: center; }
 .g-auto { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; background: var(--surface-2); }
@@ -80,54 +90,56 @@
 .g-tests { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 6px; }
 .g-tests li.is-ok .g-test-mark { color: var(--success); }
 .g-tests li.is-fail .g-test-mark { color: var(--danger); }
-.g-test-mark { display: inline-block; width: 1.2rem; font-weight: 800; }
+.g-test-mark { display: inline-block; width: 1.4rem; font-weight: 800; }
 .g-test-msg {
-  margin: 4px 0 0 1.2rem; padding: 6px 8px; max-height: 12rem; overflow: auto; white-space: pre-wrap;
-  background: var(--console-bg); color: var(--editor-ink); border-radius: 6px; font-size: .8rem; font-family: var(--font-mono);
+  margin: 4px 0 0 1.4rem; padding: 6px 8px; max-height: 12rem; overflow: auto; white-space: pre-wrap;
+  background: var(--console-bg); color: var(--editor-ink); border-radius: var(--radius-sm); font-size: .8rem; font-family: var(--font-mono);
 }
 
 .g-answer { padding: 0; overflow: hidden; }
 .g-answer-host { padding: 0; }
 .g-answer .w-basic { padding: 12px; }
-.g-no-answer { padding: 18px; text-align: center; color: var(--ink-faint); font-style: italic; }
+.g-no-answer { padding: 18px; text-align: center; color: var(--ink-faint); font-family: var(--font-display); font-style: italic; }
 
 /* ---------- Code und Text mit Kommentaren ---------- */
 .g-codeview { display: flex; flex-direction: column; }
 .g-filetabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 8px 0; background: var(--surface-2); }
-.g-code-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.g-code-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--rule-line); background: var(--surface-2); }
 .g-editors { min-width: 0; }
 .g-editor-pane .cm-editor { max-height: 62vh; }
 .g-editor-pane .cm-scroller { overflow: auto; }
-.g-line-commented { background: rgba(250, 204, 21, .16) !important; }
+.g-line-commented { background: var(--danger-soft) !important; }
 .g-bubble-gutter { width: 22px; cursor: pointer; }
-.g-bubble { font-size: .8rem; line-height: 1; }
-.g-tab-count { font-size: .72rem; opacity: .85; }
+.g-bubble { display: inline-flex; line-height: 1; color: var(--editor-ink); }
+.g-bubble .icon { width: 1em; height: 1em; }
+.g-tab-count { display: inline-flex; align-items: center; gap: 2px; font-size: .72rem; opacity: .85; }
+.g-tab-count .icon { width: .95em; height: .95em; }
 
 .g-textwrap { padding: 0; }
 .g-textview {
-  white-space: pre-wrap; overflow-wrap: anywhere; padding: 14px 16px; min-height: 5rem;
+  white-space: pre-wrap; overflow-wrap: anywhere; padding: 14px 16px; min-height: 5rem; max-width: 72ch;
   font-family: var(--font-body); line-height: 1.6; background: var(--surface); user-select: text;
 }
 .g-textwrap > .text-faint { padding: 6px 16px 10px; }
-.g-mark { background: rgba(250, 204, 21, .35); color: inherit; border-radius: 3px; cursor: pointer; padding: 0 1px; }
-.g-mark.is-flash, .g-comment.is-flash { outline: 3px solid var(--warning); outline-offset: 1px; }
+.g-mark { background: var(--danger-soft); color: inherit; text-decoration: underline wavy var(--danger); text-decoration-thickness: 1px; text-underline-offset: 3px; border-radius: 2px; cursor: pointer; padding: 0 1px; }
+.g-mark.is-flash, .g-comment.is-flash { outline: 2px solid var(--danger); outline-offset: 1px; }
 
+/* Kommentare: Anmerkungen der Lehrkraft am Rand, im Rotstift */
 .g-comments-card { padding: 14px 16px; }
 .g-comments-card .g-h3 { margin-top: 0; }
-.g-comments { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; }
-.g-comment { border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius-sm); padding: 8px 12px; background: var(--surface); }
-.g-comment.g-kind-code { border-left-color: var(--warning); }
-.g-comment.g-kind-text { border-left-color: var(--info); }
-.g-comment-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-bottom: 4px; }
-.g-comment-anchor { border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: var(--accent-ink); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
-.g-comment-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.g-comments { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 10px; }
+.g-comment { border: 0; border-left: 2px solid var(--danger); border-radius: 0; padding: 4px 0 6px 14px; background: transparent; }
+.g-comment-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-bottom: 2px; }
+.g-comment-anchor { border: 0; background: none; padding: 0; font-family: var(--font-mono); font-size: .7rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--danger); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.g-comment-body { margin: 0; font-family: var(--font-display); font-size: 1.08rem; font-style: italic; line-height: 1.4; color: var(--danger); white-space: pre-wrap; overflow-wrap: anywhere; }
 .g-comment-tools { margin-top: 6px; display: flex; gap: 6px; }
-.g-composer { display: grid; gap: 8px; padding: 10px; border: 2px solid var(--accent); border-radius: var(--radius-sm); background: var(--accent-soft); margin-bottom: 10px; }
+.g-composer { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--danger); border-left-width: 4px; border-radius: var(--radius-sm); background: var(--danger-soft); margin-bottom: 10px; }
+.g-composer textarea { font-family: var(--font-display); font-size: 1.05rem; }
 .g-comment-actions { margin-top: 6px; }
 
-.g-dialog { width: min(1100px, 96vw); max-height: 92vh; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 0; background: var(--surface); color: var(--ink); }
-.g-dialog::backdrop { background: rgba(10, 11, 30, .55); }
-.g-dialog-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.g-dialog { width: min(1100px, 96vw); max-height: 92vh; border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 0; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lg); }
+.g-dialog::backdrop { background: rgb(24 22 18 / .45); }
+.g-dialog-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--rule-line); }
 .g-dialog-body { padding: 14px; overflow: auto; max-height: calc(92vh - 60px); }
 
 /* ---------- Ergebnisse ---------- */
@@ -135,8 +147,8 @@
 .g-axis { stroke: var(--border-strong); stroke-width: 1; }
 .g-bar { fill: var(--primary); }
 .g-bar-empty { fill: var(--border-strong); opacity: .5; }
-.g-bar-count { fill: var(--ink); font-size: 13px; font-weight: 700; }
-.g-bar-label { fill: var(--ink-soft); font-size: 13px; }
+.g-bar-count { fill: var(--ink); font-family: var(--font-display); font-size: 15px; font-weight: 600; }
+.g-bar-label { fill: var(--ink-soft); font-family: var(--font-mono); font-size: 12px; }
 .g-rate { display: flex; align-items: center; gap: 8px; min-width: 9rem; }
 .g-rate .progress { flex: 1; }
 .g-results th, .g-results td { vertical-align: top; }

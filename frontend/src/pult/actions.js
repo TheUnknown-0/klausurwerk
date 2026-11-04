@@ -1,7 +1,7 @@
 /**
  * Aktionen des Pults: Definitionen (Beschriftung, passende Zustände, Dialoge) und Ausführung mit Rückmeldung.
  */
-import { toast } from '../lib/dom.js';
+import { icon, toast } from '../lib/dom.js';
 import { confirmDialog, promptDialog } from './dialogs.js';
 import { runAction } from './store.js';
 import { plural } from './util.js';
@@ -14,18 +14,23 @@ const ANY = [...NOT_SUBMITTED, 'submitted'];
  * `states`: Zustände, für die die Aktion sinnvoll ist; andere Personen der Auswahl werden übersprungen.
  */
 export const PERSON_ACTIONS = [
-    { key: 'release', label: 'Freigeben', icon: '🔓', states: ['locked', 'absent', 'device_pending'] },
-    { key: 'lock', label: 'Sperren', icon: '🔒', states: ['active'] },
-    { key: 'set_absent', label: 'Abwesend (Toilette)', icon: '🚻', states: ['active'] },
-    { key: 'pause', label: 'Pause', icon: '⏸', states: ['active'] },
-    { key: 'resume', label: 'Fortsetzen', icon: '▶', states: ['paused'] },
-    { key: 'add5', label: '+5 min', icon: '', states: NOT_SUBMITTED },
-    { key: 'add10', label: '+10 min', icon: '', states: NOT_SUBMITTED },
-    { key: 'add_custom', label: 'Zeit …', icon: '⏱', states: NOT_SUBMITTED },
-    { key: 'submit', label: 'Abgeben', icon: '📥', states: NOT_SUBMITTED, danger: true },
-    { key: 'reopen', label: 'Abgabe zurücknehmen', icon: '↩', states: ['submitted'] },
-    { key: 'announce', label: 'Durchsage', icon: '📢', states: ANY },
+    { key: 'release', label: 'Freigeben', icon: 'lock-open', group: 'Zugang', states: ['locked', 'absent', 'device_pending'] },
+    { key: 'lock', label: 'Sperren', icon: 'lock', group: 'Zugang', states: ['active'] },
+    { key: 'set_absent', label: 'Abwesend (Toilette)', icon: 'door-open', group: 'Zugang', states: ['active'] },
+    { key: 'pause', label: 'Pause', icon: 'pause', group: 'Ablauf', states: ['active'] },
+    { key: 'resume', label: 'Fortsetzen', icon: 'play', group: 'Ablauf', states: ['paused'] },
+    { key: 'add5', label: '+5 min', icon: '', group: 'Zeit', states: NOT_SUBMITTED },
+    { key: 'add10', label: '+10 min', icon: '', group: 'Zeit', states: NOT_SUBMITTED },
+    { key: 'add_custom', label: 'Zeit …', icon: 'timer', group: 'Zeit', states: NOT_SUBMITTED },
+    { key: 'submit', label: 'Abgeben', icon: 'download', group: 'Abgabe', states: NOT_SUBMITTED, danger: true },
+    { key: 'reopen', label: 'Abgabe zurücknehmen', icon: 'rotate-ccw', group: 'Abgabe', states: ['submitted'] },
+    { key: 'announce', label: 'Durchsage', icon: 'megaphone', group: 'Mitteilung', states: ANY },
 ];
+
+/** Beschriftung eines Aktionsknopfs: Icon vor dem Text. */
+export function actionLabel(def) {
+    return [def.icon ? icon(def.icon) : null, def.label];
+}
 
 export function createActions(store, { refresh }) {
     const names = (ids) => ids.map((id) => store.participant(id)?.name).filter(Boolean);

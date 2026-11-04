@@ -17,14 +17,14 @@ $pageUrl = static function (int $target) use ($listUrl, $filters): string {
 <div class="page-header">
     <div class="page-title-group">
         <div class="page-eyebrow">Unterricht</div>
-        <h1 class="page-title">🗂️ Archiv</h1>
+        <h1 class="page-title">Archiv</h1>
         <p class="page-sub"><?= e((string) $total) ?> Aufgabe<?= $total === 1 ? '' : 'n' ?> aus deinen Klausuren und den für Kolleg:innen freigegebenen.</p>
     </div>
 </div>
 
 <form class="card card-pad mb-2" method="get" action="<?= e($listUrl) ?>" data-live="archiv">
     <div class="form-grid">
-        <div class="field" style="grid-column: 1 / -1">
+        <div class="field field-wide">
             <label for="a-q">Suche im Titel und Aufgabentext</label>
             <input class="input" type="search" id="a-q" name="q" value="<?= e($filters['q']) ?>" placeholder="z. B. Rekursion, Binärbaum, JOIN">
         </div>
@@ -74,7 +74,7 @@ $pageUrl = static function (int $target) use ($listUrl, $filters): string {
 
 <div data-live-target="archiv">
 <?php if ($rows === []): ?>
-    <div class="card empty-state"><div class="empty-icon" aria-hidden="true">🗂️</div><p>Keine passende Aufgabe gefunden.</p></div>
+    <div class="card empty-state"><div class="empty-icon" aria-hidden="true"><?= icon('archive') ?></div><p>Keine passende Aufgabe gefunden.</p></div>
 <?php else: ?>
     <div class="stack">
     <?php foreach ($rows as $r): ?>
@@ -106,7 +106,7 @@ $pageUrl = static function (int $target) use ($listUrl, $filters): string {
                         <select id="ziel-<?= e($r['id']) ?>" name="target_exam_id">
                             <?php foreach ($targets as $t): ?><option value="<?= e($t['id']) ?>"><?= e($t['title']) ?></option><?php endforeach; ?>
                         </select>
-                        <button class="btn btn-sm" type="submit">In Klausur kopieren</button>
+                        <button class="btn btn-sm" type="submit"><?= icon('copy') ?>In Klausur kopieren</button>
                     </form>
                 <?php endif; ?>
             </footer>

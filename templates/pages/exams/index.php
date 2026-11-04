@@ -17,12 +17,12 @@ $statusBadge = static fn (string $s): string => match ($s) {
 <div class="page-header">
     <div class="page-title-group">
         <div class="page-eyebrow">Unterricht</div>
-        <h1 class="page-title">📝 Klausuren</h1>
+        <h1 class="page-title">Klausuren</h1>
         <p class="page-sub"><?= e((string) count($exams)) ?> Klausur<?= count($exams) === 1 ? '' : 'en' ?><?= array_filter($filters) !== [] ? ' (gefiltert)' : '' ?>.</p>
     </div>
     <div class="page-actions">
-        <?php if ($canImport): ?><a class="btn btn-ghost" href="<?= e($ctx->url('/klausuren/import')) ?>">⬆️ Importieren</a><?php endif; ?>
-        <?php if ($canCreate): ?><a class="btn btn-primary" href="<?= e($ctx->url('/klausuren/neu')) ?>">+ Neue Klausur</a><?php endif; ?>
+        <?php if ($canImport): ?><a class="btn btn-ghost" href="<?= e($ctx->url('/klausuren/import')) ?>"><?= icon('upload') ?>Importieren</a><?php endif; ?>
+        <?php if ($canCreate): ?><a class="btn btn-primary" href="<?= e($ctx->url('/klausuren/neu')) ?>"><?= icon('plus') ?>Neue Klausur</a><?php endif; ?>
     </div>
 </div>
 
@@ -62,7 +62,7 @@ $statusBadge = static fn (string $s): string => match ($s) {
 <div data-live-target="klausuren">
 <?php if ($exams === []): ?>
     <div class="card empty-state">
-        <div class="empty-icon" aria-hidden="true">📝</div>
+        <div class="empty-icon" aria-hidden="true"><?= icon('file-pen-line') ?></div>
         <p><?= array_filter($filters) !== [] ? 'Keine Klausur passt zu diesen Filtern.' : 'Du hast noch keine Klausur.' ?></p>
         <?php if ($canCreate && array_filter($filters) === []): ?><a class="btn btn-primary" href="<?= e($ctx->url('/klausuren/neu')) ?>">Erste Klausur anlegen</a><?php endif; ?>
     </div>

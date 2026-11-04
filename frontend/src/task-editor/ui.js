@@ -2,7 +2,7 @@
  * Kleine Formular-Bausteine für den Aufgaben-Editor und die typspezifischen Editoren.
  * Alles wird mit h() gebaut (Textknoten, kein innerHTML).
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 
 let counter = 0;
 export const uid = (prefix = 'te') => `${prefix}-${++counter}`;
@@ -96,7 +96,7 @@ export function showError(container, message) {
 export function itemsEditor(opts) {
     const { items, prefix, label, locked = false, min = 1, max = 20, onChange, extra, lead } = opts;
     const list = h('div', { class: 'te-items' });
-    const addBtn = button(`+ ${label} hinzufügen`, () => {
+    const addBtn = button([icon('plus'), `${label} hinzufügen`], () => {
         items.push({ id: newId(prefix, items.map((i) => i.id)), text_md: '' });
         render();
         onChange();
@@ -120,9 +120,9 @@ export function itemsEditor(opts) {
                 onChange();
             }, { rows: 2, 'aria-label': `${label} ${index + 1}`, disabled: locked, placeholder: 'Text (Markdown möglich)' });
             const actions = h('div', { class: 'te-item-actions' },
-                button('↑', () => move(index, -1), { 'aria-label': 'Nach oben', disabled: locked || index === 0 }),
-                button('↓', () => move(index, 1), { 'aria-label': 'Nach unten', disabled: locked || index === items.length - 1 }),
-                button('✕', () => {
+                button(icon('arrow-up'), () => move(index, -1), { 'aria-label': 'Nach oben', disabled: locked || index === 0 }),
+                button(icon('arrow-down'), () => move(index, 1), { 'aria-label': 'Nach unten', disabled: locked || index === items.length - 1 }),
+                button(icon('x'), () => {
                     items.splice(index, 1);
                     render();
                     onChange();

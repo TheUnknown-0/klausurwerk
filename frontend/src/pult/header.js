@@ -1,7 +1,7 @@
 /**
  * Kopf des Pults: Klausurstatus, Uhr, Steuerknöpfe je Status, Stummschalter, Zähler.
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { EXAM_STATUS_LABELS, plural, remaining } from './util.js';
 
 const STATUS_BADGE = {
@@ -26,8 +26,8 @@ export function createHeader(store, actions, sound) {
     const controls = h('div', { class: 'pult-controls' });
     const muteBtn = h('button', { type: 'button', class: 'btn btn-sm', 'aria-pressed': 'false', onclick: () => sound.setMuted(!sound.muted) });
     const links = h('div', { class: 'pult-links' },
-        h('a', { class: 'btn btn-sm btn-ghost', href: boot.urls.preview, target: '_blank', rel: 'noopener' }, '👁 Vorschau'),
-        h('a', { class: 'btn btn-sm btn-ghost', href: boot.urls.exam }, '⚙ Klausur'),
+        h('a', { class: 'btn btn-sm btn-ghost', href: boot.urls.preview, target: '_blank', rel: 'noopener' }, icon('eye'), ' Vorschau'),
+        h('a', { class: 'btn btn-sm btn-ghost', href: boot.urls.exam }, icon('settings'), ' Klausur'),
     );
 
     const counters = h('div', { class: 'pult-counters stat-grid' });
@@ -47,9 +47,14 @@ export function createHeader(store, actions, sound) {
 
     const el = h('header', { class: 'pult-header card' },
         h('div', { class: 'pult-header-main' },
-            h('div', { class: 'pult-header-title' }, title, badge),
+            h('div', { class: 'pult-header-title' },
+                h('span', { class: 'pult-eyebrow' }, 'Pult'),
+                title, badge),
             clock,
-            h('div', { class: 'pult-header-tools' }, controls, muteBtn, links),
+        ),
+        h('div', { class: 'pult-header-bar' },
+            controls,
+            h('div', { class: 'pult-header-tools' }, muteBtn, links),
         ),
         counters,
     );
@@ -59,29 +64,29 @@ export function createHeader(store, actions, sound) {
         if (renderedStatus === status) return;
         renderedStatus = status;
         controls.replaceChildren();
-        const btn = (label, key, cls = 'btn-primary') => h('button', { type: 'button', class: `btn ${cls}`, onclick: () => actions.examAction(key) }, label);
+        const btn = (iconName, label, key, cls = 'btn-primary') => h('button', { type: 'button', class: `btn ${cls}`, onclick: () => actions.examAction(key) }, icon(iconName), ' ', label);
         if (status === 'draft' || status === 'ready') {
-            controls.append(btn('🚪 Warteraum öffnen', 'open_lobby'));
+            controls.append(btn('door-open', 'Warteraum öffnen', 'open_lobby'));
         } else if (status === 'lobby') {
-            controls.append(btn('▶ Starten', 'start'));
+            controls.append(btn('play', 'Starten', 'start'));
         } else if (status === 'running') {
             controls.append(
-                btn('⏸ Alle pausieren', 'pause_all', 'btn'),
-                btn('🏁 Klausur beenden', 'finish', 'btn-danger-ghost'),
+                btn('pause', 'Alle pausieren', 'pause_all', 'btn'),
+                btn('flag', 'Klausur beenden', 'finish', 'btn-danger-ghost'),
             );
         } else if (status === 'paused') {
             controls.append(
-                btn('▶ Alle fortsetzen', 'resume_all'),
-                btn('🏁 Klausur beenden', 'finish', 'btn-danger-ghost'),
+                btn('play', 'Alle fortsetzen', 'resume_all'),
+                btn('flag', 'Klausur beenden', 'finish', 'btn-danger-ghost'),
             );
         }
         if (['lobby', 'running', 'paused'].includes(status)) {
-            controls.append(h('button', { type: 'button', class: 'btn', onclick: () => actions.announceAll() }, '📢 Durchsage an alle'));
+            controls.append(h('button', { type: 'button', class: 'btn', onclick: () => actions.announceAll() }, icon('megaphone'), ' Durchsage an alle'));
         }
     }
 
     function renderMute() {
-        muteBtn.textContent = sound.muted ? '🔇 Ton aus' : '🔔 Ton an';
+        muteBtn.replaceChildren(icon(sound.muted ? 'bell-off' : 'bell'), sound.muted ? ' Ton aus' : ' Ton an');
         muteBtn.setAttribute('aria-pressed', sound.muted ? 'true' : 'false');
         muteBtn.title = sound.muted ? 'Alarmton einschalten' : 'Alarmton stummschalten';
     }

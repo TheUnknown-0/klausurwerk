@@ -8,7 +8,7 @@
  *   Inhalt: { files: [{ name, content }] }   (docs/DATENFORMATE.md, 2.16)
  */
 import { registerAnswerWidget } from '../lib/widgets.js';
-import { h } from '../lib/dom.js';
+import { h, icon, replace } from '../lib/dom.js';
 import CodeWidget from './code.js';
 import { RoboWorld, normalizeWorldData } from '../robo/world.js';
 import { createWorldView, statusText } from '../robo/render.js';
@@ -110,9 +110,9 @@ const RoboWidget = {
             onState: (s) => refreshControls(s),
         });
 
-        const btnReset = h('button', { class: 'btn btn-sm', type: 'button', onclick: () => player.reset() }, '⏮ Zum Start');
-        const btnPlay = h('button', { class: 'btn btn-sm btn-accent', type: 'button', onclick: () => onPlayClick() }, '⏸ Pause');
-        const btnStep = h('button', { class: 'btn btn-sm', type: 'button', onclick: () => player.step() }, '⏭ Ein Schritt');
+        const btnReset = h('button', { class: 'btn btn-sm', type: 'button', onclick: () => player.reset() }, icon('rotate-ccw'), 'Zum Start');
+        const btnPlay = h('button', { class: 'btn btn-sm btn-accent', type: 'button', onclick: () => onPlayClick() }, icon('pause'), 'Pause');
+        const btnStep = h('button', { class: 'btn btn-sm', type: 'button', onclick: () => player.step() }, icon('chevron-right'), 'Ein Schritt');
         const speedInput = h('input', {
             type: 'range', min: '0', max: String(SPEEDS.length - 1), step: '1', value: String(level),
             id: `robo-speed-${task.id ?? 'x'}`, class: 'robo-speed',
@@ -145,7 +145,7 @@ const RoboWidget = {
             const hasTrace = s.total > 0 || s.status === 'playing';
             controls.hidden = !hasTrace;
             const finished = s.status === 'done' || s.status === 'crashed';
-            btnPlay.textContent = s.status === 'playing' ? '⏸ Pause' : finished ? '↻ Nochmal' : '▶ Weiter';
+            replace(btnPlay, ...(s.status === 'playing' ? [icon('pause'), 'Pause'] : finished ? [icon('refresh-cw'), 'Nochmal'] : [icon('play'), 'Weiter']));
             btnPlay.disabled = s.total === 0 && s.status !== 'playing';
             btnStep.disabled = finished || (s.total === 0 && s.status !== 'playing') || s.position >= s.total && s.ended;
             btnReset.disabled = s.total === 0;

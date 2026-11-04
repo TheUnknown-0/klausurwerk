@@ -2,7 +2,7 @@
  * Aktionsleiste für die ausgewählten Kacheln (Mehrfachauswahl).
  */
 import { h } from '../lib/dom.js';
-import { PERSON_ACTIONS } from './actions.js';
+import { actionLabel, PERSON_ACTIONS } from './actions.js';
 
 export function createActionBar(store, actions) {
     const { state } = store;
@@ -14,14 +14,21 @@ export function createActionBar(store, actions) {
     const selectNone = h('button', { type: 'button', class: 'btn btn-sm btn-ghost', onclick: () => store.clearSelection() }, 'Auswahl aufheben');
 
     const group = h('div', { class: 'pult-actionbar-buttons' });
+    const sections = new Map();
     for (const def of PERSON_ACTIONS) {
         const btn = h('button', {
             type: 'button',
             class: `btn btn-sm${def.danger ? ' btn-danger-ghost' : ''}`,
             onclick: () => actions.runPerson(def.key, [...state.selection]),
-        }, def.icon ? `${def.icon} ${def.label}` : def.label);
+        }, actionLabel(def));
         buttons.set(def.key, btn);
-        group.append(btn);
+        if (!sections.has(def.group)) {
+            const section = h('div', { class: 'pult-actionbar-group', role: 'group', 'aria-label': def.group },
+                h('span', { class: 'pult-group-label' }, def.group));
+            sections.set(def.group, section);
+            group.append(section);
+        }
+        sections.get(def.group).append(btn);
     }
     bar.append(h('div', { class: 'pult-actionbar-head' }, count, selectAll, selectNone), group);
 

@@ -17,15 +17,15 @@ $editableNow = ExamService::isEditable($exam);
 $gradingVisible = in_array($status, ['finished', 'grading', 'returned', 'archived'], true) && $caps[ExamAccess::CAP_GRADE];
 $deletable = in_array($status, ExamService::DELETABLE_STATUSES, true);
 $csrfField = $csrf->field();
-$post = static fn (string $action, string $label, string $class = 'btn', string $confirm = '', array $fields = []) =>
+$post = static fn (string $action, string $label, string $class = 'btn', string $confirm = '', array $fields = [], string $ic = '') =>
     '<form method="post" action="' . e($action) . '"' . ($confirm !== '' ? ' data-confirm="' . e($confirm) . '"' : '') . '>'
     . $csrfField
     . implode('', array_map(static fn ($k, $v) => '<input type="hidden" name="' . e($k) . '" value="' . e($v) . '">', array_keys($fields), $fields))
-    . '<button class="' . e($class) . '" type="submit">' . e($label) . '</button></form>';
+    . '<button class="' . e($class) . '" type="submit">' . ($ic !== '' ? icon($ic) : '') . e($label) . '</button></form>';
 ?>
 <div class="page-header">
     <div class="page-title-group">
-        <div class="page-eyebrow"><a class="text-soft" href="<?= e($ctx->url('/klausuren')) ?>">← Klausuren</a></div>
+        <div class="page-eyebrow"><a href="<?= e($ctx->url('/klausuren')) ?>">← Klausuren</a></div>
         <h1 class="page-title"><?= e($exam['title']) ?></h1>
         <p class="page-sub cluster">
             <span class="badge badge-primary"><?= e(ExamService::STATUS_LABELS[$status] ?? $status) ?></span>
@@ -34,10 +34,10 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
         </p>
     </div>
     <div class="page-actions">
-        <?php if ($caps[ExamAccess::CAP_MONITOR]): ?><a class="btn btn-primary" href="<?= e($u('/pult')) ?>">🖥️ Pult öffnen</a><?php endif; ?>
-        <?php if ($caps[ExamAccess::CAP_VIEW]): ?><a class="btn" href="<?= e($u('/vorschau')) ?>">👁️ Vorschau</a><?php endif; ?>
-        <?php if ($gradingVisible): ?><a class="btn" href="<?= e($u('/korrektur')) ?>">✅ Korrektur</a><?php endif; ?>
-        <?php if ($gradingVisible && in_array($status, ['grading', 'returned', 'archived'], true)): ?><a class="btn" href="<?= e($u('/ergebnisse')) ?>">📊 Ergebnisse</a><?php endif; ?>
+        <?php if ($caps[ExamAccess::CAP_MONITOR]): ?><a class="btn btn-primary" href="<?= e($u('/pult')) ?>"><?= icon('monitor') ?>Pult öffnen</a><?php endif; ?>
+        <?php if ($caps[ExamAccess::CAP_VIEW]): ?><a class="btn" href="<?= e($u('/vorschau')) ?>"><?= icon('eye') ?>Vorschau</a><?php endif; ?>
+        <?php if ($gradingVisible): ?><a class="btn" href="<?= e($u('/korrektur')) ?>"><?= icon('circle-check') ?>Korrektur</a><?php endif; ?>
+        <?php if ($gradingVisible && in_array($status, ['grading', 'returned', 'archived'], true)): ?><a class="btn" href="<?= e($u('/ergebnisse')) ?>"><?= icon('chart-column') ?>Ergebnisse</a><?php endif; ?>
     </div>
 </div>
 
@@ -62,33 +62,43 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
     </section>
 
     <section class="card card-pad">
-        <h2 class="card-title">Aktionen</h2>
-        <div class="stack">
-            <div class="cluster">
-                <?php if ($canEdit): ?>
-                    <a class="btn btn-primary" href="<?= e($u('/aufgaben')) ?>">✏️ Aufgaben bearbeiten</a>
-                    <a class="btn" href="<?= e($u('/einstellungen')) ?>">⚙️ Einstellungen</a>
-                    <a class="btn" href="<?= e($u('/material')) ?>">🖼️ Material</a>
-                    <a class="btn" href="<?= e($u('/seb')) ?>">🔒 SEB-Datei</a>
-                <?php endif; ?>
-                <?php if ($caps[ExamAccess::CAP_SOLUTIONS] && $auth->can(P::KLAUSUREN_IMPORTIEREN)): ?>
-                    <a class="btn" href="<?= e($u('/export')) ?>">⬇️ Export (ZIP)</a>
-                <?php endif; ?>
+        <h2 class="card-title">Bearbeiten und weitergeben</h2>
+        <?php if ($canEdit): ?>
+            <div class="action-group">
+                <div class="action-label">Vorbereiten</div>
+                <div class="cluster">
+                    <a class="btn btn-primary" href="<?= e($u('/aufgaben')) ?>"><?= icon('pencil') ?>Aufgaben bearbeiten</a>
+                    <a class="btn" href="<?= e($u('/einstellungen')) ?>"><?= icon('settings') ?>Einstellungen</a>
+                    <a class="btn" href="<?= e($u('/material')) ?>"><?= icon('image') ?>Material</a>
+                    <a class="btn" href="<?= e($u('/seb')) ?>"><?= icon('lock') ?>SEB-Datei</a>
+                </div>
             </div>
-            <div class="cluster">
-                <?php if ($caps[ExamAccess::CAP_SOLUTIONS] && $auth->can(P::KLAUSUREN_ERSTELLEN)): ?>
-                    <?= $post($u('/kopieren'), '📋 Als Vorlage kopieren', 'btn') ?>
-                <?php endif; ?>
-                <?php if ($canEdit && $status === 'draft'): ?>
-                    <?= $post($u('/status'), '✔️ Fertigstellen', 'btn btn-accent', '', ['status' => 'ready']) ?>
-                <?php elseif ($canEdit && $status === 'ready'): ?>
-                    <?= $post($u('/status'), '↩️ Zurück in den Entwurf', 'btn', '', ['status' => 'draft']) ?>
-                <?php endif; ?>
-            </div>
-            <?php if (!$editableNow && $canEdit): ?>
-                <p class="text-sm text-soft">Die Klausur ist gestartet oder abgeschlossen: Aufgabentexte und Einstellungen sind gesperrt. Musterlösung, Erwartungshorizont und Tests bleiben bearbeitbar.</p>
+            <?php if ($status === 'draft' || $status === 'ready'): ?>
+                <div class="action-group">
+                    <div class="action-label">Zustand</div>
+                    <div class="cluster">
+                        <?php if ($status === 'draft'): ?>
+                            <?= $post($u('/status'), 'Fertigstellen', 'btn btn-accent', '', ['status' => 'ready'], 'check') ?>
+                        <?php else: ?>
+                            <?= $post($u('/status'), 'Zurück in den Entwurf', 'btn', '', ['status' => 'draft'], 'rotate-ccw') ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
             <?php endif; ?>
-        </div>
+        <?php endif; ?>
+        <?php $canExport = $caps[ExamAccess::CAP_SOLUTIONS] && $auth->can(P::KLAUSUREN_IMPORTIEREN); $canCopy = $caps[ExamAccess::CAP_SOLUTIONS] && $auth->can(P::KLAUSUREN_ERSTELLEN); ?>
+        <?php if ($canExport || $canCopy): ?>
+            <div class="action-group">
+                <div class="action-label">Weitergeben</div>
+                <div class="cluster">
+                    <?php if ($canExport): ?><a class="btn" href="<?= e($u('/export')) ?>"><?= icon('download') ?>Export (ZIP)</a><?php endif; ?>
+                    <?php if ($canCopy): ?><?= $post($u('/kopieren'), 'Als Vorlage kopieren', 'btn', '', [], 'copy') ?><?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+        <?php if (!$editableNow && $canEdit): ?>
+            <p class="text-sm text-soft mb-0">Die Klausur ist gestartet oder abgeschlossen: Aufgabentexte und Einstellungen sind gesperrt. Musterlösung, Erwartungshorizont und Tests bleiben bearbeitbar.</p>
+        <?php endif; ?>
     </section>
 </div>
 
@@ -190,7 +200,7 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
         <h2 class="card-title">Löschen</h2>
         <?php if ($deletable): ?>
             <p class="text-sm text-soft">Löscht die Klausur mit allen Aufgaben, Lösungen und Materialien endgültig.</p>
-            <?= $post($u('/loeschen'), '🗑️ Klausur löschen', 'btn btn-danger', 'Diese Klausur mit allen Aufgaben und Materialien wirklich endgültig löschen?') ?>
+            <?= $post($u('/loeschen'), 'Klausur löschen', 'btn btn-danger', 'Diese Klausur mit allen Aufgaben und Materialien wirklich endgültig löschen?', [], 'trash-2') ?>
         <?php else: ?>
             <div class="alert alert-info">Eine gestartete oder abgeschlossene Klausur kann nicht gelöscht werden. Gelöscht werden können nur Entwürfe, bereite und archivierte Klausuren.</div>
         <?php endif; ?>

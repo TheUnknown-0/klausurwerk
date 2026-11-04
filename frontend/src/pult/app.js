@@ -1,7 +1,7 @@
 /**
  * Zusammenbau des Pults: Kopf, Alarme, Aktionsleiste, Sitzplan, Anfragen, Zeitstrahl, Detailansicht.
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { createActionBar } from './actionbar.js';
 import { createActions } from './actions.js';
 import { createAlarmList } from './alarms.js';
@@ -46,7 +46,7 @@ export function mountPult(root, boot) {
     // ---- Hinweise ----
     const connection = h('div', { class: 'alert alert-error pult-banner', role: 'alert', hidden: true });
     const soundBanner = h('div', { class: 'alert alert-info pult-banner pult-soundbanner', hidden: true },
-        h('span', {}, '🔔 Ton aktivieren: Browser erlauben Ton erst nach einem Klick. Klicke hier oder irgendwo auf die Seite, dann klingelt das Pult bei Alarmen.'),
+        h('span', {}, icon('bell'), ' Ton aktivieren: Browser erlauben Ton erst nach einem Klick. Klicke hier oder irgendwo auf die Seite, dann klingelt das Pult bei Alarmen.'),
         h('button', { type: 'button', class: 'btn btn-sm btn-primary', onclick: () => sound.unlock().then((ok) => { if (ok) sound.play(); }) }, 'Ton aktivieren'));
     const loading = h('p', { class: 'text-soft' }, 'Der Stand wird geladen …');
 
@@ -74,6 +74,8 @@ export function mountPult(root, boot) {
     const main = h('div', { class: 'pult-main' }, seat.el);
     const side = h('div', { class: 'pult-side' }, requests.el, timeline.el);
     const layout = h('div', { class: 'pult-layout' }, main, side);
+    // Große Räume (mehr als 4 Spalten) bekommen die volle Breite, die Seitenspalte rutscht darunter.
+    const updateLayout = () => layout.classList.toggle('is-wide', (state.exam?.room?.cols ?? 0) > 4);
     const content = h('div', { class: 'pult-content', hidden: true }, header.el, alarms.el, actionBar.el, layout);
     root.replaceChildren(connection, soundBanner, loading, content, detail.el);
     renderBanners();
@@ -86,6 +88,7 @@ export function mountPult(root, boot) {
         if (what === 'stand') {
             loading.hidden = true;
             content.hidden = false;
+            updateLayout();
             header.update();
             seat.update();
             requests.update();
@@ -118,7 +121,7 @@ export function mountPult(root, boot) {
 
     // Erst die Rückkehr zum Fenster setzt die Titelmarkierung zurück.
     window.addEventListener('focus', () => {
-        if (alarms.el.children.length === 0) document.title = document.title.replace(/^⚠ /, '');
+        if (alarms.el.children.length === 0) document.title = document.title.replace(/^Alarm: /, '');
     });
 
     return { store, refresh };

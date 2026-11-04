@@ -22,7 +22,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
         <p class="page-sub">Granulare Rechte für Lehrkräfte (Administrator:innen haben immer alle Rechte).</p>
     </div>
     <div class="page-actions">
-        <a class="btn btn-ghost" href="<?= e($base . '/gruppen') ?>">🗂️ Berechtigungsgruppen</a>
+        <a class="btn btn-ghost" href="<?= e($base . '/gruppen') ?>"><?= icon('archive') ?> Berechtigungsgruppen</a>
     </div>
 </div>
 
@@ -77,7 +77,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
                     <th>Rolle</th>
                     <th>Direkte Rechte</th>
                     <th>Gruppen</th>
-                    <th style="text-align:right;">Aktion</th>
+                    <th class="th-end">Aktion</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -112,11 +112,11 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
             <span class="badge"><?= e((string) count($direct)) ?> direkte Rechte</span>
         </div>
         <?php if ($isSelf): ?>
-            <div class="alert alert-warning mb-0" style="margin-top:12px;">
+            <div class="alert alert-warning mb-0 mt-alert">
                 Das ist dein eigenes Konto, eigene Berechtigungen kannst du nicht ändern.
             </div>
         <?php elseif (!$canGrant): ?>
-            <div class="alert alert-info mb-0" style="margin-top:12px;">
+            <div class="alert alert-info mb-0 mt-alert">
                 Du darfst Berechtigungen ansehen, aber nicht ändern.
             </div>
         <?php endif; ?>
@@ -125,7 +125,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
 
     <?php if ($selected !== null && $groups !== []): ?>
         <div class="card mb-2">
-            <div class="card-header"><h3 style="margin:0;">Berechtigungsgruppen</h3></div>
+            <div class="card-header"><h3 class="group-title">Berechtigungsgruppen</h3></div>
             <form method="post" action="<?= e($base . '/gruppen-zuweisen') ?>">
                 <?= $csrf->field() ?>
                 <input type="hidden" name="benutzer" value="<?= e((string) $selectedId) ?>">
@@ -171,18 +171,18 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
         <?php foreach ($catalog as $groupName => $entries): ?>
             <div class="card mb-2" data-permission-card>
                 <div class="card-header">
-                    <h3 style="margin:0;"><?= e($groupName) ?></h3>
+                    <h3 class="group-title"><?= e($groupName) ?></h3>
                     <?php if ($editable): ?>
                         <button class="btn btn-sm btn-ghost" type="button" data-toggle-permissions>Alle an/aus</button>
                     <?php endif; ?>
                 </div>
-                <div class="table-wrap" style="border:none; border-radius:0;">
+                <div class="table-wrap table-flush">
                     <table class="data-table">
                         <thead>
                         <tr>
                             <th>Berechtigung</th>
-                            <th style="width:90px;">Direkt</th>
-                            <th style="width:90px;">Vererbt</th>
+                            <th class="col-narrow">Direkt</th>
+                            <th class="col-narrow">Vererbt</th>
                             <th>Herkunft &amp; Voraussetzungen</th>
                         </tr>
                         </thead>
@@ -222,7 +222,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
                                         <span class="badge badge-accent">Rollen-Standard</span>
                                     <?php endif; ?>
                                     <?php if (!$canManage): ?>
-                                        <span class="badge badge-warning">🔒 besitzt du selbst nicht</span>
+                                        <span class="badge badge-warning"><?= icon('lock') ?> besitzt du selbst nicht</span>
                                     <?php endif; ?>
                                     <?php if ($requires !== []): ?>
                                         <span class="text-faint">

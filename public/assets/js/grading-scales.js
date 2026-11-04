@@ -74,7 +74,8 @@
         remove.className = 'btn btn-sm btn-danger-ghost';
         remove.setAttribute('data-remove-step', '');
         remove.setAttribute('aria-label', 'Stufe entfernen');
-        remove.textContent = '✕';
+        var iconSrc = form.querySelector('[data-remove-step] svg');
+        if (iconSrc) { remove.appendChild(iconSrc.cloneNode(true)); } else { remove.textContent = 'x'; }
         cell(remove);
 
         body.appendChild(row);

@@ -7,8 +7,8 @@ $id = (int) $exam['id'];
 ?>
 <div class="page-header">
     <div class="page-title-group">
-        <div class="page-eyebrow"><a class="text-soft" href="<?= e($ctx->url('/klausuren/' . $id)) ?>">← <?= e($exam['title']) ?></a></div>
-        <h1 class="page-title">🔒 SEB-Datei</h1>
+        <div class="page-eyebrow"><a href="<?= e($ctx->url('/klausuren/' . $id)) ?>">← <?= e($exam['title']) ?></a></div>
+        <h1 class="page-title">SEB-Datei</h1>
         <p class="page-sub">Konfigurationsdatei für den Safe Exam Browser. Schüler:innen öffnen die Datei, SEB startet im Kiosk-Modus und lädt die Klausur.</p>
     </div>
 </div>
@@ -51,5 +51,5 @@ $id = (int) $exam['id'];
     <?php if (empty($exam['settings_array']['require_seb'])): ?>
         <div class="alert alert-info">Die Einstellung "Nur mit Safe Exam Browser" ist für diese Klausur aus. Die Datei lässt sich trotzdem erzeugen.</div>
     <?php endif; ?>
-    <button class="btn btn-primary" type="submit">⬇️ .seb-Datei herunterladen</button>
+    <button class="btn btn-primary" type="submit"><?= icon('download') ?>.seb-Datei herunterladen</button>
 </form>

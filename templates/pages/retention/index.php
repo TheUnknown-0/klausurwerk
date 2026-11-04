@@ -41,7 +41,7 @@ $statusLabels = [
 <h2>Fällige Klausuren</h2>
 <?php if ($due === []): ?>
     <div class="empty-state">
-        <div class="empty-icon">✅</div>
+        <div class="empty-icon"><?= icon('circle-check') ?></div>
         <p>Keine Klausur hat eine Frist überschritten.</p>
     </div>
 <?php else: ?>
@@ -59,7 +59,7 @@ $statusLabels = [
                 <th>Status</th>
                 <th>Beendet / zurückgegeben</th>
                 <th>Protokolle</th>
-                <th style="text-align:right;">Aktionen</th>
+                <th class="th-end">Aktionen</th>
             </tr>
             </thead>
             <tbody>
@@ -107,7 +107,7 @@ $statusLabels = [
                     <input type="hidden" name="exam_id" value="<?= e((string) $id) ?>">
                     <div class="modal-header">
                         <h3 id="<?= e($prefix . '-' . $id) ?>-title"><?= e($heading) ?></h3>
-                        <button class="modal-close" type="button" data-close-modal aria-label="Schließen">✕</button>
+                        <button class="modal-close" type="button" data-close-modal aria-label="Schließen"><?= icon('x') ?></button>
                     </div>
                     <div class="modal-body stack">
                         <p><strong><?= e($exam['title']) ?></strong> (<?= e($exam['course_name'] ?? 'ohne Kurs') ?>)</p>

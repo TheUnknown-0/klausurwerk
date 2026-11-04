@@ -4,14 +4,14 @@
  * (Klick schaltet leer, 0, 1) oder Tastatur (0, 1, Entf, Pfeiltasten) bedienbar.
  * Vorgegebene Zellen (config.prefilled) sind fest.
  */
-import { h } from '../../lib/dom.js';
+import { h, icon } from '../../lib/dom.js';
 import { registerAnswerWidget } from '../../lib/widgets.js';
 import { asObject, clone } from './core/model-util.js';
 import { isPrefilled, nextCell, normalizeRows, rowKeys } from './core/tables-model.js';
 import { bindUndoKeys, createTracker } from './core/simple.js';
 import { svgToPng } from './core/png.js';
 import { s, text } from './core/svg.js';
-import { smallButton } from './core/form.js';
+import { smallButton, withIcon } from './core/form.js';
 
 const SHOW = { '': '·', 0: '0', 1: '1', '0': '0', '1': '1' };
 
@@ -163,8 +163,8 @@ export const TruthTableWidget = {
                 tracker.touch();
             }
         };
-        const undoBtn = smallButton('↶ Rückgängig', undo, { title: 'Rückgängig (Strg+Z)' });
-        const redoBtn = smallButton('↷ Wiederholen', redo, { title: 'Wiederholen (Strg+Y)' });
+        const undoBtn = smallButton(withIcon('undo-2', 'Rückgängig'), undo, { title: 'Rückgängig (Strg+Z)' });
+        const redoBtn = smallButton(withIcon('redo-2', 'Wiederholen'), redo, { title: 'Wiederholen (Strg+Y)' });
         const clearBtn = smallButton('Alle Zellen leeren', () => {
             if (readOnly) {
                 return;

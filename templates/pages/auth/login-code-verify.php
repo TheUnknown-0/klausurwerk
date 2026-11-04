@@ -1,5 +1,7 @@
 <?php /** Anmeldung per Code, Schritt 2: Code eingeben. Erwartet: $username, optional $redirect. */ ?>
-<h1 style="font-size:1.35rem;">Code eingeben</h1>
+<link rel="stylesheet" href="<?= e(asset('css/admin.css', $ctx->config['app']['base_url'])) ?>">
+<div class="page-eyebrow">Anmeldung per Code</div>
+<h1>Code eingeben</h1>
 <p class="text-soft text-sm">
     Falls für <strong><?= e($username) ?></strong> ein Konto mit hinterlegter E-Mail existiert,
     haben wir gerade einen 6-stelligen Code verschickt. Er ist 10 Minuten gültig.
@@ -13,9 +15,8 @@
 
     <div class="field">
         <label for="code">Code</label>
-        <input class="input" type="text" id="code" name="code" required autofocus
-               inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"
-               style="letter-spacing:4px;font-size:1.2rem;text-align:center;">
+        <input class="input input-code" type="text" id="code" name="code" required autofocus
+               inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code">
     </div>
 
     <button class="btn btn-primary btn-block btn-lg" type="submit">Anmelden</button>

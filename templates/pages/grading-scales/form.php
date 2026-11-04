@@ -72,14 +72,14 @@ if ($steps === []) {
                     <td><input class="input" type="text" name="label[]" maxlength="10" required aria-label="Beschriftung Stufe <?= e((string) ($i + 1)) ?>" value="<?= e($step['label'] ?? '') ?>"></td>
                     <td><input class="input w-narrow" type="text" inputmode="decimal" name="value[]" required aria-label="Wert Stufe <?= e((string) ($i + 1)) ?>" value="<?= e($step['value'] ?? '') ?>"></td>
                     <td><input class="input w-narrow" type="text" inputmode="decimal" name="min_percent[]" required aria-label="Ab Prozent Stufe <?= e((string) ($i + 1)) ?>" value="<?= e($step['min_percent'] ?? '') ?>"></td>
-                    <td><button class="btn btn-sm btn-danger-ghost" type="button" data-remove-step aria-label="Stufe entfernen">✕</button></td>
+                    <td><button class="btn btn-sm btn-danger-ghost" type="button" data-remove-step aria-label="Stufe entfernen"><?= icon('x') ?></button></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
     </div>
     <div class="cluster">
-        <button class="btn btn-ghost" type="button" data-add-step>➕ Stufe hinzufügen</button>
+        <button class="btn btn-ghost" type="button" data-add-step><?= icon('plus') ?> Stufe hinzufügen</button>
     </div>
     <div class="alert alert-info mt-2" data-scale-check hidden></div>
 

@@ -17,14 +17,14 @@ $base = $ctx->url('/admin/kurse');
             <?= $showArchived ? 'Archivierte ausblenden' : 'Archivierte anzeigen' ?>
         </a>
         <?php if ($canCreate): ?>
-            <a class="btn btn-primary" href="<?= e($base . '/neu') ?>">➕ Neuer Kurs</a>
+            <a class="btn btn-primary" href="<?= e($base . '/neu') ?>"><?= icon('plus') ?> Neuer Kurs</a>
         <?php endif; ?>
     </div>
 </div>
 
 <?php if ($courses === []): ?>
     <div class="empty-state">
-        <div class="empty-icon">👩‍🎓</div>
+        <div class="empty-icon"><?= icon('graduation-cap') ?></div>
         <p>Es gibt noch keine Kurse<?= $showArchived ? '' : ' (archivierte sind ausgeblendet)' ?>.</p>
         <?php if ($canCreate): ?>
             <a class="btn btn-primary" href="<?= e($base . '/neu') ?>">Ersten Kurs anlegen</a>

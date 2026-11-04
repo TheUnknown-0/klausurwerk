@@ -2,7 +2,9 @@
 /** Passwortwechsel. Erwartet: $forced, $viaCode (bool). */
 $skipCurrent = $forced || $viaCode;
 ?>
-<h1 style="font-size:1.35rem;">Passwort ändern</h1>
+<link rel="stylesheet" href="<?= e(asset('css/admin.css', $ctx->config['app']['base_url'])) ?>">
+<div class="page-eyebrow">Konto</div>
+<h1>Passwort ändern</h1>
 <?php if ($forced): ?>
     <div class="alert alert-warning">Bitte lege zunächst ein neues Passwort fest, bevor du weiterarbeitest.</div>
 <?php elseif ($viaCode): ?>

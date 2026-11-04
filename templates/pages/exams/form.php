@@ -9,7 +9,7 @@ $val = static fn (string $key, mixed $fallback = ''): string => (string) ($old[$
 ?>
 <div class="page-header">
     <div class="page-title-group">
-        <div class="page-eyebrow"><a class="text-soft" href="<?= e($ctx->url('/klausuren')) ?>">← Klausuren</a></div>
+        <div class="page-eyebrow"><a href="<?= e($ctx->url('/klausuren')) ?>">← Klausuren</a></div>
         <h1 class="page-title">Neue Klausur</h1>
         <p class="page-sub">Die Klausur wird als Entwurf angelegt. Aufgaben und weitere Einstellungen folgen danach.</p>
     </div>

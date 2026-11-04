@@ -1,5 +1,7 @@
 <?php /** Login. Erwartet optional: $redirect. $codeLoginAvailable (bool). */ ?>
-<h1 style="font-size:1.35rem;">Anmelden</h1>
+<link rel="stylesheet" href="<?= e(asset('css/admin.css', $ctx->config['app']['base_url'])) ?>">
+<div class="page-eyebrow">Anmeldung</div>
+<h1>Anmelden</h1>
 <p class="text-soft text-sm">Melde dich mit den Daten deiner Zugangskarte bzw. deinem Lehrkräfte-Konto an.</p>
 
 <form method="post" action="" data-login-form>
@@ -16,7 +18,7 @@
         <label for="password">Passwort</label>
         <div class="input-group">
             <input class="input" type="password" id="password" name="password" required autocomplete="current-password">
-            <button type="button" class="input-icon-btn" data-toggle-password="password" aria-label="Passwort anzeigen" aria-pressed="false">👁</button>
+            <button type="button" class="input-icon-btn" data-toggle-password="password" aria-label="Passwort anzeigen" aria-pressed="false"><?= icon('eye') ?></button>
         </div>
     </div>
 

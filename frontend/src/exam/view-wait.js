@@ -2,7 +2,7 @@
  * Warteraum (und Probe-Modus mit Technik-Check).
  * Die Ansicht ist zustandslos: die App ruft refresh(info) auf.
  */
-import { h } from '../lib/dom.js';
+import { h, icon, replace } from '../lib/dom.js';
 import { TechCheck } from './techcheck.js';
 
 const MODE_TEXT = { exam: 'Klausur', practice: 'Übung', probe: 'Technik-Check' };
@@ -102,7 +102,7 @@ export class WaitingView {
         }
         this.status.textContent = text;
         this.readyBtn.disabled = phase !== 'joined' || !!info.ready || !!info.readyBusy;
-        this.readyBtn.textContent = info.ready ? 'Bereit ✓' : (info.readyBusy ? 'Einen Moment ...' : 'Bereit');
+        replace(this.readyBtn, ...(info.ready ? [icon('check'), 'Bereit'] : [info.readyBusy ? 'Einen Moment ...' : 'Bereit']));
         if (phase === 'code' && document.activeElement === document.body) {
             this.codeInput.focus();
         }

@@ -36,13 +36,13 @@ $roleBadge = static fn (string $role): string => match ($role) {
     </div>
     <div class="page-actions">
         <?php if ($canCards): ?>
-            <a class="btn btn-ghost" href="<?= e($ctx->url('/admin/zugangskarten')) ?>">🪪 Zugangskarten</a>
+            <a class="btn btn-ghost" href="<?= e($ctx->url('/admin/zugangskarten')) ?>"><?= icon('id-card') ?> Zugangskarten</a>
         <?php endif; ?>
         <?php if ($canImport): ?>
-            <a class="btn btn-ghost" href="<?= e($ctx->url('/admin/benutzer/import')) ?>">📥 CSV-Import</a>
+            <a class="btn btn-ghost" href="<?= e($ctx->url('/admin/benutzer/import')) ?>"><?= icon('download') ?> CSV-Import</a>
         <?php endif; ?>
         <?php if ($canCreate): ?>
-            <a class="btn btn-primary" href="<?= e($ctx->url('/admin/benutzer/neu')) ?>">➕ Neuer Benutzer</a>
+            <a class="btn btn-primary" href="<?= e($ctx->url('/admin/benutzer/neu')) ?>"><?= icon('plus') ?> Neuer Benutzer</a>
         <?php endif; ?>
     </div>
 </div>
@@ -94,7 +94,7 @@ $roleBadge = static fn (string $role): string => match ($role) {
 <div data-live-target="users">
 <?php if ($users === []): ?>
     <div class="empty-state">
-        <div class="empty-icon">👥</div>
+        <div class="empty-icon"><?= icon('users') ?></div>
         <p>Keine Benutzer gefunden.</p>
     </div>
 <?php else: ?>
@@ -108,7 +108,7 @@ $roleBadge = static fn (string $role): string => match ($role) {
                 <th>Kurse</th>
                 <th>Status</th>
                 <th>Letzter Login</th>
-                <th style="text-align:right;">Aktionen</th>
+                <th class="th-end">Aktionen</th>
             </tr>
             </thead>
             <tbody>

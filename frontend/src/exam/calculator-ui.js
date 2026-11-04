@@ -1,7 +1,7 @@
 /**
  * Oberfläche des Taschenrechners (Rechenkern: calc.js, ohne eval).
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { evaluate, formatNumber, CalcError } from './calc.js';
 
 const KEYS = [
@@ -72,7 +72,7 @@ export function createCalculator() {
         out.textContent = '0';
         input.focus();
     });
-    const back = h('button', { type: 'button', class: 'btn btn-sm calc-key', 'aria-label': 'Letztes Zeichen löschen' }, '⌫');
+    const back = h('button', { type: 'button', class: 'btn btn-sm calc-key', 'aria-label': 'Letztes Zeichen löschen' }, icon('arrow-left'));
     back.addEventListener('click', () => {
         input.value = input.value.slice(0, -1);
         input.focus();

@@ -11,7 +11,7 @@
  *   });
  *   panel.setComments(list); panel.compose(anchor); panel.destroy();
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { anchorLabel } from './logic.js';
 
 export function mountComments(container, options) {
@@ -23,7 +23,7 @@ export function mountComments(container, options) {
     const composerHost = h('div', { class: 'g-composer-host' });
     const addTask = h('button', {
         type: 'button', class: 'btn btn-sm', onclick: () => compose({ kind: 'task' }),
-    }, '💬 Kommentar zur ganzen Aufgabe');
+    }, icon('message-square'), ' Kommentar zur ganzen Aufgabe');
     const root = h('div', { class: 'g-comment-panel' }, list, composerHost, options.canWrite ? h('div', { class: 'g-comment-actions' }, addTask) : null);
     container.append(root);
 

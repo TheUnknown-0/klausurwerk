@@ -60,7 +60,7 @@ $statusBadge = [
                     <input type="checkbox" name="bestaetigt" value="1" required>
                     <span>Es werden neue Passwörter erzeugt. Eventuell vorhandene alte Karten dieser Personen werden ungültig.</span>
                 </label>
-                <div><button class="btn btn-primary" type="submit">🪪 Zugangskarten drucken (<?= e((string) (int) $result['created']) ?>)</button></div>
+                <div><button class="btn btn-primary" type="submit"><?= icon('id-card') ?> Zugangskarten drucken (<?= e((string) (int) $result['created']) ?>)</button></div>
             </form>
         <?php endif; ?>
 

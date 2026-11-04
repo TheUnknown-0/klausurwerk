@@ -8,7 +8,7 @@
  * Alt+O = nächste offene Zelle.
  */
 import { get, post } from '../lib/api.js';
-import { h, setTrustedHtml, toast, debounce } from '../lib/dom.js';
+import { h, icon, setTrustedHtml, toast, debounce } from '../lib/dom.js';
 import { enhanceRichText } from '../lib/rich-text.js';
 import { mountReplay } from '../replay/player.js';
 import { mountAnswer } from './answer-view.js';
@@ -55,11 +55,11 @@ export function mountGrading(root, boot) {
         modeBtn('task', 'Eine Aufgabe für alle', 'Dieselbe Aufgabe bei allen, dann die nächste Aufgabe'));
     const navBtn = (label, title, fn) => h('button', { type: 'button', class: 'btn btn-sm', title, 'aria-label': title, onclick: fn }, label);
     const toolbar = h('div', { class: 'g-toolbar card card-pad' },
-        h('a', { class: 'btn btn-sm', href: boot.urls.overview + queryString() }, '← Übersicht'),
+        h('a', { class: 'btn btn-sm', href: boot.urls.overview + queryString() }, icon('arrow-left'), ' Übersicht'),
         h('div', { class: 'g-navgroup' },
-            navBtn('‹', 'Vorherige Person', () => goAxis('person', -1)), personSelect, navBtn('›', 'Nächste Person', () => goAxis('person', 1))),
+            navBtn(icon('chevron-left'), 'Vorherige Person', () => goAxis('person', -1)), personSelect, navBtn(icon('chevron-right'), 'Nächste Person', () => goAxis('person', 1))),
         h('div', { class: 'g-navgroup' },
-            navBtn('‹', 'Vorherige Aufgabe', () => goAxis('task', -1)), taskSelect, navBtn('›', 'Nächste Aufgabe', () => goAxis('task', 1))),
+            navBtn(icon('chevron-left'), 'Vorherige Aufgabe', () => goAxis('task', -1)), taskSelect, navBtn(icon('chevron-right'), 'Nächste Aufgabe', () => goAxis('task', 1))),
         modeGroup,
         progressEl,
         boot.is_owner ? null : h('a', {
@@ -89,12 +89,11 @@ export function mountGrading(root, boot) {
             }
         }
         progressEl.textContent = `${done} von ${total} bewertet`;
-        const mark = (s) => (s === 'graded' || s === 'diff' ? '● ' : s === 'suggested' ? '◐ ' : '○ ');
         for (const opt of personSelect.options) {
             const p = participantById.get(Number(opt.value));
             const cells = matrix.get(p.id);
             const open = [...cells.values()].filter((c) => c.status !== 'graded' && c.status !== 'diff').length;
-            opt.textContent = `${p.label}${p.submitted ? '' : ' (ohne Abgabe)'}${open === 0 ? ' ✓' : ` (${open} offen)`}`;
+            opt.textContent = `${p.label}${p.submitted ? '' : ' (ohne Abgabe)'}${open === 0 ? ' (fertig)' : ` (${open} offen)`}`;
         }
         for (const opt of taskSelect.options) {
             const tid = Number(opt.value);
@@ -104,7 +103,7 @@ export function mountGrading(root, boot) {
                 const c = cells.get(tid);
                 if (c && c.status !== 'graded' && c.status !== 'diff') openCount++;
             }
-            opt.textContent = `${mark(openCount === 0 ? 'graded' : 'open')}${t.number} ${t.title || ''}`.trim() + ` (${openCount} offen)`;
+            opt.textContent = `${t.number} ${t.title || ''}`.trim() + (openCount === 0 ? ' (fertig)' : ` (${openCount} offen)`);
         }
         personSelect.value = String(state.pid);
         taskSelect.value = String(state.tid);
@@ -293,9 +292,9 @@ export function mountGrading(root, boot) {
         rightPane.append(h('div', { class: 'g-person-head' },
             h('strong', {}, person.label),
             !cell.participation.submitted ? h('span', { class: 'badge badge-warning', title: `Zustand: ${cell.participation.state}` }, 'ohne Abgabe') : null,
-            cell.answer?.has_overtime ? h('span', { class: 'badge badge-warning', title: 'Änderungen nach Ablauf der Bearbeitungszeit' }, '⏰ Überziehung') : null,
-            cell.pastes > 0 ? h('span', { class: 'badge badge-warning', title: 'Aus der Klausur heraus eingefügte Texte werden hier nicht gezählt, nur Einfügungen innerhalb der Klausur.' }, `📋 ${cell.pastes} ${cell.pastes === 1 ? 'Einfügung' : 'Einfügungen'}`) : null,
-            boot.can.replay && cell.answer ? h('button', { type: 'button', class: 'btn btn-sm', onclick: () => openReplay() }, '▶ Replay') : null));
+            cell.answer?.has_overtime ? h('span', { class: 'badge badge-warning', title: 'Änderungen nach Ablauf der Bearbeitungszeit' }, icon('alarm-clock'), ' Überziehung') : null,
+            cell.pastes > 0 ? h('span', { class: 'badge badge-warning', title: 'Aus der Klausur heraus eingefügte Texte werden hier nicht gezählt, nur Einfügungen innerhalb der Klausur.' }, icon('clipboard-list'), ` ${cell.pastes} ${cell.pastes === 1 ? 'Einfügung' : 'Einfügungen'}`) : null,
+            boot.can.replay && cell.answer ? h('button', { type: 'button', class: 'btn btn-sm', onclick: () => openReplay() }, icon('play'), ' Replay') : null));
 
         rightPane.append(buildGradePanel(cell, task));
 
@@ -432,7 +431,7 @@ export function mountGrading(root, boot) {
         if (d.source === 'tests') {
             body.append(h('p', {}, `${d.passed} von ${d.total} Tests bestanden, ${formatPoints(d.earned)} von ${formatPoints(d.max_points)} Testpunkten.`));
             body.append(h('ul', { class: 'g-tests' }, (d.results ?? []).map((r) => h('li', { class: r.ok ? 'is-ok' : 'is-fail' },
-                h('span', { class: 'g-test-mark', 'aria-hidden': 'true' }, r.ok ? '✓' : '✗'),
+                h('span', { class: 'g-test-mark', 'aria-hidden': 'true' }, icon(r.ok ? 'check' : 'x')),
                 h('span', { class: 'sr-only' }, r.ok ? 'bestanden: ' : 'nicht bestanden: '),
                 h('strong', {}, r.name), ` (${formatPoints(r.earned)} / ${formatPoints(r.points)} P.)`,
                 r.message ? h('pre', { class: 'g-test-msg' }, r.message) : null,
@@ -510,7 +509,7 @@ export function mountGrading(root, boot) {
         if (!el) return;
         el.className = 'g-save-state text-sm';
         if (kind === 'saving') el.textContent = 'Speichert ...';
-        else if (kind === 'ok') { el.textContent = '✓ gespeichert'; el.classList.add('text-success'); }
+        else if (kind === 'ok') { el.replaceChildren(icon('check'), ' gespeichert'); el.classList.add('text-success'); }
         else { el.textContent = `Nicht gespeichert: ${message}`; el.classList.add('text-danger'); }
     }
 

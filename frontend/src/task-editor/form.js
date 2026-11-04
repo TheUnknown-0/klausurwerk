@@ -2,7 +2,7 @@
  * Formular der gewählten Aufgabe: Titel, Text, Punkte, Operator/AFB, Antworttyp mit
  * typspezifischem Editor, Musterlösung, Erwartungshorizont, Material und Testen.
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { taskEditor } from '../lib/widgets.js';
 import { createMarkdownField } from './md-field.js';
 import { testModelAnswer } from './run-test.js';
@@ -180,7 +180,7 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
         });
         modelHost.append(modelField.el);
         if (isCode) {
-            const run = button('▶ Musterlösung testen', async () => {
+            const run = button([icon('play'), 'Musterlösung testen'], async () => {
                 run.disabled = true;
                 testLog.hidden = false;
                 testLog.textContent = 'Läuft ...';

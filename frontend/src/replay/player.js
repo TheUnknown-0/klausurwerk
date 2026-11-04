@@ -11,7 +11,7 @@
  * Pausen über einer Minute werden verkürzt. Logik: reconstruct.js, timeline.js.
  */
 import { get } from '../lib/api.js';
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { createCodeEditor } from '../lib/code-editor.js';
 import { answerWidget } from '../lib/widgets.js';
 import { Reconstructor, normalizeSteps } from './reconstruct.js';
@@ -71,9 +71,11 @@ export function mountReplay(container, { examId, participationId, taskId, apiBas
     const view = h('div', { class: 'rp-view' });
     const note = h('p', { class: 'rp-note', role: 'status', hidden: true });
     const warn = h('p', { class: 'rp-warn', hidden: true });
-    const playBtn = h('button', { type: 'button', class: 'btn btn-sm btn-accent rp-play', onclick: () => togglePlay() }, '▶ Abspielen');
-    const prevBtn = h('button', { type: 'button', class: 'btn btn-sm', 'aria-label': 'Ein Schritt zurück', onclick: () => gotoIndex(current - 1) }, '◀');
-    const nextBtn = h('button', { type: 'button', class: 'btn btn-sm', 'aria-label': 'Ein Schritt vor', onclick: () => gotoIndex(current + 1) }, '▶');
+    const playBtn = h('button', { type: 'button', class: 'btn btn-sm btn-primary rp-play', onclick: () => togglePlay() });
+    const setPlayLabel = (iconName, text) => playBtn.replaceChildren(icon(iconName), ` ${text}`);
+    setPlayLabel('play', 'Abspielen');
+    const prevBtn = h('button', { type: 'button', class: 'btn btn-sm', 'aria-label': 'Ein Schritt zurück', onclick: () => gotoIndex(current - 1) }, icon('chevron-left'));
+    const nextBtn = h('button', { type: 'button', class: 'btn btn-sm', 'aria-label': 'Ein Schritt vor', onclick: () => gotoIndex(current + 1) }, icon('chevron-right'));
     const speedBtns = SPEEDS.map((s) => h('button', {
         type: 'button', class: 'btn btn-sm rp-speed', 'aria-pressed': s === speed ? 'true' : 'false', onclick: () => setSpeed(s),
     }, `${s}x`));
@@ -82,12 +84,12 @@ export function mountReplay(container, { examId, participationId, taskId, apiBas
     });
     const track = h('div', { class: 'rp-track' });
     const jumpPaste = [
-        h('button', { type: 'button', class: 'btn btn-sm rp-jump rp-jump-paste', onclick: () => jump('paste', -1) }, '◀ Einfügung'),
-        h('button', { type: 'button', class: 'btn btn-sm rp-jump rp-jump-paste', onclick: () => jump('paste', 1) }, 'Einfügung ▶'),
+        h('button', { type: 'button', class: 'btn btn-sm rp-jump rp-jump-paste', onclick: () => jump('paste', -1) }, icon('chevron-left'), ' Einfügung'),
+        h('button', { type: 'button', class: 'btn btn-sm rp-jump rp-jump-paste', onclick: () => jump('paste', 1) }, 'Einfügung ', icon('chevron-right')),
     ];
     const jumpOver = [
-        h('button', { type: 'button', class: 'btn btn-sm rp-jump rp-jump-over', onclick: () => jump('overtime', -1) }, '◀ Überziehung'),
-        h('button', { type: 'button', class: 'btn btn-sm rp-jump rp-jump-over', onclick: () => jump('overtime', 1) }, 'Überziehung ▶'),
+        h('button', { type: 'button', class: 'btn btn-sm rp-jump rp-jump-over', onclick: () => jump('overtime', -1) }, icon('chevron-left'), ' Überziehung'),
+        h('button', { type: 'button', class: 'btn btn-sm rp-jump rp-jump-over', onclick: () => jump('overtime', 1) }, 'Überziehung ', icon('chevron-right')),
     ];
     const controls = h('div', { class: 'rp-controls', hidden: true },
         h('div', { class: 'rp-row' }, playBtn, prevBtn, nextBtn,
@@ -186,12 +188,13 @@ export function mountReplay(container, { examId, participationId, taskId, apiBas
         const total = steps.length;
         const where = current < 0 ? 'vor dem ersten Schritt' : `Schritt ${current + 1} von ${total}`;
         const fileName = mode === 'code' ? (pinnedFile && st.files.has(pinnedFile) ? pinnedFile : (st.file ?? [...st.files.keys()][0] ?? null)) : null;
-        info.replaceChildren(
+        info.replaceChildren(...[
             h('strong', {}, clock(current < 0 ? timeline.real[0] : timeline.real[current])),
             ` · ${where}`,
             fileName ? ` · Datei ${fileName}` : '',
             step?.isPaste ? h('span', { class: 'badge badge-danger rp-badge' }, 'Einfügung') : null,
-            step?.isOvertime ? h('span', { class: 'badge badge-warning rp-badge' }, 'nach Zeitende') : null);
+            step?.isOvertime ? h('span', { class: 'badge badge-warning rp-badge' }, 'nach Zeitende') : null,
+        ].filter((node) => node !== null && node !== undefined));
         slider.setAttribute('aria-valuetext', `${where}, ${clock(timeline.real[Math.max(0, current)])}`);
         warn.hidden = !st.hasGap;
         warn.textContent = st.hasGap
@@ -228,7 +231,9 @@ export function mountReplay(container, { examId, participationId, taskId, apiBas
         if (skip) {
             showNote(`Pause von ${formatGap(skip.ms)} übersprungen.`);
         }
-        playBtn.textContent = playing ? '⏸ Pause' : (position >= timeline.total && total > 0 ? '↻ Von vorn' : '▶ Abspielen');
+        if (playing) setPlayLabel('pause', 'Pause');
+        else if (position >= timeline.total && total > 0) setPlayLabel('refresh-cw', 'Von vorn');
+        else setPlayLabel('play', 'Abspielen');
         prevBtn.disabled = current < 0;
         nextBtn.disabled = current >= total - 1;
         for (const b of jumpPaste) b.disabled = !timeline.markers.some((m) => m.type === 'paste');

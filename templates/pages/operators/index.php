@@ -17,7 +17,7 @@ $count = count($operators);
 
 <?php if ($operators === []): ?>
     <div class="empty-state">
-        <div class="empty-icon">🔤</div>
+        <div class="empty-icon"><?= icon('type') ?></div>
         <p>Es gibt noch keine Operatoren.</p>
     </div>
 <?php else: ?>
@@ -29,7 +29,7 @@ $count = count($operators);
                 <th>AFB</th>
                 <th>Erläuterung</th>
                 <th>Aufgaben</th>
-                <th style="text-align:right;">Aktionen</th>
+                <th class="th-end">Aktionen</th>
             </tr>
             </thead>
             <tbody>
@@ -45,12 +45,12 @@ $count = count($operators);
                             <form method="post" action="<?= e($base . '/' . $id . '/verschieben') ?>">
                                 <?= $csrf->field() ?>
                                 <input type="hidden" name="richtung" value="hoch">
-                                <button class="btn btn-sm btn-ghost" type="submit"<?= $i === 0 ? ' disabled' : '' ?> aria-label="<?= e($operator['name']) ?> nach oben">↑</button>
+                                <button class="btn btn-sm btn-ghost" type="submit"<?= $i === 0 ? ' disabled' : '' ?> aria-label="<?= e($operator['name']) ?> nach oben"><?= icon('arrow-up') ?></button>
                             </form>
                             <form method="post" action="<?= e($base . '/' . $id . '/verschieben') ?>">
                                 <?= $csrf->field() ?>
                                 <input type="hidden" name="richtung" value="runter">
-                                <button class="btn btn-sm btn-ghost" type="submit"<?= $i === $count - 1 ? ' disabled' : '' ?> aria-label="<?= e($operator['name']) ?> nach unten">↓</button>
+                                <button class="btn btn-sm btn-ghost" type="submit"<?= $i === $count - 1 ? ' disabled' : '' ?> aria-label="<?= e($operator['name']) ?> nach unten"><?= icon('arrow-down') ?></button>
                             </form>
                             <a class="btn btn-sm btn-ghost" href="<?= e($base . '/' . $id) ?>">Bearbeiten</a>
                             <form method="post" action="<?= e($base . '/' . $id . '/loeschen') ?>"

@@ -11,7 +11,7 @@ import { keymap } from '@codemirror/view';
 import { lintGutter } from '@codemirror/lint';
 import { registerAnswerWidget } from '../lib/widgets.js';
 import { createCodeEditor } from '../lib/code-editor.js';
-import { h } from '../lib/dom.js';
+import { h, icon, replace } from '../lib/dom.js';
 import { createOutputPanel } from '../runtime/output-panel.js';
 import { buildFileList, pickMainFile, suggestFileName, toContent, validateFileName } from '../runtime/files.js';
 import { groupByFile, normalizeDiagnostics, toEditorDiagnostics } from '../runtime/diagnostics.js';
@@ -81,7 +81,7 @@ const CodeWidget = {
 
         // ---------- Aufbau ----------
         const runBtn = h('button', { class: 'btn btn-sm btn-accent cw-run', type: 'button', onclick: () => startRun() });
-        const stopBtn = h('button', { class: 'btn btn-sm btn-danger-ghost', type: 'button', disabled: true, onclick: () => stopRun() }, 'Stopp');
+        const stopBtn = h('button', { class: 'btn btn-sm btn-danger-ghost', type: 'button', disabled: true, onclick: () => stopRun() }, icon('x'), 'Stopp');
         const clearBtn = h('button', { class: 'btn btn-sm', type: 'button', onclick: () => panel.console.clear() }, 'Konsole leeren');
         const testBtn = h('button', { class: 'btn btn-sm', type: 'button', onclick: () => startSampleTests() }, 'Beispieltests');
         const schemaBtn = h('button', { class: 'btn btn-sm', type: 'button', onclick: () => showSchema() }, 'Datenbank anzeigen');
@@ -185,7 +185,7 @@ const CodeWidget = {
             const canRun = mayRun();
             runBtn.hidden = !canRun;
             runBtn.disabled = running || testing;
-            runBtn.textContent = running ? 'Läuft …' : syntaxOnly ? 'Syntax prüfen' : 'Ausführen';
+            replace(runBtn, icon(running ? 'hourglass' : (syntaxOnly ? 'circle-check' : 'play')), running ? 'Läuft …' : syntaxOnly ? 'Syntax prüfen' : 'Ausführen');
             runBtn.title = `${syntaxOnly ? 'Syntax prüfen' : 'Ausführen'} (Strg+Enter)`;
             stopBtn.hidden = !canRun;
             stopBtn.disabled = !(running || testing);
@@ -294,7 +294,7 @@ const CodeWidget = {
                     dataset: { name: f.name },
                     onclick: () => activate(f.name, { focus: true }),
                 },
-                f.readonly ? h('span', { class: 'cw-lock', 'aria-hidden': 'true' }, '🔒') : null,
+                f.readonly ? h('span', { class: 'cw-lock', 'aria-hidden': 'true' }, icon('lock')) : null,
                 f.readonly ? h('span', { class: 'sr-only' }, 'schreibgeschützt: ') : null,
                 ...label);
                 tabBar.append(tab);
@@ -303,7 +303,7 @@ const CodeWidget = {
             if (allowFileOps()) {
                 fileTools.append(h('button', {
                     class: 'btn btn-sm cw-filebtn', type: 'button', title: 'Neue Datei anlegen', onclick: () => openNewFile(),
-                }, '＋ Datei'));
+                }, icon('plus'), 'Datei'));
                 const active = fileByName(activeName);
                 if (active && !taskFileNames.has(active.name)) {
                     fileTools.append(

@@ -3,7 +3,7 @@
  * x/y sind hier die Mittelpunkte der Symbole. Das Attribut-Feld "owner" verweist auf eine
  * Entität oder eine Beziehung.
  */
-import { h } from '../../lib/dom.js';
+import { h, icon } from '../../lib/dom.js';
 import { registerAnswerWidget } from '../../lib/widgets.js';
 import {
     bbox, diamondBorderPoint, ellipseBorderPoint, freePosition, newId, rectBorderPoint, textWidth,
@@ -356,7 +356,7 @@ export const erPlugin = {
             item.obj.ends.forEach((end, i) => ends.append(h('div', { class: 'dg-member' },
                 h('span', {}, nameOf(m, end.entity)),
                 selectInput(CARDINALITIES.map((c) => [c, c]), end.cardinality, (v) => set((o) => { o.ends[i].cardinality = v; }), { 'aria-label': `Kardinalität zu ${nameOf(m, end.entity)}` }),
-                smallButton('✕', () => set((o) => { o.ends.splice(i, 1); }, null, true), { 'aria-label': `Verbindung zu ${nameOf(m, end.entity)} entfernen` }))));
+                smallButton(icon('x'), () => set((o) => { o.ends.splice(i, 1); }, null, true), { 'aria-label': `Verbindung zu ${nameOf(m, end.entity)} entfernen` }))));
             if (item.obj.ends.length === 0) {
                 ends.append(hintText('Noch keine Entität verbunden. Nutze „Verbinden“ in der Werkzeugleiste.'));
             }
@@ -415,7 +415,7 @@ function ownAttributes(board, ownerId, list) {
                     x.key = v;
                 }
             })),
-            smallButton('✕', () => board.mutate((model) => {
+            smallButton(icon('x'), () => board.mutate((model) => {
                 model.attributes = model.attributes.filter((q) => q.id !== a.id);
             }, { inspector: true }), { 'aria-label': `Attribut ${a.name || ''} entfernen` })));
     });

@@ -3,7 +3,7 @@
  * HTML-Fragmente aus /assets/aids/), Operatorenliste, Materialien mit is_aid
  * und der Taschenrechner.
  */
-import { h, setTrustedHtml } from '../lib/dom.js';
+import { h, setTrustedHtml, icon } from '../lib/dom.js';
 import { url } from '../lib/api.js';
 import { createCalculator } from './calculator-ui.js';
 
@@ -47,7 +47,7 @@ export class AidsPanel {
         this.open = false;
         this.body = h('div', { class: 'aids-body' });
         this.tablist = h('div', { class: 'aids-tabs', role: 'tablist', 'aria-label': 'Hilfsmittel' });
-        this.closeBtn = h('button', { type: 'button', class: 'modal-close', 'aria-label': 'Hilfsmittel schließen' }, '×');
+        this.closeBtn = h('button', { type: 'button', class: 'modal-close', 'aria-label': 'Hilfsmittel schließen' }, icon('x'));
         this.closeBtn.addEventListener('click', () => this.toggle(false));
         this.el = h('aside', { class: 'aids-panel', hidden: true, 'aria-label': 'Hilfsmittel' },
             h('div', { class: 'aids-head' }, h('strong', {}, 'Hilfsmittel'), this.closeBtn),

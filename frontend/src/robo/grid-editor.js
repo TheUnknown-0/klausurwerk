@@ -9,7 +9,7 @@
  *
  * Die Bearbeitungslogik (applyTool, resizeWorld) ist ohne DOM testbar.
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { MAX_SIZE, MIN_SIZE, MAX_SCREWS_PER_CELL, DIRS, normalizeWorldData } from './world.js';
 
 export const TOOLS = [
@@ -155,7 +155,7 @@ export function resizeWorld(world, cols, rows) {
     return w;
 }
 
-const ARROW = { N: '▲', E: '▶', S: '▼', W: '◀' };
+const ARROW = { N: 'arrow-up', E: 'arrow-right', S: 'arrow-down', W: 'arrow-left' };
 
 function describeCell(world, x, y) {
     const info = cellInfo(world, x, y);
@@ -242,14 +242,11 @@ export function createGridEditor(container, { world: initial, onChange = () => {
                 const info = cellInfo(world, x, y);
                 btn.className = ['re-cell', info.wall && 're-wall', info.box && 're-box', info.target && 're-target', info.screws && 're-screw', info.robo && 're-robo']
                     .filter(Boolean).join(' ');
-                let glyph = '';
-                if (info.robo) glyph = ARROW[world.robo.dir];
-                else if (info.wall) glyph = '■';
-                else if (info.box) glyph = '▣';
-                else if (info.screws) glyph = String(info.screws);
-                else if (info.target) glyph = '⚑';
-                if (info.robo && info.screws) glyph += String(info.screws);
-                btn.textContent = glyph;
+                const parts = [];
+                if (info.robo) parts.push(icon(ARROW[world.robo.dir]));
+                else if (info.target && !info.wall && !info.box && !info.screws) parts.push(icon('flag'));
+                if (!info.wall && !info.box && info.screws) parts.push(String(info.screws));
+                btn.replaceChildren(...parts);
                 btn.setAttribute('aria-label', describeCell(world, x, y));
                 btn.tabIndex = x === focus[0] && y === focus[1] ? 0 : -1;
             }

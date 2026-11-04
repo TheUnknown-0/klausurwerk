@@ -24,7 +24,7 @@ $statusLabels = [
     </div>
     <div class="page-actions">
         <?php if ($canCards): ?>
-            <a class="btn btn-ghost" href="<?= e($ctx->url('/admin/zugangskarten?kurs=' . $courseId)) ?>">🪪 Zugangskarten für den Kurs</a>
+            <a class="btn btn-ghost" href="<?= e($ctx->url('/admin/zugangskarten?kurs=' . $courseId)) ?>"><?= icon('id-card') ?> Zugangskarten für den Kurs</a>
         <?php endif; ?>
         <?php if ($canEdit): ?>
             <a class="btn btn-primary" href="<?= e($base . '/' . $courseId . '/bearbeiten') ?>">Bearbeiten</a>
@@ -76,11 +76,11 @@ $statusLabels = [
 <?php endif; ?>
 
 <div class="card mb-2">
-    <div class="card-header"><h3 style="margin:0;">Mitglieder (<?= e((string) count($members)) ?>)</h3></div>
+    <div class="card-header"><h3>Mitglieder (<?= e((string) count($members)) ?>)</h3></div>
     <?php if ($members === []): ?>
         <div class="card-body"><p class="text-soft">Noch keine Schüler:innen im Kurs.</p></div>
     <?php else: ?>
-        <div class="table-wrap" style="border:none; border-radius:0;">
+        <div class="table-wrap table-flush">
             <table class="data-table">
                 <thead>
                 <tr>
@@ -125,11 +125,11 @@ $statusLabels = [
 </div>
 
 <div class="card mb-2">
-    <div class="card-header"><h3 style="margin:0;">Klausuren (<?= e((string) count($exams)) ?>)</h3></div>
+    <div class="card-header"><h3>Klausuren (<?= e((string) count($exams)) ?>)</h3></div>
     <?php if ($exams === []): ?>
         <div class="card-body"><p class="text-soft">Für diesen Kurs gibt es noch keine Klausur.</p></div>
     <?php else: ?>
-        <div class="table-wrap" style="border:none; border-radius:0;">
+        <div class="table-wrap table-flush">
             <table class="data-table">
                 <tbody>
                 <?php foreach ($exams as $exam): ?>

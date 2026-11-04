@@ -1,5 +1,7 @@
 <?php /** Anmeldung per Code, Schritt 1: Benutzername. Erwartet optional: $redirect, $username. */ ?>
-<h1 style="font-size:1.35rem;">Anmeldung per Code</h1>
+<link rel="stylesheet" href="<?= e(asset('css/admin.css', $ctx->config['app']['base_url'])) ?>">
+<div class="page-eyebrow">Anmeldung per Code</div>
+<h1>Anmeldung per Code</h1>
 <p class="text-soft text-sm">
     Wir schicken dir einen Code an die für dein Konto hinterlegte E-Mail-Adresse, ohne Passwort.
     Das funktioniert auch, wenn du dein Passwort vergessen hast.

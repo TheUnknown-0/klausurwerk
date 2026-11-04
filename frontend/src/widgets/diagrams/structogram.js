@@ -3,11 +3,11 @@
  * Format: docs/DATENFORMATE.md, 2.9. Bausteine werden über die Palette und Einfügepunkte
  * eingefügt; Breiten und Höhen ergeben sich automatisch (core/structogram-layout.js).
  */
-import { h } from '../../lib/dom.js';
+import { h, icon } from '../../lib/dom.js';
 import { registerAnswerWidget } from '../../lib/widgets.js';
 import { boardWidget } from './core/widget.js';
 import { multiline, line } from './core/model-util.js';
-import { field, hintText, panel, smallButton, textArea, textInput } from './core/form.js';
+import { field, hintText, panel, smallButton, textArea, textInput, withIcon } from './core/form.js';
 import {
     BLOCK_TYPES, collectIds, emptySeq, findBlock, flatOrder, indentBlock, insertBlock, moveBlock, newBlock, normalizeStructogram,
     outdentBlock, removeBlock, textField,
@@ -198,7 +198,7 @@ export const structogramPlugin = {
             const wrap = h('div', { class: 'dg-members' }, h('h4', { class: 'dg-sub' }, 'Fälle'));
             block.cases.forEach((c, i) => wrap.append(h('div', { class: 'dg-member' },
                 textInput(c.label, (v) => set((x) => { x.cases[i].label = line(v, 80); }, `c:${id}:${i}`), { 'aria-label': `Bezeichnung Fall ${i + 1}`, placeholder: 'Fall' }),
-                smallButton('✕', () => set((x) => { x.cases.splice(i, 1); }, null, true), { 'aria-label': `Fall ${i + 1} samt Inhalt entfernen`, disabled: block.cases.length <= 1 }))));
+                smallButton(icon('x'), () => set((x) => { x.cases.splice(i, 1); }, null, true), { 'aria-label': `Fall ${i + 1} samt Inhalt entfernen`, disabled: block.cases.length <= 1 }))));
             wrap.append(smallButton('+ Fall', () => set((x) => {
                 if (x.cases.length < 12) {
                     x.cases.splice(Math.max(0, x.cases.length - 1), 0, { label: String(x.cases.length), body: emptySeq() });
@@ -213,7 +213,7 @@ export const structogramPlugin = {
                 smallButton('↓', () => moveSelected(board, 'down'), { 'aria-label': 'Nach unten', disabled: hit.index >= hit.seq.children.length - 1 }),
                 smallButton('⇥', () => moveSelected(board, 'in'), { 'aria-label': 'In den vorherigen Block aufnehmen', disabled: hit.index === 0 }),
                 smallButton('⇤', () => moveSelected(board, 'out'), { 'aria-label': 'Aus dem umgebenden Block herausnehmen', disabled: hit.key === 'root' }),
-                smallButton('🗑 Löschen', () => board.removeSelection())));
+                smallButton(withIcon('trash-2', 'Löschen'), () => board.removeSelection())));
     },
 };
 

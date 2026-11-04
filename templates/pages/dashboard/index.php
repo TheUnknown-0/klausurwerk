@@ -17,7 +17,7 @@ $statusBadge = [
 $renderGroup = static function (string $heading, string $emptyText, array $exams, bool $showPult) use ($ctx, $statusLabels, $statusBadge): void {
     ?>
     <section class="card dash-group">
-        <div class="card-header"><h3 style="margin:0;"><?= e($heading) ?> <span class="text-faint">(<?= e((string) count($exams)) ?>)</span></h3></div>
+        <div class="card-header"><h3><?= e($heading) ?> <span class="text-faint">(<?= e((string) count($exams)) ?>)</span></h3></div>
         <?php if ($exams === []): ?>
             <div class="card-body"><p class="text-soft text-sm mb-0"><?= e($emptyText) ?></p></div>
         <?php else: ?>
@@ -53,7 +53,7 @@ $renderGroup = static function (string $heading, string $emptyText, array $exams
     </div>
     <div class="page-actions">
         <?php if ($canCreateExam): ?>
-            <a class="btn btn-primary" href="<?= e($ctx->url('/klausuren/neu')) ?>">➕ Neue Klausur</a>
+            <a class="btn btn-primary" href="<?= e($ctx->url('/klausuren/neu')) ?>"><?= icon('plus') ?> Neue Klausur</a>
         <?php endif; ?>
     </div>
 </div>
@@ -78,7 +78,7 @@ $renderGroup = static function (string $heading, string $emptyText, array $exams
 
     <aside class="stack">
         <section class="card">
-            <div class="card-header"><h3 style="margin:0;">Meine Kurse</h3></div>
+            <div class="card-header"><h3>Meine Kurse</h3></div>
             <?php if ($myCourses === []): ?>
                 <div class="card-body">
                     <p class="text-soft text-sm">Du bist noch keinem Kurs zugeordnet.</p>

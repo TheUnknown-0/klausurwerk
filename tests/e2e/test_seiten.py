@@ -13,7 +13,7 @@ ADMIN_PAGES = [
 ]
 TEACHER_PAGES = [
     "/dashboard", "/klausuren", "/klausuren/1", "/klausuren/1/einstellungen", "/klausuren/1/aufgaben",
-    "/klausuren/1/lehrkraefte", "/klausuren/1/material", "/klausuren/1/seb", "/klausuren/1/pult",
+    "/klausuren/1/material", "/klausuren/1/seb", "/klausuren/1/pult",
     "/klausuren/1/vorschau", "/klausuren/2/pult", "/archiv", "/admin/kurse", "/admin/benutzer",
 ]
 STUDENT_PAGES = ["/meine-klausuren", "/meine-ergebnisse", "/klausur/2"]

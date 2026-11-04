@@ -4,14 +4,14 @@
  * optionales Hintergrundbild aus dem Klausurmaterial, optional Datei-Upload (POST /api/klausur/{id}/datei).
  * Linienzüge werden mit Douglas-Peucker vereinfacht, die Größe ist begrenzt.
  */
-import { h } from '../../lib/dom.js';
+import { h, icon } from '../../lib/dom.js';
 import { request, url } from '../../lib/api.js';
 import { registerAnswerWidget } from '../../lib/widgets.js';
 import { clampPoints, distToPolyline, pointsToPath, simplifyPoints, textWidth } from './core/geometry.js';
 import { asObject, bool, clone, isObj, multiline, num, rows, uniqueId } from './core/model-util.js';
 import { bindUndoKeys, createTracker } from './core/simple.js';
 import { svgToPng } from './core/png.js';
-import { smallButton } from './core/form.js';
+import { smallButton, withIcon } from './core/form.js';
 import { s, text as svgText } from './core/svg.js';
 
 export const MAX_STROKES = 1500;
@@ -198,8 +198,8 @@ export const DrawingWidget = {
         const widthSel = h('select', { class: 'input dg-input dg-width', 'aria-label': 'Strichstärke', onchange: () => { state.width = Number(widthSel.value); } },
             WIDTHS.map(([v, label]) => h('option', { value: v }, label)));
         widthSel.value = String(state.width);
-        const undoBtn = smallButton('↶ Rückgängig', () => undo(), { title: 'Rückgängig (Strg+Z)' });
-        const redoBtn = smallButton('↷ Wiederholen', () => redo(), { title: 'Wiederholen (Strg+Y)' });
+        const undoBtn = smallButton(withIcon('undo-2', 'Rückgängig'), () => undo(), { title: 'Rückgängig (Strg+Z)' });
+        const redoBtn = smallButton(withIcon('redo-2', 'Wiederholen'), () => redo(), { title: 'Wiederholen (Strg+Y)' });
         let clearArmed = false;
         const clearBtn = smallButton('Alles löschen', () => {
             if (!clearArmed) {
@@ -216,8 +216,8 @@ export const DrawingWidget = {
         });
         const bar = h('div', { class: 'dg-toolbar', role: 'toolbar', 'aria-label': 'Zeichenwerkzeuge' },
             h('div', { class: 'dg-tool-group', role: 'group', 'aria-label': 'Werkzeug' },
-                mkTool('pen', '✎ Stift', 'Freihand zeichnen'), mkTool('eraser', '⌫ Radierer', 'Ganze Striche löschen'),
-                mkTool('text', 'T Text', 'Text setzen (Klick auf die Fläche)'), mkTool('select', '↖ Verschieben', 'Texte verschieben und bearbeiten')),
+                mkTool('pen', withIcon('pencil', 'Stift'), 'Freihand zeichnen'), mkTool('eraser', 'Radierer', 'Ganze Striche löschen'),
+                mkTool('text', withIcon('type', 'Text'), 'Text setzen (Klick auf die Fläche)'), mkTool('select', withIcon('move', 'Verschieben'), 'Texte verschieben und bearbeiten')),
             h('div', { class: 'dg-tool-group', role: 'group', 'aria-label': 'Farbe' }, ...colorBtns),
             h('div', { class: 'dg-tool-group' }, h('label', { class: 'dg-tool-label', for: 'dg-w' }, 'Stärke'), widthSel),
             h('div', { class: 'dg-tool-group', role: 'group', 'aria-label': 'Bearbeiten' }, undoBtn, redoBtn, clearBtn));

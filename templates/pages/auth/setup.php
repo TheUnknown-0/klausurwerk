@@ -1,5 +1,7 @@
 <?php /** Erst-Einrichtung (nur solange keine Benutzer existieren). */ $old = $ctx->session->pullOldInput(); ?>
-<h1 style="font-size:1.35rem;">Willkommen bei Klausurwerk</h1>
+<link rel="stylesheet" href="<?= e(asset('css/admin.css', $ctx->config['app']['base_url'])) ?>">
+<div class="page-eyebrow">Einrichtung</div>
+<h1>Willkommen bei Klausurwerk</h1>
 <p class="text-soft">
     Richte in einem Schritt das Admin-Konto und deine Schule ein.
 </p>

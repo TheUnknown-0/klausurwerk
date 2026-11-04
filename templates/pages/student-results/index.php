@@ -12,8 +12,8 @@ $fmt = static fn (mixed $v): string => $v === null ? '–' : number_format((floa
     </div>
 </div>
 
-<section class="card" aria-labelledby="res-title">
-    <div class="card-header"><h2 id="res-title" style="margin:0;font-size:1.1rem;">Zurückgegebene Klausuren</h2></div>
+<section aria-labelledby="res-title">
+    <h2 id="res-title">Zurückgegebene Klausuren</h2>
     <?php if ($rows === []): ?>
         <div class="empty-state card-body">
             <p class="text-soft">Noch ist keine deiner Klausuren zurückgegeben. Sobald deine Lehrkraft das Ergebnis freigibt, findest du es hier.</p>

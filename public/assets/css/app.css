@@ -664,3 +664,7 @@ dialog.modal .modal-footer { padding: 14px 24px; border-top: 1px solid var(--bor
 [data-theme="dark"] .tok-typeName, [data-theme="dark"] .tok-className { color: #7dd3fc; }
 [data-theme="dark"] .tok-string { color: #a7e8b8; }
 [data-theme="dark"] .tok-number, [data-theme="dark"] .tok-bool { color: #fdc07a; }
+
+/* Marke im Minimal-Layout (Anmeldung) */
+.brand-logo-lg { width: 40px; height: 40px; }
+.brand-name { font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; display: block; line-height: 1.1; }

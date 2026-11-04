@@ -2,7 +2,7 @@
  * Ergebnisseite: Rückmeldung je Person speichern und Personen abschließen (JSON-API, kein Neuladen).
  */
 import { post } from '../lib/api.js';
-import { debounce, toast } from '../lib/dom.js';
+import { debounce, icon, toast } from '../lib/dom.js';
 
 export function mountResults(root) {
     let boot = {};
@@ -26,7 +26,7 @@ export function mountResults(root) {
             return null;
         }
         if (stateEl) {
-            stateEl.textContent = '✓ gespeichert';
+            stateEl.replaceChildren(icon('check'), ' gespeichert');
             stateEl.classList.remove('text-danger');
         }
         const d = res.data;

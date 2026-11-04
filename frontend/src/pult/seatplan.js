@@ -16,11 +16,12 @@ export function createSeatPlan(store, handlers) {
     let receivedAt = Date.now();
 
     const hint = h('div', { class: 'pult-seat-hint text-sm text-soft' });
+    const board = h('div', { class: 'pult-board', hidden: true }, 'Tafel');
     const grid = h('div', { class: 'pult-grid', role: 'group', 'aria-label': 'Sitzplan' });
     const stripTitle = h('h3', { class: 'pult-strip-title' });
     const strip = h('div', { class: 'pult-strip-items' });
     const unassigned = h('section', { class: 'pult-unassigned', 'aria-label': 'Nicht zugeordnete Personen' }, stripTitle, strip);
-    const el = h('section', { class: 'pult-seat card' }, hint, grid, unassigned);
+    const el = h('section', { class: 'pult-seat card' }, hint, board, grid, unassigned);
 
     const tileHandlers = {
         onSelect: handlers.onSelect,
@@ -147,7 +148,7 @@ export function createSeatPlan(store, handlers) {
             return;
         }
         grid.className = 'pult-grid is-room';
-        grid.style.gridTemplateColumns = `repeat(${room.cols}, minmax(132px, 1fr))`;
+        grid.style.gridTemplateColumns = `repeat(${room.cols}, minmax(112px, 1fr))`;
         for (let row = 0; row < room.rows; row++) {
             for (let col = 0; col < room.cols; col++) {
                 const cell = h('div', { class: 'pult-cell', dataset: { col, row }, 'aria-label': `Platz Spalte ${col + 1}, Reihe ${row + 1}` });
@@ -183,6 +184,7 @@ export function createSeatPlan(store, handlers) {
         if (!exam) return;
         const room = exam.room;
         rebuildGrid(room);
+        board.hidden = !room;
 
         // Kacheln anlegen/aktualisieren
         const alive = new Set();

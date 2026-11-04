@@ -16,7 +16,7 @@ $base = $ctx->url('/admin/berechtigungen');
     </div>
     <?php if ($canManageGroups): ?>
         <div class="page-actions">
-            <a class="btn btn-primary" href="<?= e($base . '/gruppen/neu') ?>">➕ Neue Gruppe</a>
+            <a class="btn btn-primary" href="<?= e($base . '/gruppen/neu') ?>"><?= icon('plus') ?> Neue Gruppe</a>
         </div>
     <?php endif; ?>
 </div>
@@ -28,7 +28,7 @@ $base = $ctx->url('/admin/berechtigungen');
 
     <?php if ($groups === []): ?>
     <div class="empty-state">
-        <div class="empty-icon">🗂️</div>
+        <div class="empty-icon"><?= icon('archive') ?></div>
         <p>Es gibt noch keine Berechtigungsgruppen.</p>
         <?php if ($canManageGroups): ?>
             <a class="btn btn-primary" href="<?= e($base . '/gruppen/neu') ?>">Erste Gruppe anlegen</a>
@@ -42,7 +42,7 @@ $base = $ctx->url('/admin/berechtigungen');
             <?php $groupId = (int) $group['id']; ?>
             <div class="card">
                 <div class="card-header">
-                    <h3 style="margin:0;"><?= e($group['name']) ?></h3>
+                    <h3 class="group-title"><?= e($group['name']) ?></h3>
                     <span class="badge badge-info"><?= e((string) (int) $group['user_count']) ?> Benutzer</span>
                 </div>
                 <div class="card-body">

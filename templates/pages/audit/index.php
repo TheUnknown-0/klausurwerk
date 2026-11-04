@@ -35,11 +35,11 @@ $severityLabels = ['info' => 'Info', 'warning' => 'Warnung', 'critical' => 'Krit
 <div class="page-header">
     <div class="page-title-group">
         <div class="page-eyebrow">Verwaltung</div>
-        <h1 class="page-title">📜 Audit-Log</h1>
+        <h1 class="page-title">Audit-Log</h1>
         <p class="page-sub"><?= e((string) $total) ?> Einträge<?= array_filter($filters) !== [] ? ' (gefiltert)' : '' ?>.</p>
     </div>
     <div class="page-actions">
-        <a class="btn btn-ghost" href="<?= e($exportUrl) ?>">⬇️ CSV-Export</a>
+        <a class="btn btn-ghost" href="<?= e($exportUrl) ?>"><?= icon('download') ?> CSV-Export</a>
     </div>
 </div>
 
@@ -100,7 +100,7 @@ $severityLabels = ['info' => 'Info', 'warning' => 'Warnung', 'critical' => 'Krit
 
 <?php if ($rows === []): ?>
     <div class="empty-state">
-        <div class="empty-icon">📜</div>
+        <div class="empty-icon"><?= icon('scroll-text') ?></div>
         <p>Keine Einträge gefunden.</p>
     </div>
 <?php else: ?>

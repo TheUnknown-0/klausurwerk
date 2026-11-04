@@ -24,7 +24,7 @@ $summary = static function (array $scale): string {
         <p class="page-sub">Je Klassenstufe gilt ein Standard. Einzelne Kurse können einen anderen Schlüssel wählen.</p>
     </div>
     <div class="page-actions">
-        <a class="btn btn-primary" href="<?= e($base . '/neu') ?>">➕ Neue Vorlage</a>
+        <a class="btn btn-primary" href="<?= e($base . '/neu') ?>"><?= icon('plus') ?> Neue Vorlage</a>
     </div>
 </div>
 

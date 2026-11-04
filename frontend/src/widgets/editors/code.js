@@ -3,7 +3,7 @@
  * (Tabs, schreibgeschützt, Startdatei), sichtbare Beispiele und versteckte Tests.
  * getValue() liefert zusätzlich zu config/solution die Felder files und tests.
  */
-import { h } from '../../lib/dom.js';
+import { h, icon } from '../../lib/dom.js';
 import { createCodeEditor } from '../../lib/code-editor.js';
 import { registerTaskEditor } from '../../lib/widgets.js';
 import { button, checkbox, labeled, numberInput, select, textInput, textarea } from '../../task-editor/ui.js';
@@ -109,10 +109,10 @@ registerTaskEditor('code', {
                 tabs.append(h('button', {
                     type: 'button', class: 'btn btn-sm', role: 'tab', 'aria-selected': i === current ? 'true' : 'false',
                     onclick: () => { current = i; renderFiles(); },
-                }, f.filename + (f.is_readonly ? ' 🔒' : '')));
+                }, f.is_readonly ? [icon('lock'), f.filename] : f.filename));
             });
             if (!locked) {
-                tabs.append(button('+ Datei', () => {
+                tabs.append(button([icon('plus'), 'Datei'], () => {
                     let n = 1;
                     let name = 'Neu.txt';
                     while (files.some((f) => f.filename === name)) {
@@ -186,7 +186,7 @@ registerTaskEditor('code', {
                     button('Beispiel entfernen', () => { state.sample_tests.splice(i, 1); renderSamples(); changed(); }, { disabled: locked, class: 'btn btn-sm btn-danger-ghost' }),
                 ));
             });
-            sampleBox.append(button('+ Sichtbares Beispiel', () => {
+            sampleBox.append(button([icon('plus'), 'Sichtbares Beispiel'], () => {
                 state.sample_tests.push({ name: `Beispiel ${state.sample_tests.length + 1}`, input: '', expected_output: '', compare: 'trim' });
                 renderSamples();
                 changed();
@@ -224,7 +224,7 @@ registerTaskEditor('code', {
                     button('Test entfernen', () => { tests.splice(i, 1); renderTests(); changed(); }, { class: 'btn btn-sm btn-danger-ghost' }),
                 ));
             });
-            testBox.append(button('+ Versteckten Test hinzufügen', () => {
+            testBox.append(button([icon('plus'), 'Versteckten Test hinzufügen'], () => {
                 const type = (TEST_TYPES[state.language] ?? TEST_TYPES.java)[0][0];
                 tests.push({ name: `Test ${tests.length + 1}`, type, points: 1, input: '', expected_output: '', compare: 'trim' });
                 renderTests();

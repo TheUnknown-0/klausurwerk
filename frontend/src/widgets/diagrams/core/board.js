@@ -21,7 +21,8 @@
  *   mountExtras?(board, host)         zusätzliche Bedienelemente unter der Leinwand
  *   freeLayout (true)                 false: kein Verschieben/Raster (Struktogramm)
  */
-import { h, debounce } from '../../../lib/dom.js';
+import { h, icon, debounce } from '../../../lib/dom.js';
+import { withIcon } from './form.js';
 import { History } from './history.js';
 import { GRID, clamp, snap } from './geometry.js';
 import { s } from './svg.js';
@@ -192,10 +193,10 @@ export class DiagramBoard {
         }
 
         this.toolbar.append(group('Bearbeiten',
-            btn('undo', '↶ Rückgängig', 'Rückgängig (Strg+Z)', () => this.undo()),
-            btn('redo', '↷ Wiederholen', 'Wiederholen (Strg+Y)', () => this.redo()),
-            btn('delete', '🗑 Löschen', 'Auswahl löschen (Entf)', () => this.removeSelection()),
-            this.plugin.freeLayout === false ? null : btn('snap', '▦ Raster', 'Am Raster ausrichten', () => {
+            btn('undo', withIcon('undo-2', 'Rückgängig'), 'Rückgängig (Strg+Z)', () => this.undo()),
+            btn('redo', withIcon('redo-2', 'Wiederholen'), 'Wiederholen (Strg+Y)', () => this.redo()),
+            btn('delete', withIcon('trash-2', 'Löschen'), 'Auswahl löschen (Entf)', () => this.removeSelection()),
+            this.plugin.freeLayout === false ? null : btn('snap', withIcon('grid-3x3', 'Raster'), 'Am Raster ausrichten', () => {
                 this.snapOn = !this.snapOn;
                 this.refreshToolbar();
             }, { 'aria-pressed': 'true' })));

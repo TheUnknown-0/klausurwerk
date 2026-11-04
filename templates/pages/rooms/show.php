@@ -64,7 +64,7 @@ $statusLabels = [
                                     <?= $csrf->field() ?>
                                     <input type="hidden" name="user_id" value="<?= e((string) (int) $seat['user_id']) ?>">
                                     <span class="seat-name"><?= e(display_name($seat)) ?></span>
-                                    <button class="seat-clear" type="submit" aria-label="Platz von <?= e(display_name($seat)) ?> leeren">✕</button>
+                                    <button class="seat-clear" type="submit" aria-label="Platz von <?= e(display_name($seat)) ?> leeren"><?= icon('x') ?></button>
                                 </form>
                             <?php else: ?>
                                 <span class="sr-only">frei</span>

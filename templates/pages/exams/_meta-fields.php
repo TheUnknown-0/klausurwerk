@@ -21,7 +21,7 @@ if ($scheduledValue !== '' && !str_contains($scheduledValue, 'T')) {
 $disabled = isset($editable) && !$editable ? ' disabled' : '';
 ?>
 <div class="form-grid">
-    <div class="field" style="grid-column: 1 / -1">
+    <div class="field field-wide">
         <label for="title">Titel *</label>
         <input class="input" type="text" id="title" name="title" maxlength="200" required<?= $disabled ?>
                value="<?= e($mv('title')) ?>" placeholder="z. B. Klausur Q1: Listen und Rekursion">
@@ -66,7 +66,7 @@ $disabled = isset($editable) && !$editable ? ' disabled' : '';
         <label for="scheduled_at">Geplanter Termin</label>
         <input class="input" type="datetime-local" id="scheduled_at" name="scheduled_at"<?= $disabled ?> value="<?= e($scheduledValue) ?>">
     </div>
-    <div class="field" style="grid-column: 1 / -1">
+    <div class="field field-wide">
         <label for="description">Beschreibung (intern)</label>
         <textarea class="input" id="description" name="description" rows="3" maxlength="5000"<?= $disabled ?>><?= e($mv('description')) ?></textarea>
     </div>

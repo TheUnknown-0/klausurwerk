@@ -1,7 +1,11 @@
 /**
  * Formularbausteine für den Eigenschaften-Bereich der Diagramme (DOM per h(), nie innerHTML).
  */
-import { h } from '../../../lib/dom.js';
+import { h, icon } from '../../../lib/dom.js';
+
+/** Knopfinhalt: Icon vor dem Text (Icon ist reine Dekoration). */
+export const withIcon = (name, text) => [icon(name), text];
+export const withIconAfter = (name, text) => [text, icon(name)];
 
 let counter = 0;
 export const uid = (prefix = 'dgf') => `${prefix}-${++counter}`;

@@ -5,7 +5,7 @@
  * Komposition: das Ganze), to = Zielklasse (Pfeilspitze, Dreieck). Optional je Beziehung:
  * route = "orthogonal" | "straight".
  */
-import { h } from '../../lib/dom.js';
+import { h, icon } from '../../lib/dom.js';
 import { registerAnswerWidget } from '../../lib/widgets.js';
 import {
     arrowInset, arrowShape, bbox, center, endAngle, freePosition, newId, pointAlong, polylineLength, polylinePath, routeOrthogonal,
@@ -256,7 +256,7 @@ function inspectClass(board, cid) {
         return wrap;
     };
     const visSel = (value, onChange, label) => selectInput(VISIBILITY.map((v) => [v, v]), value, onChange, { 'aria-label': label, class: 'input dg-input dg-vis' });
-    const removeBtn = (label, onClick) => smallButton('✕', onClick, { 'aria-label': label, title: label });
+    const removeBtn = (label, onClick) => smallButton(icon('x'), onClick, { 'aria-label': label, title: label });
 
     const attrs = memberList('Attribute', cls.attributes, (a, i) => h('div', { class: 'dg-member' },
         visSel(a.visibility, (v) => set((c) => { c.attributes[i].visibility = v; }), `Sichtbarkeit Attribut ${i + 1}`),

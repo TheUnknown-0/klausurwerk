@@ -13,8 +13,8 @@ foreach ($tasks as $t) {
 ?>
 <div class="page-header">
     <div class="page-title-group">
-        <div class="page-eyebrow"><a class="text-soft" href="<?= e($ctx->url('/klausuren/' . $id)) ?>">← <?= e($exam['title']) ?></a></div>
-        <h1 class="page-title">🖼️ Material</h1>
+        <div class="page-eyebrow"><a href="<?= e($ctx->url('/klausuren/' . $id)) ?>">← <?= e($exam['title']) ?></a></div>
+        <h1 class="page-title">Material</h1>
         <p class="page-sub">Bilder (PNG, JPG, GIF, WebP) und PDF-Dateien, höchstens 20 MB je Datei. Im Aufgabentext einbinden mit <code class="mono">![Beschriftung](material:ID)</code>.</p>
     </div>
 </div>
@@ -39,12 +39,12 @@ foreach ($tasks as $t) {
             </div>
         </div>
         <label class="checkbox-row"><input type="checkbox" name="is_aid" value="1"> Als Hilfsmittel anbieten (Seitenleiste, z. B. Formelsammlung)</label>
-        <button class="btn btn-primary" type="submit">Hochladen</button>
+        <button class="btn btn-primary" type="submit"><?= icon('upload') ?>Hochladen</button>
     </form>
 <?php endif; ?>
 
 <?php if ($materials === []): ?>
-    <div class="card empty-state"><div class="empty-icon" aria-hidden="true">🖼️</div><p>Noch kein Material hochgeladen.</p></div>
+    <div class="card empty-state"><div class="empty-icon" aria-hidden="true"><?= icon('image') ?></div><p>Noch kein Material hochgeladen.</p></div>
 <?php else: ?>
     <div class="card table-wrap">
         <table class="data-table">

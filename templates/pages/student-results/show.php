@@ -7,11 +7,11 @@ $percent = $summary['percent'] === null ? null : number_format((float) $summary[
 ?>
 <div class="page-header">
     <div class="page-title-group">
-        <div class="page-eyebrow"><a class="text-soft" href="<?= e($ctx->url('/meine-ergebnisse')) ?>">← Meine Ergebnisse</a></div>
+        <a class="page-eyebrow" href="<?= e($ctx->url('/meine-ergebnisse')) ?>"><?= icon('arrow-left') ?> Meine Ergebnisse</a>
         <h1 class="page-title"><?= e($exam['title']) ?></h1>
     </div>
     <div class="page-actions">
-        <a class="btn" href="<?= e($ctx->url('/meine-ergebnisse/' . (int) $exam['id'] . '/pdf')) ?>">🖨️ Als PDF speichern</a>
+        <a class="btn" href="<?= e($ctx->url('/meine-ergebnisse/' . (int) $exam['id'] . '/pdf')) ?>"><?= icon('printer') ?> Als PDF speichern</a>
     </div>
 </div>
 

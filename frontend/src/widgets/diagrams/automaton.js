@@ -3,12 +3,12 @@
  * x/y sind die Mittelpunkte der Zustände. Schüler:innen können Wörter schrittweise
  * ausprobieren (config.allow_simulation, Standard an).
  */
-import { h } from '../../lib/dom.js';
+import { h, icon } from '../../lib/dom.js';
 import { registerAnswerWidget } from '../../lib/widgets.js';
 import { arrowShape, bbox, circleEdge, circleLoop, endAngle, freePosition, newId } from './core/geometry.js';
 import { boardWidget } from './core/widget.js';
 import { bool, line, num, rows, uniqueId } from './core/model-util.js';
-import { checkInput, field, hintText, panel, smallButton, textInput } from './core/form.js';
+import { checkInput, field, hintText, panel, smallButton, textInput, withIcon, withIconAfter } from './core/form.js';
 import { EPS, dfaIssues, run } from './core/automaton-sim.js';
 import { INK, PAPER, SOFT, path, polygon, s, text } from './core/svg.js';
 
@@ -350,7 +350,7 @@ function mountSimulation(board, host) {
     if (simulate) {
         root.append(h('h3', { class: 'dg-panel-title' }, 'Wort ausprobieren'),
             h('div', { class: 'dg-sim-controls' }, word,
-                smallButton('Start', start), smallButton('◀ Zurück', stepBack), smallButton('Schritt ▶', stepFwd), smallButton('Ganzes Wort', all), smallButton('Zurücksetzen', reset)),
+                smallButton('Start', start), smallButton(withIcon('chevron-left', 'Zurück'), stepBack), smallButton(withIconAfter('chevron-right', 'Schritt'), stepFwd), smallButton('Ganzes Wort', all), smallButton('Zurücksetzen', reset)),
             out);
     }
     root.append(issues);

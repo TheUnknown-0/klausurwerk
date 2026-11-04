@@ -306,11 +306,11 @@ test('Automat: Zustände, Übergänge, Schleife, Simulation Schritt für Schritt
     word.value = 'a';
     word.dispatch('input', {});
     const simOut = () => host.find((e) => e.className.includes('dg-sim-out'))[0].textContent;
-    button(host, 'Schritt ▶').click();
+    button(host, 'Schritt').click();
     assert.ok(simOut().includes('Aktuell in: q0'), simOut());
-    button(host, 'Schritt ▶').click();
+    button(host, 'Schritt').click();
     assert.ok(simOut().includes('Aktuell in: q1') && simOut().includes('akzeptiert'), simOut());
-    button(host, '◀ Zurück').click();
+    button(host, 'Zurück').click();
     assert.ok(simOut().includes('Aktuell in: q0'));
     word.value = 'x';
     word.dispatch('input', {});
@@ -467,7 +467,7 @@ test('Relationenschema: Tabellen, Spalten, PK, FK-Auswahl, Umbenennen zieht Verw
 
 test('Zeichnung: Strich mit Stift, Vereinfachung, Radierer, Rückgängig, readOnly', async () => {
     const { host, inst, changes } = mount('drawing', { config: { width: 800, height: 500 } });
-    const svg = host.find((e) => e.localName === 'svg')[0];
+    const svg = host.find((e) => e.localName === 'svg' && String(e.className).includes('dg-draw-svg'))[0];
     pointer(svg, 'pointerdown', 100, 100);
     for (let x = 101; x <= 300; x += 2) {
         pointer(svg, 'pointermove', x, 100 + (x - 100) / 2);
@@ -489,7 +489,7 @@ test('Zeichnung: Strich mit Stift, Vereinfachung, Radierer, Rückgängig, readOn
     assert.equal(c.strokes[1].color, '#dc2626');
 
     // Radierer löscht den getroffenen Strich
-    button(host, '⌫ Radierer').click();
+    button(host, 'Radierer').click();
     pointer(svg, 'pointerdown', 200, 150);
     pointer(svg, 'pointerup', 200, 150);
     c = inst.getContent();
@@ -510,8 +510,8 @@ test('Zeichnung: Strich mit Stift, Vereinfachung, Radierer, Rückgängig, readOn
 
 test('Zeichnung: Text setzen, per Tastatur verschieben und löschen; Upload nur mit Berechtigung sichtbar', () => {
     const { host, inst } = mount('drawing', { config: { width: 800, height: 500, allow_upload: true } });
-    const svg = host.find((e) => e.localName === 'svg')[0];
-    button(host, 'T Text').click();
+    const svg = host.find((e) => e.localName === 'svg' && String(e.className).includes('dg-draw-svg'))[0];
+    button(host, 'Text').click();
     pointer(svg, 'pointerdown', 120, 80);
     const area = host.find((e) => e.localName === 'textarea')[0];
     area.value = 'Wurzel';

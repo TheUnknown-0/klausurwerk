@@ -2,7 +2,7 @@
  * Klausuroberfläche: Kopfzeile, Aufgabenleiste, Aufgabenseiten mit Widgets,
  * Hilfsmittel-Seitenleiste, Banner und Durchsagen.
  */
-import { h, setTrustedHtml, replace } from '../lib/dom.js';
+import { h, setTrustedHtml, replace, icon } from '../lib/dom.js';
 import { enhanceRichText } from '../lib/rich-text.js';
 import { answerWidget, FallbackWidget } from '../lib/widgets.js';
 import { flattenTasks, isAnswerable, summarize, taskStatus } from './answers.js';
@@ -26,7 +26,10 @@ const lsSet = (k, v) => {
 
 const fmtPoints = (p) => String(Math.round(Number(p) * 100) / 100).replace('.', ',');
 const STATUS_TEXT = { empty: 'offen', done: 'bearbeitet', flagged: 'später' };
-const STATUS_ICON = { empty: '○', done: '●', flagged: '⚑' };
+/** Status in der Gliederung: leeres Kästchen, Häkchen oder Fähnchen (das Kästchen zeichnet das CSS). */
+const setStatusIcon = (el, st) => {
+    replace(el, st === 'done' ? icon('check') : (st === 'flagged' ? icon('flag') : null));
+};
 
 export class ExamView {
     /**
@@ -74,7 +77,7 @@ export class ExamView {
             this.main.append(page);
         }
         if (this.tasks.length === 0) {
-            this.main.append(h('div', { class: 'empty-state' }, h('div', { class: 'empty-icon', 'aria-hidden': 'true' }, '📄'), h('p', {}, 'Zu dieser Klausur gibt es keine Aufgaben.')));
+            this.main.append(h('div', { class: 'empty-state' }, h('div', { class: 'empty-icon', 'aria-hidden': 'true' }, icon('file-text')), h('p', {}, 'Zu dieser Klausur gibt es keine Aufgaben.')));
         }
         this.bannerHost = h('div', { class: 'exam-banners', 'aria-live': 'polite' });
         this.layout = h('div', { class: 'exam-layout' }, this.nav, this.main, this.aids.el);
@@ -101,17 +104,17 @@ export class ExamView {
         this.connEl = h('span', { class: 'conn', dataset: { state: 'ok' }, role: 'status' }, h('span', { class: 'conn-dot', 'aria-hidden': 'true' }), h('span', { class: 'conn-text' }, 'verbunden'));
 
         const btn = (cls, label, text, handler, extra = {}) => {
-            const b = h('button', { type: 'button', class: `btn btn-sm ${cls}`, 'aria-label': label, title: label, ...extra }, text);
+            const b = h('button', { type: 'button', class: `btn btn-sm ${cls}`, 'aria-label': label, title: label, ...extra }, ...[text].flat());
             b.addEventListener('click', handler);
             return b;
         };
-        this.navBtn = btn('nav-toggle', 'Aufgabenliste ein- oder ausblenden', '☰ Aufgaben', () => this.toggleNav(), { 'aria-expanded': 'false' });
-        this.handBtn = btn('hand-btn', 'Hand heben', '✋ Hand', () => this.o.callbacks.onHand(), { 'aria-pressed': 'false' });
-        this.aidsBtn = btn('aids-btn', 'Hilfsmittel öffnen', '🧰 Hilfsmittel', () => this.aids.toggle(), { 'aria-expanded': 'false' });
-        this.annBtn = btn('ann-btn', 'Durchsagen anzeigen', '📢 0', () => this.showAnnouncementList(), { hidden: true });
-        this.fontDown = btn('', 'Schrift kleiner', 'A−', () => this.changeFont(-1));
-        this.fontUp = btn('', 'Schrift größer', 'A+', () => this.changeFont(1));
-        this.themeBtn = btn('', 'Hell oder Dunkel umschalten', '◐', () => this.toggleTheme());
+        this.navBtn = btn('nav-toggle', 'Aufgabenliste ein- oder ausblenden', [icon('menu'), 'Aufgaben'], () => this.toggleNav(), { 'aria-expanded': 'false' });
+        this.handBtn = btn('hand-btn', 'Hand heben', [icon('hand'), 'Hand'], () => this.o.callbacks.onHand(), { 'aria-pressed': 'false' });
+        this.aidsBtn = btn('aids-btn', 'Hilfsmittel öffnen', [icon('briefcase'), 'Hilfsmittel'], () => this.aids.toggle(), { 'aria-expanded': 'false' });
+        this.annBtn = btn('ann-btn', 'Durchsagen anzeigen', [icon('megaphone'), '0'], () => this.showAnnouncementList(), { hidden: true });
+        this.fontDown = btn('btn-font', 'Schrift kleiner', 'A−', () => this.changeFont(-1));
+        this.fontUp = btn('btn-font', 'Schrift größer', 'A+', () => this.changeFont(1));
+        this.themeBtn = btn('btn-icon', 'Hell oder Dunkel umschalten', icon('sun-moon'), () => this.toggleTheme());
         this.submitBtn = btn('btn-primary submit-btn', 'Klausur abgeben', 'Abgeben', () => this.o.callbacks.onSubmit());
 
         const canAct = !this.o.preview;
@@ -132,7 +135,7 @@ export class ExamView {
     buildNav() {
         const list = h('ul', { class: 'nav-list' });
         for (const { task, depth } of this.flat) {
-            const status = h('span', { class: 'nav-status', 'aria-hidden': 'true' }, STATUS_ICON.empty);
+            const status = h('span', { class: 'nav-status', 'aria-hidden': 'true' });
             const sr = h('span', { class: 'sr-only' }, '');
             const meta = [];
             if (this.settings.show_points && task.points !== null && task.points !== undefined && Number(task.points) > 0) {
@@ -167,12 +170,17 @@ export class ExamView {
         const answerable = isAnswerable(task);
         const num = task.number ? String(task.number) : '';
         const heading = h(depth === 0 ? 'h2' : 'h3', { class: 'task-title', tabindex: '-1' },
-            h('span', { class: 'task-num' }, depth === 0 ? `Aufgabe ${num}` : num),
-            task.title ? h('span', { class: 'task-name' }, task.title) : null,
-            this.settings.show_points && Number(task.points) > 0 ? h('span', { class: 'badge badge-primary task-points' }, `${fmtPoints(task.points)} Punkte`) : null);
+            h('span', { class: 'task-num' }, depth === 0 ? [h('span', { class: 'task-num-label' }, 'Aufgabe'), ' ', h('span', { class: 'task-num-value' }, num)] : num),
+            task.title ? h('span', { class: 'task-name' }, task.title) : null);
         const head = h('div', { class: 'task-head' }, heading);
+        if (this.settings.show_points && Number(task.points) > 0) {
+            // Punktekästchen am Rand, wie auf dem Klausurbogen
+            head.append(h('span', { class: 'task-points' },
+                h('span', { class: 'task-points-value' }, fmtPoints(task.points)),
+                h('span', { class: 'task-points-label' }, Number(task.points) === 1 ? 'Punkt' : 'Punkte')));
+        }
         if (answerable && !this.o.preview) {
-            const flag = h('button', { type: 'button', class: 'btn btn-sm flag-btn', 'aria-pressed': 'false' }, '⚑ Später ansehen');
+            const flag = h('button', { type: 'button', class: 'btn btn-sm btn-ghost flag-btn', 'aria-pressed': 'false' }, icon('flag'), 'Später ansehen');
             flag.addEventListener('click', () => this.toggleFlag(task));
             this.flagBtns.set(task.id, flag);
             head.append(flag);
@@ -251,11 +259,11 @@ export class ExamView {
         const prev = this.tasks[idx - 1];
         const next = this.tasks[idx + 1];
         const mk = (label, target) => {
-            const b = h('button', { type: 'button', class: 'btn' }, label);
+            const b = h('button', { type: 'button', class: 'btn' }, ...label);
             b.addEventListener('click', () => this.show(target.id, true));
             return b;
         };
-        return h('div', { class: 'task-pager' }, prev ? mk('← Vorherige Aufgabe', prev) : h('span'), next ? mk('Nächste Aufgabe →', next) : h('span'));
+        return h('div', { class: 'task-pager' }, prev ? mk([icon('arrow-left'), 'Vorherige Aufgabe'], prev) : h('span'), next ? mk(['Nächste Aufgabe', icon('arrow-right')], next) : h('span'));
     }
 
     // ---------- Navigation ----------
@@ -444,7 +452,7 @@ export class ExamView {
             const on = !!this.answers[String(taskId)]?.flagged;
             b.setAttribute('aria-pressed', on ? 'true' : 'false');
             b.classList.toggle('is-on', on);
-            b.textContent = on ? '⚑ Markiert (später ansehen)' : '⚑ Später ansehen';
+            replace(b, icon('flag'), on ? 'Markiert (später ansehen)' : 'Später ansehen');
         }
     }
 
@@ -483,12 +491,12 @@ export class ExamView {
         for (const [id, n] of this.navItems) {
             const task = this.byId.get(id).task;
             if (!isAnswerable(task)) {
-                n.status.textContent = '';
+                replace(n.status);
                 n.item.dataset.status = 'container';
                 continue;
             }
             const st = taskStatus(task, this.answers[String(id)], this.touched.has(String(id)));
-            n.status.textContent = STATUS_ICON[st];
+            setStatusIcon(n.status, st);
             n.sr.textContent = `, ${STATUS_TEXT[st]}`;
             n.item.dataset.status = st;
         }
@@ -524,7 +532,7 @@ export class ExamView {
     setHand(raised) {
         this.handBtn.setAttribute('aria-pressed', raised ? 'true' : 'false');
         this.handBtn.classList.toggle('is-on', raised);
-        this.handBtn.textContent = raised ? '✋ Hand unten' : '✋ Hand';
+        replace(this.handBtn, icon('hand'), raised ? 'Hand unten' : 'Hand');
         this.handBtn.setAttribute('aria-label', raised ? 'Hand wieder senken' : 'Hand heben');
     }
 
@@ -551,7 +559,7 @@ export class ExamView {
     setAnnouncements(list) {
         this.announcements = list;
         this.annBtn.hidden = list.length === 0;
-        this.annBtn.textContent = `📢 ${list.length}`;
+        replace(this.annBtn, icon('megaphone'), String(list.length));
     }
 
     showAnnouncementList() {

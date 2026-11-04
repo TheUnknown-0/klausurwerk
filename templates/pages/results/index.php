@@ -18,9 +18,9 @@ $dist = $stats['distribution'];
 $maxCount = $dist === [] ? 1 : max(1, max($dist));
 $total = count($rows);
 $open = $total - $finalized;
-$post = static fn (string $action, string $label, string $class = 'btn', string $confirm = '') =>
+$post = static fn (string $action, string $label, string $class = 'btn', string $confirm = '', string $iconName = '') =>
     '<form method="post" action="' . e($action) . '"' . ($confirm !== '' ? ' data-confirm="' . e($confirm) . '"' : '') . '>'
-    . $csrf->field() . '<button class="' . e($class) . '" type="submit">' . e($label) . '</button></form>';
+    . $csrf->field() . '<button class="' . e($class) . '" type="submit">' . ($iconName !== '' ? icon($iconName) . ' ' : '') . e($label) . '</button></form>';
 ?>
 <div class="page-header">
     <div class="page-title-group">
@@ -33,10 +33,10 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
         </p>
     </div>
     <div class="page-actions">
-        <a class="btn" href="<?= e($u('/korrektur')) ?>">✅ Korrektur</a>
-        <a class="btn" href="<?= e($u('/ergebnisse/pdf')) ?>">🖨️ Sammel-PDF</a>
-        <a class="btn" href="<?= e($u('/ergebnisse/export?format=xlsx')) ?>">⬇️ Excel</a>
-        <a class="btn" href="<?= e($u('/ergebnisse/export?format=csv')) ?>">⬇️ CSV</a>
+        <a class="btn" href="<?= e($u('/korrektur')) ?>"><?= icon('circle-check') ?> Korrektur</a>
+        <a class="btn" href="<?= e($u('/ergebnisse/pdf')) ?>"><?= icon('printer') ?> Sammel-PDF</a>
+        <a class="btn" href="<?= e($u('/ergebnisse/export?format=xlsx')) ?>"><?= icon('download') ?> Excel</a>
+        <a class="btn" href="<?= e($u('/ergebnisse/export?format=csv')) ?>"><?= icon('download') ?> CSV</a>
     </div>
 </div>
 
@@ -54,12 +54,12 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
             </p>
             <div class="cluster">
                 <?php if ($caps[ExamAccess::CAP_GRADE]): ?>
-                    <?= $post($u('/ergebnisse/alle-abschliessen'), '✔️ Alle vollständig bewerteten abschließen', 'btn') ?>
+                    <?= $post($u('/ergebnisse/alle-abschliessen'), 'Alle vollständig bewerteten abschließen', 'btn', '', 'check') ?>
                 <?php endif; ?>
                 <?php if ($canManage): ?>
-                    <?= $post($u('/freigeben'), '📤 Ergebnisse freigeben', 'btn btn-primary', $open > 0
+                    <?= $post($u('/freigeben'), 'Ergebnisse freigeben', 'btn btn-primary', $open > 0
                         ? $open . ' Personen sind noch nicht abgeschlossen und sehen nichts, bis du sie abschließt. Trotzdem freigeben?'
-                        : 'Ergebnisse jetzt für alle sichtbar freigeben?') ?>
+                        : 'Ergebnisse jetzt für alle sichtbar freigeben?', 'upload') ?>
                 <?php else: ?>
                     <span class="text-sm text-soft">Freigeben darf die Hauptlehrkraft.</span>
                 <?php endif; ?>
@@ -68,8 +68,8 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
             <div class="alert alert-success">Die Ergebnisse sind freigegeben<?= $exam['returned_at'] ? ' (' . e(format_datetime($exam['returned_at'])) . ')' : '' ?>. Schüler:innen sehen ihr Ergebnis, sobald ihre Korrektur abgeschlossen ist.</div>
             <?php if ($canManage): ?>
                 <div class="cluster">
-                    <?= $post($u('/zuruecknehmen'), '↩️ Freigabe zurücknehmen', 'btn', 'Die Freigabe zurücknehmen? Schüler:innen sehen ihr Ergebnis dann nicht mehr, und du kannst wieder bewerten.') ?>
-                    <?= $post($u('/archivieren'), '🗂️ Archivieren', 'btn', 'Die Klausur archivieren? Schüler:innen sehen ihr Ergebnis danach nicht mehr.') ?>
+                    <?= $post($u('/zuruecknehmen'), 'Freigabe zurücknehmen', 'btn', 'Die Freigabe zurücknehmen? Schüler:innen sehen ihr Ergebnis dann nicht mehr, und du kannst wieder bewerten.', 'rotate-ccw') ?>
+                    <?= $post($u('/archivieren'), 'Archivieren', 'btn', 'Die Klausur archivieren? Schüler:innen sehen ihr Ergebnis danach nicht mehr.', 'archive') ?>
                 </div>
             <?php endif; ?>
         <?php else: ?>
@@ -198,7 +198,7 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
 </section>
 
 <section class="card mt-2" aria-labelledby="persons-title">
-    <div class="card-header"><h2 class="card-title" id="persons-title" style="margin:0;">Ergebnisse je Person</h2></div>
+    <div class="card-header"><h2 class="card-title" id="persons-title">Ergebnisse je Person</h2></div>
     <div class="table-wrap">
         <table class="data-table g-results">
             <thead>

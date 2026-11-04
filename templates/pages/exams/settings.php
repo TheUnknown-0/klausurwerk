@@ -26,7 +26,7 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
 ?>
 <div class="page-header">
     <div class="page-title-group">
-        <div class="page-eyebrow"><a class="text-soft" href="<?= e($ctx->url('/klausuren/' . $id)) ?>">← <?= e($exam['title']) ?></a></div>
+        <div class="page-eyebrow"><a href="<?= e($ctx->url('/klausuren/' . $id)) ?>">← <?= e($exam['title']) ?></a></div>
         <h1 class="page-title">Einstellungen</h1>
     </div>
 </div>
@@ -38,13 +38,15 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
 <form method="post" action="<?= e($ctx->url('/klausuren/' . $id . '/einstellungen')) ?>" class="stack">
     <?= $csrf->field() ?>
 
-    <section class="card card-pad">
+    <section class="card card-pad settings-card">
         <h2 class="card-title">Stammdaten</h2>
+        <p class="card-lead">Titel, Kurs, Termin und Raum der Klausur.</p>
         <?php require __DIR__ . '/_meta-fields.php'; ?>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad settings-card">
         <h2 class="card-title">Überwachung</h2>
+        <p class="card-lead">Was passiert bei Verstößen, wer darf beitreten und wie wird abgegeben.</p>
         <?= $toggle(['lock_on_violation'], 'Bei Verstoß sperren', 'Verlässt jemand das Vollbild oder den Klausur-Tab, wird die Person gesperrt, bis die Lehrkraft sie freigibt.') ?>
         <div class="field">
             <label for="s-grace">Toleranz für kurze Fokusverluste (Millisekunden)</label>
@@ -72,8 +74,9 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
         <?= $toggle(['allow_self_submit'], 'Abgabe-Knopf anzeigen', 'Schüler:innen können die Abgabe anfragen; die Lehrkraft bestätigt sie im Pult.') ?>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad settings-card">
         <h2 class="card-title">Darstellung und Ausführung</h2>
+        <p class="card-lead">Wie Aufgaben erscheinen und wie Code ausgeführt wird.</p>
         <?= $toggle(['shuffle_choices'], 'Auswahlaufgaben mischen', 'Antwortoptionen und Zuordnungen erscheinen je Person in anderer Reihenfolge.') ?>
         <?= $toggle(['show_points'], 'Punkte bei den Aufgaben anzeigen', 'Schüler:innen sehen, wie viele Punkte eine Aufgabe bringt.') ?>
         <div class="form-grid">
@@ -103,8 +106,9 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
         </fieldset>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad settings-card">
         <h2 class="card-title">Editor-Komfort</h2>
+        <p class="card-lead">Hilfen im Code-Editor der Schüler:innen.</p>
         <?= $toggle(['editor', 'autocomplete'], 'Autovervollständigung', 'Der Code-Editor schlägt Wörter und Schlüsselwörter vor. Für Klausuren meist aus, für Übungen an.') ?>
         <?= $toggle(['editor', 'lint'], 'Fehlermarkierung im Editor', 'Syntaxfehler werden schon beim Tippen markiert.') ?>
         <?= $toggle(['editor', 'close_brackets'], 'Klammern automatisch schließen', 'Beim Tippen von ( [ { " wird die schließende Klammer ergänzt.') ?>
@@ -115,9 +119,9 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
         </div>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad settings-card">
         <h2 class="card-title">Hilfsmittel</h2>
-        <p class="text-sm text-soft">Erscheinen in einer Seitenleiste der Schüleransicht. Hochgeladene Materialien mit "als Hilfsmittel" kommen zusätzlich dazu.</p>
+        <p class="card-lead">Erscheinen in einer Seitenleiste der Schüleransicht. Hochgeladene Materialien mit "als Hilfsmittel" kommen zusätzlich dazu.</p>
         <?= $toggle(['aids', 'java_api'], 'Java-API-Referenz', 'Kurzreferenz der häufigsten Java-Klassen.') ?>
         <?= $toggle(['aids', 'python_doc'], 'Python-Kurzreferenz', 'Eingebaute Funktionen und gängige Methoden.') ?>
         <?= $toggle(['aids', 'sql_cheatsheet'], 'SQL-Spickzettel', 'SELECT, JOIN, GROUP BY und weitere Grundlagen.') ?>
@@ -125,8 +129,9 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
         <?= $toggle(['aids', 'calculator'], 'Taschenrechner', 'Einfacher Taschenrechner in der Seitenleiste.') ?>
     </section>
 
-    <section class="card card-pad">
+    <section class="card card-pad settings-card">
         <h2 class="card-title">Archiv</h2>
+        <p class="card-lead">Aufgaben dieser Klausur für andere Lehrkräfte sichtbar machen.</p>
         <label class="checkbox-row" for="shared">
             <input type="hidden" name="shared_in_archive" value="0">
             <input type="checkbox" id="shared" name="shared_in_archive" value="1" <?= $sharedChecked ? 'checked' : '' ?><?= $disabled ?>>
@@ -146,6 +151,6 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
 <?php if ($editable && !empty($settings['require_access_code'])): ?>
     <form class="mt-2" method="post" action="<?= e($ctx->url('/klausuren/' . $id . '/code')) ?>" data-confirm="Einen neuen Klausurcode erzeugen? Der alte Code wird ungültig.">
         <?= $csrf->field() ?>
-        <button class="btn" type="submit">🔄 Neuen Klausurcode erzeugen</button>
+        <button class="btn" type="submit"><?= icon('refresh-cw') ?>Neuen Klausurcode erzeugen</button>
     </form>
 <?php endif; ?>

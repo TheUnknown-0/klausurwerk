@@ -5,7 +5,7 @@
  *   const view = mountTextView(container, { text, comments, canComment, onComment(anchor), onMark(ids) });
  *   view.setComments(list); view.focusComment(comment); view.destroy();
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { textSegments } from './logic.js';
 
 export function mountTextView(container, options) {
@@ -21,7 +21,7 @@ export function mountTextView(container, options) {
                 options.onComment?.({ kind: 'text', from: pending.from, to: pending.to, quote: pending.quote });
             }
         },
-    }, '💬 Auswahl kommentieren');
+    }, icon('message-square'), ' Auswahl kommentieren');
     const toolbar = options.canComment
         ? h('div', { class: 'g-code-toolbar' }, button, h('span', { class: 'text-faint text-sm' }, 'Markiere eine Textstelle mit der Maus.'))
         : null;
@@ -81,7 +81,7 @@ export function mountTextView(container, options) {
         }
         pending = { from, to, quote: text.slice(from, to).replace(/\s+/g, ' ').slice(0, 300) };
         button.disabled = false;
-        button.textContent = `💬 „${pending.quote.length > 30 ? `${pending.quote.slice(0, 30)}…` : pending.quote}“ kommentieren`;
+        button.replaceChildren(icon('message-square'), ` „${pending.quote.length > 30 ? `${pending.quote.slice(0, 30)}…` : pending.quote}“ kommentieren`);
     }
 
     body.addEventListener('mouseup', () => setTimeout(readSelection, 0));

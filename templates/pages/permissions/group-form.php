@@ -51,7 +51,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
     <?php foreach ($catalog as $groupName => $entries): ?>
         <div class="card mb-2" data-permission-card>
             <div class="card-header">
-                <h3 style="margin:0;"><?= e($groupName) ?></h3>
+                <h3 class="group-title"><?= e($groupName) ?></h3>
                 <button class="btn btn-sm btn-ghost" type="button" data-toggle-permissions>Alle an/aus</button>
             </div>
             <div class="card-body">
@@ -67,7 +67,7 @@ $manageable = static fn (string $key): bool => $allowed === null || in_array($ke
                             <?= e($label) ?>
                             <span class="text-faint mono text-sm"><?= e($key) ?></span>
                             <?php if (!$canManage): ?>
-                                <span class="badge badge-warning">🔒 besitzt du selbst nicht</span>
+                                <span class="badge badge-warning"><?= icon('lock') ?> besitzt du selbst nicht</span>
                             <?php endif; ?>
                         </span>
                     </label>

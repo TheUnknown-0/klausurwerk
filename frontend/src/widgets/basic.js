@@ -10,7 +10,7 @@
  *    bereinigte text_html der Optionen geht über setTrustedHtml.
  */
 import { registerAnswerWidget } from '../lib/widgets.js';
-import { h, setTrustedHtml } from '../lib/dom.js';
+import { h, setTrustedHtml, icon } from '../lib/dom.js';
 import { enhanceRichText } from '../lib/rich-text.js';
 
 let uid = 0;
@@ -387,8 +387,8 @@ const OrderingWidget = {
                 const item = byId.get(id);
                 const text = h('div', { class: 'w-ordering-text' });
                 fillItem(text, item);
-                const up = h('button', { type: 'button', class: 'btn btn-sm w-move', 'aria-label': `Eintrag ${index + 1} nach oben` }, '↑');
-                const down = h('button', { type: 'button', class: 'btn btn-sm w-move', 'aria-label': `Eintrag ${index + 1} nach unten` }, '↓');
+                const up = h('button', { type: 'button', class: 'btn btn-sm w-move', 'aria-label': `Eintrag ${index + 1} nach oben` }, icon('arrow-up'));
+                const down = h('button', { type: 'button', class: 'btn btn-sm w-move', 'aria-label': `Eintrag ${index + 1} nach unten` }, icon('arrow-down'));
                 up.disabled = state.readOnly || index === 0;
                 down.disabled = state.readOnly || index === order.length - 1;
                 up.addEventListener('click', () => move(index, index - 1, `${id}:up`));
@@ -396,7 +396,7 @@ const OrderingWidget = {
                 up.dataset.key = `${id}:up`;
                 down.dataset.key = `${id}:down`;
                 const li = h('li', { class: 'w-ordering-item', draggable: state.readOnly ? null : 'true', dataset: { id } },
-                    h('span', { class: 'w-ordering-grip', 'aria-hidden': 'true' }, '☰'),
+                    h('span', { class: 'w-ordering-grip', 'aria-hidden': 'true' }, icon('move')),
                     text,
                     h('span', { class: 'w-ordering-buttons' }, up, down));
                 li.addEventListener('dragstart', (e) => {

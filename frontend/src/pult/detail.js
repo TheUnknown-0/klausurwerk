@@ -3,11 +3,11 @@
  * Zeitdaten und Replay.
  */
 import { get } from '../lib/api.js';
-import { h, setTrustedHtml, toast } from '../lib/dom.js';
+import { h, icon, setTrustedHtml, toast } from '../lib/dom.js';
 import { enhanceRichText } from '../lib/rich-text.js';
 import { answerWidget, FallbackWidget } from '../lib/widgets.js';
 import { mountReplay } from '../replay/player.js';
-import { PERSON_ACTIONS } from './actions.js';
+import { actionLabel, PERSON_ACTIONS } from './actions.js';
 import { panelDialog } from './dialogs.js';
 import { ago, clockTime, describeEvent, remaining, SEVERITY_LABELS, STATE_LABELS } from './util.js';
 
@@ -27,7 +27,7 @@ export function createDetail(store, actions) {
     // ---- Gerüst ----
     const title = h('h2', { class: 'pult-detail-title', id: 'pult-detail-title' });
     const stateBadge = h('span', { class: 'badge' });
-    const closeBtn = h('button', { type: 'button', class: 'btn btn-sm', 'aria-label': 'Details schließen', onclick: () => store.closeDetail() }, '✕ Schließen');
+    const closeBtn = h('button', { type: 'button', class: 'btn btn-sm', 'aria-label': 'Details schließen', onclick: () => store.closeDetail() }, icon('x'), ' Schließen');
     const quick = h('div', { class: 'pult-detail-actions' });
     const tabs = h('div', { class: 'tabs', role: 'tablist' });
     const panels = {
@@ -44,8 +44,9 @@ export function createDetail(store, actions) {
     const el = h('aside', { class: 'pult-detail', hidden: true, tabindex: -1, role: 'dialog', 'aria-labelledby': 'pult-detail-title' },
         h('div', { class: 'pult-detail-head' }, h('div', { class: 'pult-detail-headline' }, title, stateBadge), closeBtn),
         quick, tabs, panels.answers, panels.log, panels.time);
-    el.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !document.querySelector('dialog[open]')) {
+    // Esc schließt die Detailansicht von überall auf der Seite (solange kein Dialog offen ist).
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !el.hidden && !document.querySelector('dialog[open]')) {
             store.closeDetail();
         }
     });
@@ -113,7 +114,7 @@ export function createDetail(store, actions) {
             const buttons = [];
             if (examOpen) {
                 if (p.hand_raised) {
-                    buttons.push(h('button', { type: 'button', class: 'btn btn-sm', onclick: () => actions.resolveRequest({ type: 'hand' }, p, true) }, '✋ Hand quittieren'));
+                    buttons.push(h('button', { type: 'button', class: 'btn btn-sm', onclick: () => actions.resolveRequest({ type: 'hand' }, p, true) }, icon('hand'), ' Hand quittieren'));
                 }
                 for (const def of PERSON_ACTIONS) {
                     if (def.states.includes(p.state)) {
@@ -121,7 +122,7 @@ export function createDetail(store, actions) {
                             type: 'button',
                             class: `btn btn-sm${def.danger ? ' btn-danger-ghost' : ''}`,
                             onclick: () => actions.runPerson(def.key, [p.id]),
-                        }, def.icon ? `${def.icon} ${def.label}` : def.label));
+                        }, actionLabel(def)));
                     }
                 }
             }
@@ -189,7 +190,7 @@ export function createDetail(store, actions) {
             for (const task of list) {
                 const body = h('div', { class: 'pult-answer-body' });
                 const meta = h('span', { class: 'pult-answer-meta text-faint text-sm' });
-                const replay = h('button', { type: 'button', class: 'btn btn-sm', onclick: () => openReplay(task) }, '▶ Replay');
+                const replay = h('button', { type: 'button', class: 'btn btn-sm', onclick: () => openReplay(task) }, icon('play'), ' Replay');
                 const text = h('div', { class: 'pult-task-text rich-text' });
                 setTrustedHtml(text, task.body_html ?? '');
                 enhanceRichText(text);
@@ -217,8 +218,8 @@ export function createDetail(store, actions) {
                     parts.push('noch keine Antwort');
                 } else {
                     parts.push(`Version ${answer.version}`, `gespeichert ${ago(store.now() - answer.updated_at_ms)}`);
-                    if (answer.flagged) parts.push('🚩 markiert');
-                    if (answer.has_overtime) parts.push('⏰ Überziehung');
+                    if (answer.flagged) parts.push('markiert');
+                    if (answer.has_overtime) parts.push('Überziehung');
                 }
                 card.meta.textContent = parts.join(' · ');
             }

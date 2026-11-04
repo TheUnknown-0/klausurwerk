@@ -27,13 +27,13 @@ $logo = $ctx->settings->get('school_logo');
     <div class="minimal-card<?= !empty($wide) ? ' wide' : '' ?>">
         <div class="brand-row">
             <?php if (!empty($logo)): ?>
-                <img class="brand-logo" style="width:38px;height:38px;"
+                <img class="brand-logo brand-logo-lg"
                      src="<?= e($ctx->url('/medien/logos/' . $logo)) ?>" alt="">
             <?php else: ?>
                 <span class="brand-mark brand-mark-lg">K</span>
             <?php endif; ?>
             <div>
-                <strong style="font-family:var(--font-display);font-size:1.05rem;"><?= e($appName) ?></strong>
+                <strong class="brand-name"><?= e($appName) ?></strong>
                 <?php if (!empty($schoolName)): ?>
                     <div class="text-sm text-soft"><?= e($schoolName) ?></div>
                 <?php endif; ?>

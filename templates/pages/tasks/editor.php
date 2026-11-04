@@ -6,8 +6,8 @@
 ?>
 <div class="page-header">
     <div class="page-title-group">
-        <div class="page-eyebrow"><a class="text-soft" href="<?= e($ctx->url('/klausuren/' . (int) $exam['id'])) ?>">← <?= e($exam['title']) ?></a></div>
-        <h1 class="page-title">✏️ Aufgaben</h1>
+        <div class="page-eyebrow"><a href="<?= e($ctx->url('/klausuren/' . (int) $exam['id'])) ?>">← <?= e($exam['title']) ?></a></div>
+        <h1 class="page-title">Aufgaben</h1>
     </div>
 </div>
 

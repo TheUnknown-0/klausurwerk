@@ -211,7 +211,7 @@ def page_html(body: str) -> str:
 <body>{body}</body></html>"""
 
 
-FOOTER = f"""<div style="width:100%;font-family:'Segoe UI',sans-serif;font-size:7.5px;color:#6b6f8e;padding:0 18mm;display:flex;justify-content:space-between;">
+FOOTER = f"""<div style="width:100%;font-family:'Segoe UI',sans-serif;font-size:7.5px;color:#7a7c88;padding:0 18mm;display:flex;justify-content:space-between;">
 <span>Klausurwerk · {TITLE}</span><span><span class="pageNumber"></span></span></div>"""
 
 

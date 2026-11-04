@@ -16,7 +16,7 @@ $base = $ctx->url('/admin/raeume');
 
 <?php if ($rooms === []): ?>
     <div class="empty-state">
-        <div class="empty-icon">🪑</div>
+        <div class="empty-icon"><?= icon('armchair') ?></div>
         <p>Es gibt noch keine Räume.</p>
     </div>
 <?php else: ?>

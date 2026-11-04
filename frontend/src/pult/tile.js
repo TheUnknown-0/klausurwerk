@@ -2,10 +2,20 @@
  * Kachel einer Person im Sitzplan. Elemente werden einmal erzeugt und bei jedem Abruf gezielt
  * aktualisiert, damit Fokus, Drag-Zustand und Auswahl erhalten bleiben.
  */
-import { h } from '../lib/dom.js';
+import { h, icon } from '../lib/dom.js';
 import { ago, remaining, REQUEST_LABELS, STATE_LABELS } from './util.js';
 
-const STATE_CLASSES = Object.keys(STATE_LABELS).map((s) => `state-${s}`);
+/** Symbol je Zustand: Farbe allein trägt die Information nicht, dazu Icon und Wort. */
+const STATE_ICONS = {
+    waiting: 'hourglass',
+    active: 'pencil',
+    locked: 'lock',
+    absent: 'door-open',
+    paused: 'pause',
+    submit_requested: 'send',
+    submitted: 'circle-check',
+    device_pending: 'monitor',
+};
 
 export function createTile(handlers) {
     const refs = {};
@@ -17,13 +27,16 @@ export function createTile(handlers) {
         'aria-pressed': 'false',
     });
     refs.name = h('span', { class: 'pult-tile-name' });
-    refs.hand = h('span', { class: 'pult-tile-hand', title: 'Hand gehoben', hidden: true }, '✋');
-    refs.detail = h('button', { type: 'button', class: 'pult-tile-detail', 'aria-label': 'Details öffnen', title: 'Details' }, '🔍');
-    refs.state = h('span', { class: 'pult-tile-state' });
+    refs.hand = h('span', { class: 'pult-tile-hand', title: 'Hand gehoben', hidden: true }, icon('hand'), h('span', { class: 'sr-only' }, 'Hand gehoben'));
+    refs.alarm = h('span', { class: 'pult-tile-alarm', title: 'Alarm', hidden: true }, icon('triangle-alert'), 'Alarm');
+    refs.detail = h('button', { type: 'button', class: 'pult-tile-detail', 'aria-label': 'Details öffnen', title: 'Details' }, icon('search'));
+    refs.stateIcon = h('span', { class: 'pult-tile-state-icon', 'aria-hidden': 'true' });
+    refs.stateText = h('span', { class: 'pult-tile-state-text' });
+    refs.state = h('span', { class: 'pult-tile-state' }, refs.stateIcon, refs.stateText);
     refs.icons = h('span', { class: 'pult-tile-icons' });
-    refs.fullscreen = h('span', { class: 'pult-icon', title: 'Vollbild' }, '⛶');
-    refs.focus = h('span', { class: 'pult-icon', title: 'Fokus im Fenster' }, '◎');
-    refs.conn = h('span', { class: 'pult-icon', title: 'Verbindung' }, '●');
+    refs.fullscreen = h('span', { class: 'pult-icon', title: 'Vollbild' }, icon('maximize'));
+    refs.focus = h('span', { class: 'pult-icon', title: 'Fokus im Fenster' }, icon('eye'));
+    refs.conn = h('span', { class: 'pult-icon', title: 'Verbindung' }, icon('link'));
     refs.seb = h('span', { class: 'pult-icon', title: 'Safe Exam Browser', hidden: true }, 'SEB');
     refs.icons.append(refs.fullscreen, refs.focus, refs.conn, refs.seb);
     refs.progressText = h('span', { class: 'pult-tile-progress-text' });
@@ -35,8 +48,9 @@ export function createTile(handlers) {
 
     el.append(
         h('div', { class: 'pult-tile-head' }, refs.name, refs.hand, refs.detail),
-        h('div', { class: 'pult-tile-row' }, refs.state, refs.icons),
-        h('div', { class: 'pult-tile-row' }, refs.progressText, refs.time),
+        refs.alarm,
+        h('div', { class: 'pult-tile-row' }, refs.state),
+        h('div', { class: 'pult-tile-row' }, refs.progressText, refs.icons, refs.time),
         refs.progress,
         h('div', { class: 'pult-tile-row pult-tile-foot' }, refs.saved),
         refs.requests,
@@ -85,6 +99,15 @@ export function createTile(handlers) {
     return el;
 }
 
+/** Setzt Inhalt (Icon plus Text) nur, wenn er sich geändert hat. */
+function setRich(node, key, iconName, text) {
+    if (node._key === key) {
+        return;
+    }
+    node._key = key;
+    node.replaceChildren(...(iconName ? [icon(iconName), ' '] : []), text);
+}
+
 /** Setzt Text nur, wenn er sich geändert hat. */
 function setText(node, text) {
     if (node.textContent !== text) {
@@ -124,8 +147,14 @@ export function updateTile(el, p, view) {
     setText(r.name, p.name);
     r.name.title = p.name;
     r.hand.hidden = !p.hand_raised;
-    setText(r.state, p.state === 'locked' && p.lock_reason ? `${STATE_LABELS.locked}: ${p.lock_reason}` : (STATE_LABELS[p.state] ?? p.state));
-    r.state.title = r.state.textContent;
+    r.alarm.hidden = !view.alarm;
+    const stateIconName = STATE_ICONS[p.state] ?? 'info';
+    if (r.stateIcon._key !== stateIconName) {
+        r.stateIcon._key = stateIconName;
+        r.stateIcon.replaceChildren(icon(stateIconName));
+    }
+    setText(r.stateText, p.state === 'locked' && p.lock_reason ? `${STATE_LABELS.locked}: ${p.lock_reason}` : (STATE_LABELS[p.state] ?? p.state));
+    r.state.title = r.stateText.textContent;
 
     const fullscreenKnown = 'fullscreen' in cs && p.state !== 'waiting';
     r.fullscreen.className = `pult-icon ${fullscreenKnown ? (cs.fullscreen ? 'ok' : 'bad') : 'unknown'}`;
@@ -139,7 +168,12 @@ export function updateTile(el, p, view) {
     r.seb.hidden = !cs.seb;
 
     const { answered, flagged, total } = p.progress;
-    setText(r.progressText, `${answered}/${total || view.total}${flagged > 0 ? `  🚩${flagged}` : ''}`);
+    const progressKey = `${answered}/${total || view.total}:${flagged}`;
+    if (r.progressText._key !== progressKey) {
+        r.progressText._key = progressKey;
+        r.progressText.replaceChildren(`${answered}/${total || view.total}`,
+            ...(flagged > 0 ? [' ', h('span', { class: 'pult-flagged' }, icon('flag'), String(flagged))] : []));
+    }
     r.progressText.title = `${answered} von ${total || view.total} Aufgaben bearbeitet, ${flagged} markiert`;
     const percent = (total || view.total) > 0 ? Math.round((answered / (total || view.total)) * 100) : 0;
     r.bar.style.width = `${percent}%`;
@@ -165,6 +199,7 @@ export function updateTileClock(el) {
     const clock = p.clock;
 
     let time = '';
+    let timeIcon = null;
     let timeClass = 'pult-tile-time';
     if (p.state === 'submitted') {
         time = 'abgegeben';
@@ -173,7 +208,8 @@ export function updateTileClock(el) {
     } else if (clock.remaining_ms === null || clock.ends_at_ms === null) {
         time = '';
     } else if (clock.paused) {
-        time = `⏸ ${remaining(clock.remaining_ms)}`;
+        time = remaining(clock.remaining_ms);
+        timeIcon = 'pause';
     } else {
         const left = clock.ends_at_ms - view.nowMs - sinceStand;
         if (left <= 0) {
@@ -187,15 +223,16 @@ export function updateTileClock(el) {
     if (clock.extra_minutes !== 0 || clock.accommodation_percent > 0) {
         r.time.title = `Restzeit (Zusatzzeit ${clock.extra_minutes} min, Nachteilsausgleich ${clock.accommodation_percent} %)`;
     }
-    setText(r.time, time);
+    setRich(r.time, `${timeIcon}:${time}`, timeIcon, time);
     if (r.time.className !== timeClass) {
         r.time.className = timeClass;
     }
 
     if (p.last_save_ms_ago === null) {
-        setText(r.saved, p.state === 'waiting' ? '' : 'noch nichts gespeichert');
+        setRich(r.saved, `none:${p.state}`, null, p.state === 'waiting' ? '' : 'noch nichts gespeichert');
     } else {
-        setText(r.saved, `${p.pending ? '⏳ ' : ''}gespeichert ${ago(p.last_save_ms_ago + sinceStand)}`);
+        const savedText = `gespeichert ${ago(p.last_save_ms_ago + sinceStand)}`;
+        setRich(r.saved, `${p.pending}:${savedText}`, p.pending ? 'hourglass' : null, savedText);
     }
 }
 
@@ -209,7 +246,7 @@ export function createGhost(person, handlers) {
         'aria-label': `${person.name}, noch nicht beigetreten`,
     },
     h('div', { class: 'pult-tile-head' }, h('span', { class: 'pult-tile-name', title: person.name }, person.name)),
-    h('div', { class: 'pult-tile-row' }, h('span', { class: 'pult-tile-state' }, 'Nicht beigetreten')));
+    h('div', { class: 'pult-tile-row' }, h('span', { class: 'pult-tile-state' }, h('span', { class: 'pult-tile-state-icon', 'aria-hidden': 'true' }, icon('armchair')), h('span', { class: 'pult-tile-state-text' }, 'Nicht beigetreten'))));
     el.dataset.userId = String(person.user_id);
     el.addEventListener('dragstart', (e) => {
         e.dataTransfer?.setData('text/plain', `u:${person.user_id}`);
