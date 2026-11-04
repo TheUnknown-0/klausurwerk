@@ -19,6 +19,7 @@ import os
 import shutil
 import signal
 import subprocess
+import sys
 import threading
 import time
 from dataclasses import dataclass
@@ -120,6 +121,16 @@ def dir_usage(path: str, entry_cap: int = 4000) -> tuple[int, int]:
 def isolation_active() -> bool:
     """True, wenn jeder Lauf unter eigener UID startet (Runner läuft als root)."""
     return hasattr(os, "geteuid") and os.geteuid() == 0 and os.environ.get("RUNNER_ISOLATE", "1") != "0"
+
+
+SEAL_PY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal.py")
+
+
+def seal_active() -> bool:
+    """True, wenn Läufe mit seccomp-Filter starten (Linux auf x86_64/aarch64, abschaltbar mit RUNNER_SEAL=0)."""
+    if not sys.platform.startswith("linux") or os.environ.get("RUNNER_SEAL", "1") == "0":
+        return False
+    return hasattr(os, "uname") and os.uname().machine in ("x86_64", "aarch64")
 
 
 class UidPool:
@@ -315,11 +326,17 @@ class Proc:
             f"--nofile={lim.nofile}",
             "--core=0",
         ]
+        argv = list(self.argv)
+        # Java legt Temp-Dateien sonst im gemeinsamen /tmp an (für Lauf-UIDs gesperrt).
+        if argv and argv[0].endswith("/bin/java") and self.env.get("TMPDIR"):
+            argv.insert(1, "-Djava.io.tmpdir=" + self.env["TMPDIR"])
+        if seal_active():
+            prefix += [sys.executable, "-I", "-S", SEAL_PY]
         piped = self.interactive or self.stdin_data is not None
         self.started = time.monotonic()
         try:
             self._popen = subprocess.Popen(
-                prefix + self.argv, cwd=self.cwd, env=self.env, bufsize=0,
+                prefix + argv, cwd=self.cwd, env=self.env, bufsize=0,
                 stdin=subprocess.PIPE if piped else subprocess.DEVNULL,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 start_new_session=True, close_fds=True, pass_fds=self.pass_fds,

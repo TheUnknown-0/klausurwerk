@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from kwrunner.config import Config  # noqa: E402
 from kwrunner.httpd import serve  # noqa: E402
-from kwrunner.sandbox import isolation_active, reap_loop  # noqa: E402
+from kwrunner.sandbox import isolation_active, reap_loop, seal_active  # noqa: E402
 
 
 def main() -> None:
@@ -18,6 +18,15 @@ def main() -> None:
     if isolation_active():
         # Nicht listbar: Läufe sehen weder die Namen noch die Zahl fremder Laufverzeichnisse.
         os.chmod(cfg.work_dir, 0o711)
+        # Gemeinsame Ablagen für Lauf-UIDs sperren: Jeder Lauf hat ein eigenes Home und TMPDIR,
+        # über /tmp oder /dev/shm sollen zwei gleichzeitige Läufe keine Dateien tauschen.
+        for shared in ("/tmp", "/dev/shm"):
+            try:
+                os.chmod(shared, 0o711)
+            except OSError:
+                pass
+    if not seal_active():
+        sys.stderr.write("Hinweis: Läufe starten ohne seccomp-Filter (Plattform oder RUNNER_SEAL=0).\n")
     if not cfg.token:
         sys.stderr.write("Warnung: RUNNER_TOKEN ist nicht gesetzt, alle Anfragen ausser /healthz werden abgelehnt.\n")
     # Reste eines früheren Starts (nur relevant ohne frisches tmpfs).

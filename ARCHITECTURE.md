@@ -83,9 +83,10 @@ Zwei Ebenen, nie vermischen:
 ## Runner-Sicherheit
 
 - Der Runner-Container hängt nur am internen Netz `runner_net` (kein Internet), Dateisystem schreibgeschützt bis auf tmpfs `/tmp` und `/work`.
+- Jeder Lauf startet mit seccomp-Filter (`runner/kwrunner/seal.py`): kein `socket()`, kein io_uring, keine SysV-IPC oder POSIX-Message-Queues. `/tmp` und `/dev/shm` sind für Lauf-UIDs gesperrt (0711). Gleichzeitige Läufe haben so keinen Kanal zueinander.
 - Der Hauptprozess läuft als root, aber nur mit den Capabilities SETUID, SETGID, CHOWN, FOWNER, DAC_OVERRIDE, KILL (`cap_drop: ALL`, `no-new-privileges`).
 - Jeder Lauf (interaktiv, `/tests`, `/robo`) bekommt eine eigene UID/GID aus dem Pool 20000 bis 20063. Laufverzeichnisse gehören dieser UID (0700), `/work` ist nicht listbar (0711), `/proc/1/environ` (Token) ist für Läufe unlesbar, `RLIMIT_NPROC` gilt je Lauf.
-- Testdateien des Autograders werden vor dem Start des Schülercodes gelöscht. Restrisiken (in `runner/README.md` dokumentiert): gleichzeitige Läufe teilen den Netzwerk-Namensraum (localhost); Testcode und Schülercode laufen im selben Prozess, ein gezielt präpariertes Programm kann ein „bestanden“ vortäuschen. Vorbewertungen sind deshalb immer Vorschläge.
+- Testdateien des Autograders werden vor dem Start des Schülercodes gelöscht. Restrisiken (in `runner/README.md` dokumentiert): Testcode und Schülercode laufen im selben Prozess, ein gezielt präpariertes Programm kann ein „bestanden“ vortäuschen. Vorbewertungen sind deshalb immer Vorschläge.
 - App-seitig: höchstens ein laufender Lauf je Person, 30 Starts je Minute (`Services\RunLimiter`).
 
 ## Safe Exam Browser

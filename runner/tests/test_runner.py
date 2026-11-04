@@ -288,6 +288,66 @@ class JavaRunTests(unittest.TestCase):
         self.assertIn("�", result.stdout)
 
 
+def run_python(code):
+    return pump(start({"language": "python", "main_file": "m.py", "files": [{"name": "m.py", "content": code}]}))
+
+
+class KanalTests(unittest.TestCase):
+    """Gleichzeitige Läufe dürfen keinen Kanal zueinander haben (Netz, IPC, gemeinsame Ablagen)."""
+
+    def test_python_ohne_sockets_und_ipc(self):
+        code = (
+            "import socket, os, tempfile\n"
+            "def probe(name, fn):\n"
+            "    try:\n"
+            "        fn()\n"
+            "        print(name, 'offen')\n"
+            "    except OSError as e:\n"
+            "        print(name, 'zu', type(e).__name__)\n"
+            "probe('tcp', lambda: socket.socket().bind(('127.0.0.1', 0)))\n"
+            "probe('udp', lambda: socket.socket(socket.AF_INET, socket.SOCK_DGRAM))\n"
+            "probe('unix', lambda: socket.socket(socket.AF_UNIX).bind('\\0kw-kanal'))\n"
+            "probe('tmp', lambda: open('/tmp/kw-kanal.txt', 'w').write('x'))\n"
+            "probe('shm', lambda: open('/dev/shm/kw-kanal', 'w').write('x'))\n"
+            "a, b = socket.socketpair()\n"
+            "a.sendall(b'ok'); print('paar', b.recv(2).decode())\n"
+            "with tempfile.NamedTemporaryFile('w') as f:\n"
+            "    f.write('x'); print('tempfile', f.name.startswith(os.environ['TMPDIR']))\n"
+        )
+        out = run_python(code).stdout
+        for name in ("tcp", "udp", "unix", "tmp", "shm"):
+            self.assertIn(name + " zu", out, out)
+        self.assertIn("paar ok", out)
+        self.assertIn("tempfile True", out)
+
+    def test_python_sysv_ipc_gesperrt(self):
+        code = (
+            "import ctypes\n"
+            "libc = ctypes.CDLL(None, use_errno=True)\n"
+            "print('shmget', libc.shmget(4242, 4096, 0o1666), ctypes.get_errno())\n"
+            "print('msgget', libc.msgget(4242, 0o1666), ctypes.get_errno())\n"
+        )
+        out = run_python(code).stdout
+        self.assertIn("shmget -1 13", out, out)
+        self.assertIn("msgget -1 13", out, out)
+
+    def test_java_ohne_serversocket_mit_tempdatei(self):
+        code = ('import java.io.*; import java.net.*;\n'
+                'public class Main { public static void main(String[] a) throws Exception {\n'
+                '  try { new ServerSocket(0); System.out.println("server offen"); }\n'
+                '  catch (Exception e) { System.out.println("server zu"); }\n'
+                '  try { new Socket("127.0.0.1", 8080); System.out.println("client offen"); }\n'
+                '  catch (Exception e) { System.out.println("client zu"); }\n'
+                '  File f = File.createTempFile("kwtest", ".txt");\n'
+                '  System.out.println("temp " + f.getPath().startsWith("/tmp/") + " " + f.exists());\n'
+                '} }')
+        result = run_java(code)
+        out = result.stdout
+        self.assertIn("server zu", out, result.stderr)
+        self.assertIn("client zu", out, result.stderr)
+        self.assertIn("temp false true", out, result.stderr)
+
+
 class LimitTests(unittest.TestCase):
     def test_endlosschleife(self):
         started = time.time()

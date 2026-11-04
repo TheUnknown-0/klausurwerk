@@ -117,14 +117,17 @@ bekommt eine eigene UID/GID aus dem Pool 20000 bis 20063 (`kwrunner/sandbox.py`,
 
 ### Bekannte Grenzen der Isolation (ehrlich gesagt)
 
-* **Gemeinsames Netz.** Ein Netzwerk-Namespace je Lauf bräuchte `CAP_SYS_ADMIN` (und
-  lockert damit den Container deutlich), das geben wir dem Runner bewusst nicht. Alle
-  Läufe teilen daher `localhost`. Zwei gleichzeitig laufende Programme könnten darüber
-  miteinander reden (Absprache, Abschreiben zwischen zwei Schüler:innen). Die
-  Runner-API auf `127.0.0.1:8080` ist für Schülercode ohne Token nutzlos (das Token ist
-  nicht lesbar), und der Container hat keinen Internetzugang. Restrisiko: ein
-  Localhost-Kanal zwischen zwei gleichzeitigen Läufen. Dagegen hilft nur Aufsicht oder
-  ein Wegwerf-Container je Lauf.
+* **Gemeinsames Netz und IPC, durch seccomp geschlossen.** Ein Netzwerk-Namespace je Lauf bräuchte
+  `CAP_SYS_ADMIN`, das bekommt der Runner bewusst nicht. Stattdessen startet jeder Lauf über
+  `kwrunner/seal.py`: Ein seccomp-Filter (braucht nur `no_new_privs`) verbietet `socket()`,
+  io_uring, SysV-IPC (`shmget`, `semget`, `msgget`) und `mq_open`, dazu Aufrufe fremder
+  Architekturen (x32, i386). Damit gibt es weder TCP/UDP über `localhost` noch abstrakte
+  Unix-Sockets zwischen zwei Läufen; `socketpair` und Pipes innerhalb eines Laufs bleiben erlaubt.
+  Beim Start setzt der Runner `/tmp` und `/dev/shm` auf 0711: Lauf-UIDs können dort nichts
+  ablegen, jeder Lauf hat ein eigenes Home und `TMPDIR` (Java bekommt `-Djava.io.tmpdir`).
+  Folge für Schülercode: keine Netzwerkprogramme und kein `multiprocessing` mit Semaphoren.
+  Unterstützt auf x86_64 und aarch64, abschaltbar mit `RUNNER_SEAL=0` (nur zum Testen).
+  Tests: `KanalTests` in `tests/test_runner.py`.
 * `/proc` zeigt Prozesse anderer Läufe samt Kommandozeile (Pfade mit Lauf-ID). Den Inhalt
   der Verzeichnisse und das Token erreicht man damit nicht.
 * `python_assert`: Schülercode und Prüfung laufen im selben Prozess. Die Testdatei ist
