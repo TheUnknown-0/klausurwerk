@@ -3,10 +3,10 @@
 $user = $auth->user();
 ?>
 <header class="topbar">
-    <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Navigation öffnen">☰</button>
+    <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Navigation öffnen"><?= icon('menu') ?></button>
     <div class="topbar-spacer"></div>
 
-    <button class="btn btn-sm" type="button" data-toggle-theme aria-label="Hell-/Dunkelmodus umschalten">◐</button>
+    <button class="btn btn-sm" type="button" data-toggle-theme aria-label="Hell-/Dunkelmodus umschalten" title="Hell/Dunkel"><?= icon('sun-moon') ?></button>
 
     <?php if ($user !== null): ?>
         <div class="menu">
@@ -16,11 +16,11 @@ $user = $auth->user();
             </button>
             <div class="menu-list" hidden>
                 <?php if ($user['role'] !== 'student'): ?>
-                    <a class="menu-item" href="<?= e($ctx->url('/passwort-aendern')) ?>">🔒 Passwort ändern</a>
+                    <a class="menu-item" href="<?= e($ctx->url('/passwort-aendern')) ?>"><?= icon('key-round') ?> Passwort ändern</a>
                 <?php endif; ?>
                 <form method="post" action="<?= e($ctx->url('/logout')) ?>">
                     <?= $csrf->field() ?>
-                    <button class="menu-item danger" type="submit">🚪 Abmelden</button>
+                    <button class="menu-item danger" type="submit"><?= icon('log-out') ?> Abmelden</button>
                 </form>
             </div>
         </div>

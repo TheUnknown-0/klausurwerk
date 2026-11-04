@@ -17,7 +17,7 @@ $navLink = static function (string $url, string $icon, string $label) use ($curr
     $active = $currentPath === $url || ($url !== '/' && str_starts_with($currentPath, rtrim($url, '/') . '/'));
 
     return '<a class="nav-link' . ($active ? ' active' : '') . '" href="' . e($url) . '">'
-        . '<span class="nav-icon" aria-hidden="true">' . $icon . '</span>' . e($label) . '</a>';
+        . '<span class="nav-icon">' . icon($icon) . '</span>' . e($label) . '</a>';
 };
 $u = static fn (string $path): string => $ctx->url($path);
 ?>
@@ -42,28 +42,28 @@ $u = static fn (string $path): string => $ctx->url($path);
 
             if ($role === 'student') {
                 $sections[] = ['Meine Klausuren', [
-                    [$u('/meine-klausuren'), '📝', 'Klausuren & Übungen', true],
-                    [$u('/meine-ergebnisse'), '📄', 'Ergebnisse', true],
+                    [$u('/meine-klausuren'), 'file-pen-line', 'Klausuren & Übungen', true],
+                    [$u('/meine-ergebnisse'), 'file-text', 'Ergebnisse', true],
                 ]];
             }
 
             if (in_array($role, ['admin', 'teacher'], true)) {
                 $sections[] = ['Unterricht', [
-                    [$u('/dashboard'), '🏠', 'Übersicht', true],
-                    [$u('/klausuren'), '📝', 'Klausuren', $can(P::KLAUSUREN_ERSTELLEN) || $ctx->exams->visibleExamIds() !== []],
-                    [$u('/archiv'), '🗂️', 'Archiv', $can(P::ARCHIV_DURCHSUCHEN)],
-                    [$u('/admin/kurse'), '👩‍🎓', 'Kurse', $can(P::KURSE_SEHEN)],
-                    [$u('/admin/raeume'), '🪑', 'Räume', $can(P::RAEUME_VERWALTEN)],
+                    [$u('/dashboard'), 'house', 'Übersicht', true],
+                    [$u('/klausuren'), 'file-pen-line', 'Klausuren', $can(P::KLAUSUREN_ERSTELLEN) || $ctx->exams->visibleExamIds() !== []],
+                    [$u('/archiv'), 'archive', 'Archiv', $can(P::ARCHIV_DURCHSUCHEN)],
+                    [$u('/admin/kurse'), 'graduation-cap', 'Kurse', $can(P::KURSE_SEHEN)],
+                    [$u('/admin/raeume'), 'armchair', 'Räume', $can(P::RAEUME_VERWALTEN)],
                 ]];
                 $sections[] = ['Verwaltung', [
-                    [$u('/admin/benutzer'), '👥', 'Benutzer', $can(P::BENUTZER_SEHEN)],
-                    [$u('/admin/zugangskarten'), '🪪', 'Zugangskarten', $can(P::ZUGANGSKARTEN_DRUCKEN)],
-                    [$u('/admin/notenschluessel'), '🎓', 'Notenschlüssel', $can(P::NOTENSCHLUESSEL_BEARBEITEN)],
-                    [$u('/admin/operatoren'), '🔤', 'Operatoren', $can(P::OPERATOREN_BEARBEITEN)],
-                    [$u('/admin/berechtigungen'), '🔑', 'Berechtigungen', $can(P::BERECHTIGUNGEN_SEHEN)],
-                    [$u('/admin/einstellungen'), '⚙️', 'Einstellungen', $can(P::EINSTELLUNGEN_SEHEN)],
-                    [$u('/admin/aufbewahrung'), '🗑️', 'Aufbewahrung', $can(P::AUFBEWAHRUNG_VERWALTEN)],
-                    [$u('/admin/audit-log'), '📜', 'Audit-Log', $can(P::AUDIT_LOGS_SEHEN)],
+                    [$u('/admin/benutzer'), 'users', 'Benutzer', $can(P::BENUTZER_SEHEN)],
+                    [$u('/admin/zugangskarten'), 'id-card', 'Zugangskarten', $can(P::ZUGANGSKARTEN_DRUCKEN)],
+                    [$u('/admin/notenschluessel'), 'scale', 'Notenschlüssel', $can(P::NOTENSCHLUESSEL_BEARBEITEN)],
+                    [$u('/admin/operatoren'), 'type', 'Operatoren', $can(P::OPERATOREN_BEARBEITEN)],
+                    [$u('/admin/berechtigungen'), 'key-round', 'Berechtigungen', $can(P::BERECHTIGUNGEN_SEHEN)],
+                    [$u('/admin/einstellungen'), 'settings', 'Einstellungen', $can(P::EINSTELLUNGEN_SEHEN)],
+                    [$u('/admin/aufbewahrung'), 'trash-2', 'Aufbewahrung', $can(P::AUFBEWAHRUNG_VERWALTEN)],
+                    [$u('/admin/audit-log'), 'scroll-text', 'Audit-Log', $can(P::AUDIT_LOGS_SEHEN)],
                 ]];
             }
 
