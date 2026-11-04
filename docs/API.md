@@ -354,3 +354,13 @@ Läufe ohne Abruf für 60 s werden beendet und verworfen.
 - Erweiterungen: `runner/kwrunner/modules/<name>.py` mit `register(registry, ctx)`; Bibliotheken in `runner/libs/java` (Klassenpfad) und `runner/libs/python` (sys.path).
 
 **SQL-Beispieltests** vergleichen die letzte Ergebnistabelle als Text: Werte je Zeile mit `|` getrennt, `NULL` als `NULL`, keine Kopfzeile.
+
+## 7. Korrektur, Diagramme, Mikrowelt (Stufen 2 bis 4)
+
+- Korrektur, Ergebnisse, Rückgabe: alle Routen und JSON-Formate in [KORREKTUR.md](KORREKTUR.md).
+- Robo-Gitterwelt, Java-GUI (`kw.gui`, Feld `gui_frames`), Replay: [stufe4-robo-gui-replay.md](stufe4-robo-gui-replay.md).
+- `POST /api/klausur/{id}/vorschaubild` `{ "task_id", "png": "data:image/png;base64,…" }`: PNG-Vorschau einer
+  Zeichenaufgabe (höchstens 2 MB, nur zu einer gespeicherten Antwort, nur im Zustand `active`). Die
+  Schüleransicht sendet sie höchstens alle 10 s je Aufgabe und vor der Abgabe.
+- `POST /speichern` liefert zusätzlich `invalid` (`{ task_id: Meldung }`): nur diese Antworten wurden
+  zurückgewiesen, alle anderen Schritte und Inhalte des Pakets sind gespeichert.

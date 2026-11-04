@@ -203,6 +203,20 @@ final class DiagramLogicAutomatonTest extends TestCase
         return (new TruthTableType())->normalizeConfig(['inputs' => ['A', 'B'], 'outputs' => ['X', 'Y']] + $extra);
     }
 
+    public function testLeereLoesungenSindErlaubt(): void
+    {
+        $tt = new TruthTableType();
+        self::assertSame(['rows' => []], $tt->normalizeSolution([], $this->ttConfig()));
+        self::assertNull($tt->autoCheck($this->ttConfig(), ['rows' => []], ['rows' => []]));
+        $logic = new LogicType();
+        self::assertSame([], $logic->normalizeSolution([], $this->logicConfig()));
+        self::assertNull($logic->autoCheck($this->logicConfig(), [], ['components' => [], 'wires' => []]));
+        $automaton = new AutomatonType();
+        $config = $automaton->normalizeConfig(['alphabet' => ['a']]);
+        self::assertSame(['accept' => [], 'reject' => []], $automaton->normalizeSolution([], $config));
+        self::assertNull($automaton->autoCheck($config, ['accept' => [], 'reject' => []], ['states' => [], 'transitions' => []]));
+    }
+
     public function testWahrheitstabelleLoesungMussVollstaendigSein(): void
     {
         $type = new TruthTableType();
@@ -336,7 +350,7 @@ final class DiagramLogicAutomatonTest extends TestCase
 
         $solution = $type->normalizeSolution(['accept' => ['ab', 'aab'], 'reject' => ['', 'b']], $config);
         self::assertSame(['', 'b'], $solution['reject']);
-        foreach ([['accept' => ['ac'], 'reject' => []], ['accept' => ['a'], 'reject' => ['a']], ['accept' => [], 'reject' => []]] as $bad) {
+        foreach ([['accept' => ['ac'], 'reject' => []], ['accept' => ['a'], 'reject' => ['a']]] as $bad) {
             try {
                 $type->normalizeSolution($bad, $config);
                 self::fail('Ausnahme erwartet');

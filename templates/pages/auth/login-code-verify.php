@@ -1,4 +1,4 @@
-<?php /** Anmeldung per Code — Schritt 2: Code eingeben. Erwartet: $username, optional $redirect. */ ?>
+<?php /** Anmeldung per Code, Schritt 2: Code eingeben. Erwartet: $username, optional $redirect. */ ?>
 <h1 style="font-size:1.35rem;">Code eingeben</h1>
 <p class="text-soft text-sm">
     Falls für <strong><?= e($username) ?></strong> ein Konto mit hinterlegter E-Mail existiert,

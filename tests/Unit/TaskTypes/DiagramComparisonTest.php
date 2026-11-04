@@ -108,12 +108,9 @@ final class DiagramComparisonTest extends TestCase
     {
         $type = new UmlType();
         $config = $type->normalizeConfig([]);
-        try {
-            $type->normalizeSolution(['classes' => []], $config);
-            self::fail('Ausnahme erwartet');
-        } catch (\InvalidArgumentException $e) {
-            self::assertStringContainsString('Klasse', $e->getMessage());
-        }
+        // ohne Musterdiagramm: erlaubt, dann gibt es nur manuelle Bewertung
+        self::assertSame(['classes' => [], 'relations' => []], $type->normalizeSolution(['classes' => []], $config));
+        self::assertNull($type->autoCheck($config, $type->normalizeSolution([], $config), $type->normalizeContent($this->umlModel(), $config)));
         $content = $type->normalizeContent($this->umlModel(), $config);
         $text = $type->toText($content, $config);
         self::assertStringContainsString('abstract class Person', $text);
@@ -227,7 +224,6 @@ final class DiagramComparisonTest extends TestCase
         self::assertGreaterThan(0.5, $result['ratio']);
         self::assertLessThan(1.0, $result['ratio']);
 
-        $this->expectException(\InvalidArgumentException::class);
-        $type->normalizeSolution(['tables' => []], []);
+        self::assertSame(['tables' => []], $type->normalizeSolution(['tables' => []], []));
     }
 }

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Zentrale Konfiguration — liest Umgebungsvariablen mit sinnvollen Defaults.
+ * Zentrale Konfiguration, liest Umgebungsvariablen mit sinnvollen Defaults.
  */
 
 $env = static fn (string $key, ?string $default = null): ?string => (

@@ -233,6 +233,62 @@ $task($practice, null, 'code', [
 ]);
 $db->run("UPDATE exams SET status = 'running', started_at = NOW(3) WHERE id = ?", [$practiceId]);
 
+// Robo-Aufgabe in der Übung (Gitterwelt)
+$task($practice, null, 'robo', [
+    'title' => 'Robo sammelt Schrauben',
+    'body_md' => 'Steuere Robo so, dass er alle Schrauben einsammelt und auf dem Ziel stehen bleibt.',
+    'points' => 4,
+    'config' => [
+        'language' => 'python', 'main_file' => 'main.py', 'allow_new_files' => true,
+        'start_code' => "from robo import *\n\nvor()\n",
+        'goal_md' => 'Sammle beide Schrauben ein und bleib auf der Flagge stehen.',
+        'world' => ['cols' => 8, 'rows' => 4, 'robo' => ['x' => 0, 'y' => 1, 'dir' => 'E'],
+            'walls' => [[3, 0], [3, 2], [3, 3]], 'boxes' => [], 'screws' => [['x' => 2, 'y' => 1, 'count' => 1], ['x' => 5, 'y' => 1, 'count' => 1]],
+            'targets' => [[7, 1]]],
+    ],
+    'tests' => [[
+        'name' => 'Startwelt', 'type' => 'robo_world', 'points' => 4,
+        'world' => ['cols' => 8, 'rows' => 4, 'robo' => ['x' => 0, 'y' => 1, 'dir' => 'E'],
+            'walls' => [[3, 0], [3, 2], [3, 3]], 'boxes' => [], 'screws' => [['x' => 2, 'y' => 1, 'count' => 1], ['x' => 5, 'y' => 1, 'count' => 1]],
+            'targets' => [[7, 1]]],
+        'goal' => ['screws_collected' => 'all', 'robo_at' => [7, 1]],
+    ]],
+]);
+
+// ---------- Klausur 2: Modellierung (Diagramm-Aufgaben) ----------
+$modelId = $exams->create([
+    'title' => 'Test Q1: Modellierung und Logik',
+    'mode' => 'exam',
+    'course_id' => $course,
+    'room_id' => $room,
+    'duration_minutes' => 45,
+], $teacher);
+$model = $db->fetchOne('SELECT * FROM exams WHERE id = ?', [$modelId]);
+$registry = \App\Services\TaskTypes\TaskTypeRegistry::class;
+$diagram = static function (string $type, string $title, string $body, float $points, array $config = [], array $solution = []) use ($task, $model, $registry, $operator): int {
+    $t = $registry::require($type);
+
+    return $task($model, null, $type, [
+        'title' => $title, 'body_md' => $body, 'points' => $points,
+        'operator_id' => $operator('modellieren'), 'afb' => 'II',
+        'config' => $config + $t->defaultConfig(),
+        'solution' => $solution !== [] ? $solution : $t->defaultSolution(),
+    ]);
+};
+$diagram('uml', 'Klassendiagramm Bibliothek', 'Modelliere die Klassen `Buch`, `Ausleihe` und `Mitglied` mit sinnvollen Attributen, Methoden und Beziehungen.', 6);
+$diagram('structogram', 'Struktogramm', 'Zeichne ein Struktogramm für die lineare Suche in einem Feld.', 4);
+$diagram('flowchart', 'Programmablaufplan', 'Zeichne einen PAP, der prüft, ob eine eingelesene Zahl eine Primzahl ist.', 4);
+$diagram('logic', 'Schaltung', 'Baue eine Schaltung mit den Eingängen A und B, deren Ausgang X genau dann 1 ist, wenn **genau einer** der Eingänge 1 ist.', 3, [],
+    ['truth_table' => ['00' => ['X' => 0], '01' => ['X' => 1], '10' => ['X' => 1], '11' => ['X' => 0]]]);
+$diagram('truth_table', 'Wahrheitstabelle', 'Fülle die Wahrheitstabelle für $X = A \\land \\lnot B$ aus.', 2, [],
+    ['rows' => ['00' => ['X' => '0'], '01' => ['X' => '0'], '10' => ['X' => '1'], '11' => ['X' => '0']]]);
+$diagram('automaton', 'Endlicher Automat', 'Entwirf einen DEA über {a, b}, der genau die Wörter akzeptiert, die auf **ab** enden.', 4, [],
+    ['accept' => ['ab', 'aab', 'bab', 'abab'], 'reject' => ['', 'a', 'b', 'ba', 'abb']]);
+$diagram('er', 'ER-Modell', 'Erstelle ein ER-Modell (Chen-Notation) für Schüler:innen, Kurse und ihre Belegung.', 5);
+$diagram('relational', 'Relationenschema', 'Überführe dein ER-Modell in ein Relationenschema mit Primär- und Fremdschlüsseln.', 4);
+$diagram('drawing', 'Skizze', 'Skizziere den Aufbau eines Client-Server-Systems.', 2);
+$db->run("UPDATE exams SET status = 'ready' WHERE id = ?", [$modelId]);
+
 // ---------- Probe ----------
 $exams->create(['title' => 'Technik-Check vor der Klausur', 'mode' => 'probe', 'course_id' => $course, 'room_id' => $room, 'duration_minutes' => 10], $teacher);
 
@@ -240,4 +296,4 @@ echo "Demo-Daten angelegt.\n";
 echo "  Lehrkräfte: frau.lehmann, herr.yilmaz (Passwort " . DEMO_PASSWORD . ")\n";
 echo "  Admin (falls neu angelegt): admin (Passwort " . DEMO_PASSWORD . ")\n";
 echo "  Schüler:innen im Kurs Inf-Q1: " . implode(', ', array_column($students, 0)) . " (Passwort <benutzername>-2026)\n";
-echo "  Klausur #{$examId} (bereit), Übung #{$practiceId} (läuft), Technik-Check (Entwurf)\n";
+echo "  Klausur #{$examId} (bereit), Übung #{$practiceId} (läuft), Test Modellierung #{$modelId} (bereit), Technik-Check (Entwurf)\n";

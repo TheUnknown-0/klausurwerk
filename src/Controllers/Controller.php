@@ -31,7 +31,7 @@ abstract class Controller
         $user = $this->ctx->auth->user();
         if ($user === null) {
             // API-Routen bekommen 401 statt einer Weiterleitung: Ein fetch()
-            // folgt dem Redirect und erhält HTML — der Aufrufer könnte das
+            // folgt dem Redirect und erhält HTML, der Aufrufer könnte das
             // nicht von einer fachlichen Ablehnung unterscheiden und würde
             // gepufferte Scans verwerfen.
             if ($this->isApiRequest()) {
@@ -134,7 +134,7 @@ abstract class Controller
     /**
      * Anfragedaten einer JSON-Schnittstelle.
      *
-     * Fetch-Aufrufe senden JSON, klassische Formulare senden $_POST —
+     * Fetch-Aufrufe senden JSON, klassische Formulare senden $_POST , 
      * beides muss dieselbe Aktion bedienen.
      *
      * @return array<string, mixed>

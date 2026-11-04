@@ -58,7 +58,7 @@ final class PultController extends Controller
             'boot' => $boot,
             'wideContent' => true,
             'bundles' => ['pult.js'],
-            'pageStyles' => ['pult.css', 'exam.css', 'code.css', 'diagrams.css'],
+            'pageStyles' => ['pult.css', 'exam.css', 'code.css', 'diagrams.css', 'robo.css'],
         ]);
     }
 

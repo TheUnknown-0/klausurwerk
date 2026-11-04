@@ -51,7 +51,12 @@ export function mountPult(root, boot) {
     const loading = h('p', { class: 'text-soft' }, 'Der Stand wird geladen …');
 
     const renderBanners = () => {
-        soundBanner.hidden = sound.unlocked;
+        if (sound.unlocked && !soundBanner.hidden) {
+            // Erst nach dem laufenden Klick ausblenden (kein Verrutschen der Knöpfe).
+            setTimeout(() => { soundBanner.hidden = true; }, 250);
+        } else if (!sound.unlocked) {
+            soundBanner.hidden = false;
+        }
         const c = state.connection;
         if (c.fatal) {
             connection.hidden = false;

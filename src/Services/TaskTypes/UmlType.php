@@ -55,7 +55,7 @@ final class UmlType extends DiagramTaskType
     {
         $diagram = self::normalizeDiagram($solution);
         if ($diagram['classes'] === []) {
-            throw new \InvalidArgumentException('Das Musterdiagramm braucht mindestens eine Klasse.');
+            return $this->defaultSolution(); // ohne Musterdiagramm gibt es keinen Vorschlag, nur manuelle Bewertung
         }
         foreach ($diagram['classes'] as $c) {
             if ($c['name'] === '') {

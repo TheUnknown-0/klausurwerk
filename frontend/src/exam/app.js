@@ -550,7 +550,12 @@ export class ExamApp {
             preview: this.preview,
             assets: this.boot.assets ?? {},
             callbacks: {
-                onChange: (task, content, meta) => this.autosave.change(task.id, content, meta),
+                onChange: (task, content, meta) => {
+                    this.autosave.change(task.id, content, meta);
+                    if (typeof meta?.getPreviewPng === 'function') {
+                        this.schedulePreview(task.id, meta.getPreviewPng);
+                    }
+                },
                 onFlag: (task, flagged, content) => this.autosave.flag(task.id, flagged, content),
                 onMounted: (task, content) => {
                     if (content && Array.isArray(content.files)) {
@@ -750,7 +755,50 @@ export class ExamApp {
 
     // ---------- Abgabe ----------
 
+    /**
+     * PNG-Vorschau einer Zeichenaufgabe (für Korrektur und PDF) höchstens alle
+     * 10 s je Aufgabe senden. Vorher speichern, damit die Antwort existiert.
+     */
+    schedulePreview(taskId, getPng) {
+        if (this.preview) {
+            return;
+        }
+        this.previewFns ??= new Map();
+        this.previewTimers ??= new Map();
+        this.previewFns.set(taskId, getPng);
+        if (this.previewTimers.has(taskId)) {
+            return;
+        }
+        this.previewTimers.set(taskId, setTimeout(() => this.sendPreview(taskId), 10000));
+    }
+
+    async sendPreview(taskId) {
+        clearTimeout(this.previewTimers?.get(taskId));
+        this.previewTimers?.delete(taskId);
+        const getPng = this.previewFns?.get(taskId);
+        if (!getPng) {
+            return;
+        }
+        this.previewFns.delete(taskId);
+        try {
+            await this.autosave.flush();
+            const png = await getPng();
+            if (typeof png === 'string' && png.startsWith('data:image/png;base64,')) {
+                await post(`${this.api}/vorschaubild`, { task_id: taskId, png }, { timeoutMs: 20000 });
+            }
+        } catch {
+            // Vorschau ist nur eine Hilfe für die Korrektur; der Inhalt selbst ist gespeichert.
+        }
+    }
+
+    /** Alle ausstehenden Vorschaubilder sofort senden (vor der Abgabe). */
+    async flushPreviews() {
+        const ids = [...(this.previewFns?.keys() ?? [])];
+        await Promise.all(ids.map((id) => this.sendPreview(id)));
+    }
+
     openSubmitDialog() {
+        this.flushPreviews();
         if (!this.view || this.state !== 'active') {
             return;
         }

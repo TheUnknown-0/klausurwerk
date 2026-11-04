@@ -385,6 +385,8 @@ textarea { min-height: 96px; resize: vertical; }
 /* ---------- Tabellen ---------- */
 .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 table.data-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+/* Zeilenköpfe (th scope=row) sehen aus wie normale Zellen, nur fett. */
+.data-table tbody th { text-transform: none; letter-spacing: 0; font-size: inherit; font-family: inherit; color: var(--ink); }
 .data-table th {
   text-align: left; padding: 11px 14px;
   font-family: var(--font-display); font-weight: 700; font-size: .8rem;
@@ -620,7 +622,7 @@ dialog.modal .modal-footer { padding: 14px 22px; border-top: 1px solid var(--bor
   /*
    * Ohne JavaScript ist die Navigation sonst unerreichbar: Die Seitenleiste
    * steht ausgeklappt links außerhalb des Bildes und der Umschalter braucht
-   * ein Skript. Inhalte und Formulare funktionierten bereits ohne JS — die
+   * ein Skript. Inhalte und Formulare funktionierten bereits ohne JS, die
    * Navigation nicht. Hier wird sie stattdessen fest in den Seitenfluss
    * gestellt, oberhalb des Inhalts.
    */
@@ -643,7 +645,7 @@ dialog.modal .modal-footer { padding: 14px 22px; border-top: 1px solid var(--bor
 /* ---------- Raumplanung: Ziehen ---------- */
 
 /* Ziehbare Ausstellerkarte. `pan-y` lässt vertikales Scrollen zu, solange
-   nicht gezogen wird — beim Halten schaltet das Skript auf `none` um. */
+   nicht gezogen wird, beim Halten schaltet das Skript auf `none` um. */
 [data-exhibitor][draggable="true"] {
   cursor: grab;
   touch-action: pan-y;
@@ -675,7 +677,7 @@ dialog.modal .modal-footer { padding: 14px 22px; border-top: 1px solid var(--bor
   pointer-events: none;
 }
 
-/* Auf der Räume-Übersicht sind die nicht zugeteilten Aussteller Chips —
+/* Auf der Räume-Übersicht sind die nicht zugeteilten Aussteller Chips , 
    sie sollen genauso anfassbar wirken wie die Karten in der Raumplanung. */
 .badge[data-exhibitor][draggable="true"] {
   gap: .3rem;

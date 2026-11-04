@@ -18,13 +18,13 @@ $pdo = new PDO(
 );
 
 // Nur ein Prozess migriert. Ohne Sperre könnten zwei gleichzeitig startende
-// Container dieselbe Datei anwenden — die zweite Ausführung scheitert dann
+// Container dieselbe Datei anwenden, die zweite Ausführung scheitert dann
 // mitten im Schema. Die Sperre gilt für die Verbindung und fällt beim Beenden
 // automatisch weg.
 $lock = $pdo->prepare('SELECT GET_LOCK(?, ?)');
 $lock->execute(['klausurwerk_migrate', 60]);
 if ((int) $lock->fetchColumn() !== 1) {
-    fwrite(STDERR, "Migrationen laufen bereits in einem anderen Prozess — Abbruch.\n");
+    fwrite(STDERR, "Migrationen laufen bereits in einem anderen Prozess, Abbruch.\n");
     exit(1);
 }
 

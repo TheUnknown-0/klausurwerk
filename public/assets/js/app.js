@@ -40,7 +40,7 @@
             return res.json().then(function (data) {
                 // Statuscode mitgeben: Aufrufer müssen eine fachliche Ablehnung
                 // (HTTP 200 mit success:false) von einer Störung unterscheiden
-                // können — der Offline-Puffer hängt davon ab.
+                // können, der Offline-Puffer hängt davon ab.
                 if (data && typeof data === 'object') {
                     data.httpStatus = res.status;
                     data.httpOk = res.ok;

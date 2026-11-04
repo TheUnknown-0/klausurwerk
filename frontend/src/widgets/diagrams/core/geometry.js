@@ -6,7 +6,7 @@
 export const GRID = 10;
 
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-export const snap = (v, grid = GRID) => (grid > 0 ? Math.round(v / grid) * grid : v);
+export const snap = (v, grid = GRID) => (grid > 0 ? Math.round(v / grid) * grid + 0 : v);
 export const round1 = (v) => Math.round(v * 10) / 10;
 
 export const center = (r) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });

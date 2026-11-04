@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 /**
- * Statische Prüfung des Rechtekatalogs — ohne Datenbank.
+ * Statische Prüfung des Rechtekatalogs, ohne Datenbank.
  *
  * Stellt sicher, dass Permissions::catalog(), ::dependencies() und
  * ::defaultsForRole() untereinander und mit den Konstanten konsistent
@@ -130,7 +130,7 @@ final class PermissionsTest extends TestCase
     }
 
     /**
-     * Iterative Tiefensuche mit explizitem Rekursionsstapel — erkennt Zyklen
+     * Iterative Tiefensuche mit explizitem Rekursionsstapel, erkennt Zyklen
      * unabhängig davon, wie Permissions::requiredFor() selbst mit ihnen umgeht.
      *
      * @param array<string, list<string>> $deps

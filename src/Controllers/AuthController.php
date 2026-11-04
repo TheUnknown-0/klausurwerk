@@ -235,7 +235,7 @@ final class AuthController extends Controller
             $this->flash('error', 'Zu viele Versuche. Bitte warte 5 Minuten.');
             $this->redirect($this->ctx->url('/login-code'));
         }
-        // Jede Anfrage zählt als "Fehlversuch" für das Rate-Limit — sonst
+        // Jede Anfrage zählt als "Fehlversuch" für das Rate-Limit, sonst
         // könnte man beliebig oft Codes an ein fremdes Postfach schicken.
         $throttle->recordFailure($username, $ip);
 
@@ -247,7 +247,7 @@ final class AuthController extends Controller
                 $this->emailService()->sendLoginCode($user, $code);
                 $this->ctx->audit->log('Anmeldecode angefordert', 'info', "Benutzer: {$username}", (int) $user['id'], $username);
             } else {
-                // Bewusst kein Hinweis auf den Cooldown nach außen — sonst liesse sich
+                // Bewusst kein Hinweis auf den Cooldown nach außen, sonst liesse sich
                 // daraus ablesen, dass das Konto (mit E-Mail) existiert.
                 $this->ctx->audit->log('Anmeldecode-Anfrage übersprungen (Cooldown)', 'info', "Benutzer: {$username}", (int) $user['id'], $username);
             }
@@ -315,7 +315,7 @@ final class AuthController extends Controller
         $this->ctx->session->remove(self::CODE_SESSION_KEY);
         $this->ctx->db->run('UPDATE users SET last_login_at = NOW() WHERE id = ?', [(int) $user['id']]);
         $this->ctx->auth->loginAs($user);
-        // Merkt sich für diese Session, dass die Anmeldung per Code kam — damit
+        // Merkt sich für diese Session, dass die Anmeldung per Code kam, damit
         // in /passwort-aendern ein neues Passwort ohne Kenntnis des alten
         // (eben vergessenen) gesetzt werden kann.
         $this->ctx->session->set(self::CODE_LOGIN_FLAG, true);
@@ -405,7 +405,7 @@ final class AuthController extends Controller
         $confirm = (string) ($_POST['password_confirm'] ?? '');
 
         $forced = (int) $user['must_change_password'] === 1;
-        // Wer per Code angemeldet ist, hat sein Passwort per Definition vergessen —
+        // Wer per Code angemeldet ist, hat sein Passwort per Definition vergessen , 
         // das alte Passwort abzufragen wäre hier sinnlos.
         $skipCurrent = $forced || $this->ctx->session->get(self::CODE_LOGIN_FLAG) === true;
         if (!$skipCurrent && ($user['password'] === null || !password_verify($current, (string) $user['password']))) {

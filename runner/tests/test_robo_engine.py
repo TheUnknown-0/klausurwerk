@@ -155,6 +155,67 @@ class LibraryApi(unittest.TestCase):
         self.assertIn("Endlosschleife", str(ctx.exception))
 
 
+class GuiFilterTests(unittest.TestCase):
+    """modules/_guifilter.py: GUI-Zeilen aus stdout ziehen (läuft auch ohne Linux)."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, RUNNER)
+        from kwrunner.modules import _guifilter
+        cls.mod = _guifilter
+
+    def view_for(self, pieces):
+        view = self.mod.GuiView()
+        chunks = []
+        for piece in pieces:
+            chunks.append({"stream": "stdout", "text": piece})
+            view.update(chunks)
+        return view
+
+    @staticmethod
+    def text_of(output):
+        return "".join(o["text"] for o in output)
+
+    def test_frames_und_text_getrennt(self):
+        p = self.mod.GUI_PREFIX
+        view = self.view_for(["Hallo\n", p + '{"ops":[{"op":"fenster"}]}\n', "Welt\n"])
+        output, frames, total = view.slice(0)
+        self.assertEqual("Hallo\nWelt\n", self.text_of(output))
+        self.assertEqual([{"ops": [{"op": "fenster"}]}], frames)
+        self.assertEqual(3, total)
+
+    def test_stuecke_beliebig_geteilt_und_mitten_in_der_zeile(self):
+        p = self.mod.GUI_PREFIX
+        whole = "Eingabe: " + p + '{"ops":[]}\n' + "danach\n"
+        view = self.view_for(list(whole))
+        output, frames, _ = view.slice(0)
+        self.assertEqual("Eingabe: danach\n", self.text_of(output))
+        self.assertEqual([{"ops": []}], frames)
+
+    def test_offset_ist_stabil(self):
+        p = self.mod.GUI_PREFIX
+        view = self.view_for([p + '{"a":1}\n', "x\n", p + '{"b":2}\n'])
+        _, frames_all, total = view.slice(0)
+        self.assertEqual([{"a": 1}, {"b": 2}], frames_all)
+        _, frames_rest, _ = view.slice(2)
+        self.assertEqual([{"b": 2}], frames_rest)
+        self.assertEqual(frames_all, view.slice(0)[1])
+
+    def test_kaputte_json_zeile_und_fremdes_zeichen(self):
+        p = self.mod.GUI_PREFIX
+        view = self.view_for(["\x01andere\n", p + "{kaputt\n", p + "[1]\n", p + '{"ok":1}\n'])
+        output, frames, _ = view.slice(0)
+        self.assertEqual("\x01andere\n", self.text_of(output))
+        self.assertEqual([{"ok": 1}], frames)
+
+    def test_ende_gibt_rest_aus(self):
+        view = self.view_for(["Text \x01KW"])
+        view.close([{"stream": "system", "text": "Ende\n"}])
+        output, _, _ = view.slice(0)
+        self.assertEqual("Text \x01KWEnde\n", self.text_of(output))
+
+
+
 @unittest.skipUnless(sys.platform.startswith("linux"), "Runner-Modul braucht Linux (fcntl)")
 class RunnerModule(unittest.TestCase):
     @classmethod
@@ -174,6 +235,10 @@ class RunnerModule(unittest.TestCase):
         self.assertIsNone(error)
         self.assertEqual((2, 0, "S"), (world.x, world.y, world.dir))
         self.assertEqual(["v", "v", "r"], clean)
+        # Protokollzeile mitten in einer Zeile (print("Eingabe: ") ohne Zeilenende davor)
+        trace, rest = self.module.parse_stdout("Eingabe: " + prefix + "v\nweiter\n")
+        self.assertEqual(["v"], trace)
+        self.assertEqual("Eingabe: weiter\n", rest)
 
     def test_gefaelschtes_protokoll_wird_nachgerechnet(self):
         eng = robo

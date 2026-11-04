@@ -8,12 +8,12 @@ use App\Core\Database;
 
 /**
  * Einmalcodes für die passwortlose Anmeldung per E-Mail (deckt auch
- * "Passwort vergessen" ab — wer den Code kennt, kommt ohne altes Passwort
+ * "Passwort vergessen" ab, wer den Code kennt, kommt ohne altes Passwort
  * wieder rein).
  *
  * Rate-Limiting läuft NICHT hier, sondern über den bestehenden
  * LoginThrottle (Aufrufer zählt sowohl Anfragen als auch Fehlversuche als
- * "Fehlschlag" — das ist bewusst dieselbe Bremse wie beim Passwort-Login).
+ * "Fehlschlag", das ist bewusst dieselbe Bremse wie beim Passwort-Login).
  * Diese Klasse kümmert sich nur um Erzeugen/Prüfen des Codes selbst:
  * 6-stellig, 10 Minuten gültig, einmal verwendbar, max. 5 Rateversuche.
  */
@@ -23,7 +23,7 @@ final class LoginCodeService
     private const TTL_MINUTES = 10;
     private const MAX_ATTEMPTS = 5;
 
-    /** Mindestabstand zwischen zwei Codes desselben Kontos — verhindert Mail-Spam per Mehrfachklick. */
+    /** Mindestabstand zwischen zwei Codes desselben Kontos, verhindert Mail-Spam per Mehrfachklick. */
     private const RESEND_COOLDOWN_SECONDS = 60;
 
     public function __construct(private readonly Database $db)
@@ -32,7 +32,7 @@ final class LoginCodeService
 
     /**
      * True, wenn seit dem letzten für dieses Konto erzeugten Code noch keine
-     * 60 Sekunden vergangen sind — der Aufrufer soll dann KEINEN neuen Code
+     * 60 Sekunden vergangen sind, der Aufrufer soll dann KEINEN neuen Code
      * verschicken (der vorherige bleibt gültig), aber nach außen dieselbe
      * Meldung zeigen wie bei einem echten Versand, um nichts über die
      * Existenz des Kontos zu verraten.
@@ -47,7 +47,7 @@ final class LoginCodeService
 
     /**
      * Erzeugt einen neuen Code und macht vorherige, noch nicht verwendete
-     * Codes desselben Kontos ungültig — es soll immer nur einer gelten.
+     * Codes desselben Kontos ungültig, es soll immer nur einer gelten.
      *
      * @return string Der Klartext-Code (nur zum sofortigen Versand, wird nicht gespeichert).
      */
@@ -73,7 +73,7 @@ final class LoginCodeService
     /**
      * Prüft den eingegebenen Code gegen den aktuell gültigen des Kontos.
      * Bei falscher Eingabe wird der Rateversuchs-Zähler der Code-Zeile erhöht
-     * (unabhängig vom äußeren LoginThrottle) — nach MAX_ATTEMPTS gilt der
+     * (unabhängig vom äußeren LoginThrottle), nach MAX_ATTEMPTS gilt der
      * Code als verbraucht, ganz ohne dass der Code selbst erraten wurde.
      */
     public function verify(int $userId, string $code): bool

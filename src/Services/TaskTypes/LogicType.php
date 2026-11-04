@@ -111,6 +111,10 @@ final class LogicType extends DiagramTaskType
         $outputs = array_values($config['outputs'] ?? []);
         $result = [];
         $circuit = null;
+        $hasCircuit = isset($solution['circuit']) && is_array($solution['circuit']) && ($solution['circuit']['components'] ?? []) !== [];
+        if (!$hasCircuit && (!is_array($solution['truth_table'] ?? null) || $solution['truth_table'] === [])) {
+            return []; // keine Musterlösung: nur manuelle Bewertung
+        }
         if (isset($solution['circuit']) && is_array($solution['circuit']) && ($solution['circuit']['components'] ?? []) !== []) {
             $circuit = self::normalizeCircuit($solution['circuit'], $config);
             $result['circuit'] = $circuit;

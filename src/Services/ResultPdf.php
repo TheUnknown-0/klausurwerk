@@ -226,7 +226,7 @@ final class ResultPdf extends \FPDF
             return;
         }
 
-        if (is_string($task['preview_png']) && $task['preview_png'] !== '' && $this->image($task['preview_png'])) {
+        if (is_string($task['preview_png']) && $task['preview_png'] !== '' && $this->embedPreview($task['preview_png'])) {
             return;
         }
 
@@ -347,7 +347,7 @@ final class ResultPdf extends \FPDF
     }
 
     /** Fügt ein Bild (Data-URL, PNG/JPEG) ein; false, wenn es nicht darstellbar ist. */
-    private function image(string $dataUrl): bool
+    private function embedPreview(string $dataUrl): bool
     {
         if (preg_match('#^data:image/(png|jpeg);base64,([A-Za-z0-9+/=\s]+)$#', $dataUrl, $m) !== 1) {
             return false;

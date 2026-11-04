@@ -109,7 +109,7 @@ final class StudentExamController extends Controller
             'title' => (string) $exam['title'],
             'boot' => $boot,
             'bundles' => ['exam.js'],
-            'pageStyles' => ['exam.css', 'code.css', 'diagrams.css'],
+            'pageStyles' => ['exam.css', 'code.css', 'diagrams.css', 'robo.css'],
         ], 'exam');
     }
 
@@ -585,6 +585,45 @@ final class StudentExamController extends Controller
     }
 
     /** POST /api/klausur/{id}/datei (Zeichenaufgaben mit Upload) */
+    /** Höchstgröße der PNG-Vorschau einer Zeichenaufgabe (Data-URL). */
+    private const MAX_PREVIEW_BYTES = 2 * 1024 * 1024;
+
+    /**
+     * POST /api/klausur/{id}/vorschaubild: PNG-Vorschau einer Zeichenaufgabe
+     * (Diagramme) für Korrektur und PDF. Getrennt vom Autosave, damit große
+     * Bilder die Speicherpakete nicht aufblähen. Nur zu einer bereits
+     * gespeicherten Antwort und nur, solange gearbeitet werden darf.
+     */
+    public function previewImage(array $params): array
+    {
+        $user = $this->requireStudent();
+        $this->requireCsrf();
+        [$exam, $p] = $this->participantContext($params, $user, true);
+        $this->ctx->session->release();
+
+        if ((string) $p['state'] !== 'active' || !in_array((string) $exam['status'], ['running', 'paused'], true)) {
+            return $this->jsonError(AnswerStore::restrictedMessage((string) $p['state']), 409);
+        }
+        $input = $this->jsonInput();
+        $taskId = (int) ($input['task_id'] ?? 0);
+        $png = (string) ($input['png'] ?? '');
+        if (!str_starts_with($png, 'data:image/png;base64,') || strlen($png) > self::MAX_PREVIEW_BYTES) {
+            return $this->jsonError('Ungültiges oder zu großes Vorschaubild.', 422);
+        }
+        $raw = base64_decode(substr($png, 22), true);
+        if ($raw === false || !str_starts_with($raw, "\x89PNG\r\n\x1a\n")) {
+            return $this->jsonError('Ungültiges Vorschaubild.', 422);
+        }
+        $updated = $this->ctx->db->run(
+            'UPDATE answers a JOIN tasks t ON t.id = a.task_id
+             SET a.preview_png = ?
+             WHERE a.participation_id = ? AND a.task_id = ? AND t.exam_id = ?',
+            [$png, (int) $p['id'], $taskId, (int) $exam['id']],
+        )->rowCount();
+
+        return ['success' => true, 'stored' => $updated > 0];
+    }
+
     public function upload(array $params): array
     {
         $user = $this->requireStudent();

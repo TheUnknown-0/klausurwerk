@@ -118,7 +118,7 @@ final class Uploads
     }
 
     /**
-     * Absoluter Pfad zu einer gespeicherten Datei — mit Schutz gegen
+     * Absoluter Pfad zu einer gespeicherten Datei, mit Schutz gegen
      * Path-Traversal (nur einfacher Dateiname erlaubt).
      */
     public function path(string $subdir, string $filename): string

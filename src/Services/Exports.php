@@ -53,7 +53,7 @@ final class Exports
     public static function xlsx(array $header, array $rows, string $filename): never
     {
         if (!class_exists(ZipArchive::class)) {
-            // Ohne ZipArchive kein XLSX — dann liefern wir CSV statt eines Fehlers.
+            // Ohne ZipArchive kein XLSX, dann liefern wir CSV statt eines Fehlers.
             self::csv($header, $rows, self::withoutXlsxSuffix($filename) . '.csv');
         }
 

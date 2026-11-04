@@ -23,7 +23,7 @@ class GuiView:
     def __init__(self):
         self.items: list[dict] = []
         self.consumed = 0          # Anzahl bereits verarbeiteter Chunks des Prozesses
-        self.mode = "start"        # start | plain | gui | skip
+        self.mode = "start"        # start (normaler Text) | head (Präfix wird erkannt) | gui | skip
         self.head = ""             # möglicher Zeilenanfang, der noch kein Präfix bestätigt
         self.buf = ""              # Inhalt einer GUI-Zeile bis zum Zeilenende
         self.frames = 0
@@ -44,7 +44,7 @@ class GuiView:
         if self.closed:
             return
         self.closed = True
-        if self.mode == "start" and self.head:
+        if self.mode == "head" and self.head:
             self.items.append({"stream": "stdout", "text": self.head})
         self.head = ""
         for chunk in extra or []:
@@ -56,25 +56,28 @@ class GuiView:
         n = len(text)
         while i < n:
             if self.mode == "start":
-                self.head += text[i]
-                i += 1
-                if GUI_PREFIX.startswith(self.head):
-                    if len(self.head) == len(GUI_PREFIX):
-                        self.mode = "gui"
-                        self.head = ""
-                        self.buf = ""
-                    continue
-                plain.append(self.head)
-                self.mode = "start" if self.head.endswith("\n") else "plain"
-                self.head = ""
-            elif self.mode == "plain":
-                j = text.find("\n", i)
+                # Das Präfix darf mitten in einer Zeile stehen (print("Eingabe: ") ohne Zeilenende).
+                j = text.find(GUI_PREFIX[0], i)
                 if j < 0:
                     plain.append(text[i:])
                     i = n
                 else:
-                    plain.append(text[i:j + 1])
+                    plain.append(text[i:j])
+                    self.head = GUI_PREFIX[0]
                     i = j + 1
+                    self.mode = "head"
+            elif self.mode == "head":
+                candidate = self.head + text[i]
+                if GUI_PREFIX.startswith(candidate):
+                    self.head = candidate
+                    i += 1
+                    if len(candidate) == len(GUI_PREFIX):
+                        self.mode = "gui"
+                        self.head = ""
+                        self.buf = ""
+                else:
+                    plain.append(self.head)  # doch kein Präfix; das aktuelle Zeichen wird neu betrachtet
+                    self.head = ""
                     self.mode = "start"
             else:  # gui oder skip (zu lange Zeile)
                 j = text.find("\n", i)

@@ -131,7 +131,7 @@ final class Auth
         }
 
         // Nur Lehrkräfte tragen granulare Rechte. Wer die Rolle wechselt,
-        // verliert sie damit sofort — Zuweisungen, die beim Rollenwechsel in
+        // verliert sie damit sofort, Zuweisungen, die beim Rollenwechsel in
         // der Datenbank zurückblieben, wirken nicht mehr.
         if (!Permissions::allowsGranular((string) $user['role'])) {
             return $this->permissions = [];

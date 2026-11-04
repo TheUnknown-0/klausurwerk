@@ -15,14 +15,14 @@ use App\Services\Uploads;
  */
 final class FileController extends Controller
 {
-    /** GET /medien/logos/{file} — Schullogo. */
+    /** GET /medien/logos/{file}, Schullogo. */
     public function logo(array $params): string
     {
         $uploads = new Uploads($this->ctx->config['uploads']['dir']);
         $uploads->stream('logos', $params['file']);
     }
 
-    /** GET /medien/branding/{file} — Login-Hintergrundbild. */
+    /** GET /medien/branding/{file}, Login-Hintergrundbild. */
     public function branding(array $params): string
     {
         $uploads = new Uploads($this->ctx->config['uploads']['dir']);

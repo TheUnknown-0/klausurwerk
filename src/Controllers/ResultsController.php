@@ -65,7 +65,7 @@ final class ResultsController extends Controller
             'boot' => [
                 'exam_id' => $examId,
                 'status' => $status,
-                'person_api' => (string) ($this->ctx->config['app']['base_url'] ?? '') . '/api/ergebnisse/' . $examId . '/person/',
+                'person_api' => '/api/ergebnisse/' . $examId . '/person/',
             ],
             'bundles' => ['grading.js'],
             'pageStyles' => ['grading.css'],

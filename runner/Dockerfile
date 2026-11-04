@@ -25,6 +25,10 @@ COPY --from=jdk25 /opt/java/openjdk /opt/jdk25
 
 COPY kwrunner /opt/runner/kwrunner
 COPY libs /opt/runner/libs
+# Bibliotheken (Robo, kw.gui) vorübersetzen: spart bei jedem Lauf rund eine
+# Sekunde. --release 21 läuft auf beiden JDKs; javac nimmt bei Quelle und
+# Klasse im Klassenpfad die neuere Datei, also die vorübersetzte Klasse.
+RUN find /opt/runner/libs/java -name '*.java' > /tmp/libs.txt     && if [ -s /tmp/libs.txt ]; then /opt/jdk21/bin/javac --release 21 -encoding UTF-8 -nowarn -d /opt/runner/libs/java @/tmp/libs.txt; fi     && rm -f /tmp/libs.txt     && find /opt/runner/libs -name '__pycache__' -prune -exec rm -rf {} +
 
 ENV RUNNER_LIBS_DIR=/opt/runner/libs \
     RUNNER_WORK_DIR=/work \

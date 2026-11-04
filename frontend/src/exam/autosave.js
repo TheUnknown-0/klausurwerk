@@ -189,7 +189,14 @@ export class Autosave {
                 this.attempt = 0;
                 this.onVersions(res.data?.versions ?? {});
                 this.persistSoon();
-                this.setStatus({ kind: 'saved' });
+                const invalid = Object.values(res.data?.invalid ?? {});
+                if (invalid.length > 0) {
+                    // Nur einzelne Antworten wurden zurückgewiesen; der Rest ist gespeichert.
+                    this.setStatus({ kind: 'error' });
+                    this.onMessage(`Eine Antwort konnte nicht gespeichert werden (${invalid[0]}). Sie bleibt auf diesem Gerät gesichert; ändere sie bitte noch einmal.`, 'error');
+                } else {
+                    this.setStatus({ kind: 'saved' });
+                }
                 continue;
             }
             if (res.status === 409) {

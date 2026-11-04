@@ -136,7 +136,7 @@
                 note.setAttribute('role', 'presentation');
                 note.textContent = matches.length === 0
                     ? 'Keine Treffer.'
-                    : (matches.length - MAX_RESULTS) + ' weitere Treffer — Suche verfeinern.';
+                    : (matches.length - MAX_RESULTS) + ' weitere Treffer, Suche verfeinern.';
                 list.appendChild(note);
             }
             list.hidden = false;

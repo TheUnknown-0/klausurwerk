@@ -102,7 +102,7 @@ final class StudentResultsController extends Controller
                 'show_expectation' => $expectations !== [],
             ],
             'bundles' => ['grading.js'],
-            'pageStyles' => ['grading.css', 'exam.css', 'code.css'],
+            'pageStyles' => ['grading.css', 'exam.css', 'code.css', 'diagrams.css', 'robo.css'],
         ]);
     }
 

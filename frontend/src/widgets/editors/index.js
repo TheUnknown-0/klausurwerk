@@ -9,3 +9,4 @@ import './ordering.js';
 import './gaps.js';
 import './code.js';
 import './diagrams/index.js';
+import './robo.js';

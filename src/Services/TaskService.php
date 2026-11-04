@@ -321,6 +321,16 @@ final class TaskService
                         throw new TaskValidationException($e->getMessage(), 'tests');
                     }
                 }
+            } elseif ($answerType === 'robo') {
+                // Testwelten der Gitterwelt (Korrektur im Runner); Altbestand in solution.tests übernehmen.
+                if (array_key_exists('tests', $input) || $typeChanged) {
+                    $rawTests = $input['tests'] ?? ($solution['tests'] ?? []);
+                    try {
+                        $tests = TaskTypes\RoboType::normalizeTests($rawTests);
+                    } catch (\InvalidArgumentException $e) {
+                        throw new TaskValidationException($e->getMessage(), 'tests');
+                    }
+                }
             } else {
                 $tests = [];
             }
@@ -673,6 +683,9 @@ final class TaskService
                 if ($task['tests'] === [] && $task['model_answer'] === '') {
                     $warnings[] = $label . ': Weder Tests noch Musterlösung hinterlegt.';
                 }
+            }
+            if ($task['answer_type'] === 'robo' && $task['tests'] === []) {
+                $warnings[] = $label . ': Keine Testwelten hinterlegt; die Aufgabe kann nicht automatisch vorbewertet werden.';
             }
             $type = TaskTypeRegistry::get((string) $task['answer_type']);
             if ($type === null) {

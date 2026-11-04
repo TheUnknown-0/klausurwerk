@@ -4,7 +4,7 @@
  * Ein GET-Formular mit data-live="key" lädt beim Tippen (entprellt) bzw. bei
  * Änderung eines Selects die Seite per fetch neu und tauscht nur den Bereich
  * [data-live-target="key"] aus. Serverlogik, Rechte und Pagination bleiben
- * unverändert — ohne JavaScript arbeitet das Formular ganz normal.
+ * unverändert, ohne JavaScript arbeitet das Formular ganz normal.
  *
  * Seitenlinks innerhalb des Zielbereichs (z. B. ?seite=2) werden ebenfalls
  * per fetch geladen; die URL wird per History-API nachgeführt, damit Reload,

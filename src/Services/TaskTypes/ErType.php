@@ -48,7 +48,7 @@ final class ErType extends DiagramTaskType
     {
         $diagram = self::normalizeDiagram($solution);
         if ($diagram['entities'] === []) {
-            throw new \InvalidArgumentException('Die Musterlösung braucht mindestens eine Entität.');
+            return $this->defaultSolution(); // ohne Musterlösung nur manuelle Bewertung
         }
         foreach ($diagram['entities'] as $e) {
             if ($e['name'] === '') {

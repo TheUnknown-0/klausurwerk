@@ -25,7 +25,7 @@ final class ExamPreviewController extends Controller
             'title' => 'Vorschau: ' . (string) $exam['title'],
             'boot' => $boot,
             'bundles' => ['exam.js'],
-            'pageStyles' => ['exam.css', 'code.css', 'diagrams.css'],
+            'pageStyles' => ['exam.css', 'code.css', 'diagrams.css', 'robo.css'],
         ], 'exam');
     }
 }

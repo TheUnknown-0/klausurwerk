@@ -153,8 +153,8 @@ final class AdminPagesSmokeTest extends DatabaseTestCase
     {
         $teacher = $this->createUser('teacher');
         $other = $this->createUser('teacher');
-        $mine = $this->createCourse('10a', 10, (int) $teacher['id']);
-        $theirs = $this->createCourse('10b', 10, (int) $other['id']);
+        $mine = $this->createCourse('Kurs-Eigen-Q', 10, (int) $teacher['id']);
+        $theirs = $this->createCourse('Kurs-Fremd-Z', 10, (int) $other['id']);
         $own = $this->createUser('student', ['lastname' => 'Eigener']);
         $foreign = $this->createUser('student', ['lastname' => 'Fremder']);
         $this->addMember((int) $mine['id'], (int) $own['id']);
@@ -167,8 +167,8 @@ final class AdminPagesSmokeTest extends DatabaseTestCase
         self::assertStringNotContainsString($other['username'], $users, 'Lehrkräfte sehen keine Lehrkräfte-Konten');
 
         $courses = $this->page($id, CoursesController::class, 'index');
-        self::assertStringContainsString('10a', $courses);
-        self::assertStringNotContainsString('10b', $courses);
+        self::assertStringContainsString('Kurs-Eigen-Q', $courses);
+        self::assertStringNotContainsString('Kurs-Fremd-Z', $courses);
 
         $this->assertHtml($this->page($id, UsersController::class, 'edit', ['id' => $own['id']]), 'Eigener');
         $this->assertHtml($this->page($id, DashboardController::class, 'index'), 'Meine Kurse');

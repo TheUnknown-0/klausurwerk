@@ -6,7 +6,7 @@ $skipCurrent = $forced || $viaCode;
 <?php if ($forced): ?>
     <div class="alert alert-warning">Bitte lege zunächst ein neues Passwort fest, bevor du weiterarbeitest.</div>
 <?php elseif ($viaCode): ?>
-    <div class="alert alert-info">Du bist per Code angemeldet — du kannst hier ein neues Passwort festlegen, ohne das alte zu kennen.</div>
+    <div class="alert alert-info">Du bist per Code angemeldet, du kannst hier ein neues Passwort festlegen, ohne das alte zu kennen.</div>
 <?php endif; ?>
 
 <form method="post" action="">

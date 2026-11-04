@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
  * Läuft gegen eine EIGENE Datenbank (Standard: klausurwerk_test), niemals
  * gegen die Entwicklungsdaten. Das Schema wird einmal pro Testlauf aus
  * migrations/ aufgebaut; jeder einzelne Test läuft in einer Transaktion, die
- * am Ende zurückgerollt wird — Tests sehen sich also gegenseitig nicht.
+ * am Ende zurückgerollt wird, Tests sehen sich also gegenseitig nicht.
  */
 abstract class DatabaseTestCase extends TestCase
 {

@@ -11,13 +11,13 @@ use App\Core\Database;
  *
  * Konto und IP werden GETRENNT gezählt, nicht über ODER zusammengeworfen:
  * Eine Schule sitzt hinter einer einzigen öffentlichen IP. Eine gemeinsame
- * Grenze von zehn Fehlversuchen würde am Morgen des Aktionstags — wenn sich hunderte
- * Schüler:innen anmelden und sich einige vertippen — den Login für ALLE
+ * Grenze von zehn Fehlversuchen würde am Morgen des Aktionstags, wenn sich hunderte
+ * Schüler:innen anmelden und sich einige vertippen, den Login für ALLE
  * sperren. Deshalb:
  *
- *   - je Benutzername eng  (10 Fehlversuche / 5 Minuten) — gegen gezieltes
+ *   - je Benutzername eng  (10 Fehlversuche / 5 Minuten), gegen gezieltes
  *     Durchprobieren eines Kontos;
- *   - je IP-Adresse weit   (60 Fehlversuche / 5 Minuten) — fängt automatisierte
+ *   - je IP-Adresse weit   (60 Fehlversuche / 5 Minuten), fängt automatisierte
  *     Angriffe ab, liegt aber weit über dem, was eine ganze Schule im
  *     Normalbetrieb erzeugt.
  */
@@ -26,7 +26,7 @@ final class LoginThrottle
     /** Fehlversuche je Benutzername im Zeitfenster. */
     private const MAX_PER_USER = 10;
 
-    /** Fehlversuche je IP im Zeitfenster — bewusst hoch wegen NAT. */
+    /** Fehlversuche je IP im Zeitfenster, bewusst hoch wegen NAT. */
     private const MAX_PER_IP = 60;
 
     private const WINDOW_MINUTES = 5;
@@ -55,7 +55,7 @@ final class LoginThrottle
     }
 
     /**
-     * Räumt nach erfolgreichem Login die Fehlversuche des Kontos ab —
+     * Räumt nach erfolgreichem Login die Fehlversuche des Kontos ab , 
      * bewusst NUR die des Kontos: Würde hier auch die IP geleert, könnte ein
      * beliebiges gültiges Konto den Schutz für alle anderen Konten derselben
      * IP aufheben.

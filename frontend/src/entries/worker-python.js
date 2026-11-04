@@ -17,6 +17,7 @@
  */
 import { PY_RUNNER } from '../runtime/python-runner.js';
 import { TURTLE_PY } from '../runtime/turtle-source.js';
+import { ROBO_PY } from '../robo/python-source.js';
 
 const WAITING = 1;
 const READY = 2;
@@ -128,6 +129,8 @@ async function init(msg) {
     pyodide.registerJsModule('_kw', bridge);
     pyodide.FS.mkdirTree('/kwlib');
     pyodide.FS.writeFile('/kwlib/turtle.py', TURTLE_PY);
+    // Stufe 4: Bibliothek 'robo' (Gitterwelt). Meldet Zuege ueber _kw.turtle als {robo: code}.
+    pyodide.FS.writeFile('/kwlib/robo.py', ROBO_PY);
     const scope = pyodide.globals.get('dict')();
     pyodide.runPython(PY_RUNNER, { globals: scope });
     runner = {

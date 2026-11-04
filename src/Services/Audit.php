@@ -65,14 +65,14 @@ final class Audit
      * Vertrauenswürdige Proxys.
      *
      * Der Standard umfasst NUR die Loopback-Adresse. Früher galten die ganzen
-     * privaten Bereiche (10/8, 172.16/12, 192.168/16) als vertrauenswürdig —
+     * privaten Bereiche (10/8, 172.16/12, 192.168/16) als vertrauenswürdig , 
      * in einem Schulnetz ist damit jeder Rechner ein „Proxy“ und kann per
      * X-Forwarded-For eine beliebige Absenderadresse behaupten. Damit ließen
      * sich sämtliche IP-Grenzen (Login) umgehen und
      * die Einträge im Audit-Log fälschen.
      *
      * Wer hinter einem echten Reverse-Proxy betreibt, trägt dessen Adresse
-     * in TRUSTED_PROXIES ein — und nur diese.
+     * in TRUSTED_PROXIES ein, und nur diese.
      */
     private static function isTrustedProxy(string $ip): bool
     {

@@ -16,3 +16,5 @@ tests/e2e/playwright-report/
 .tmp-build/
 tests/e2e/shots/
 tests/e2e/__pycache__/
+__pycache__/
+*.pyc

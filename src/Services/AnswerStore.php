@@ -120,6 +120,7 @@ final class AnswerStore
             }
 
             $versions = [];
+            $invalid = [];    // task_id => Meldung (nur diese Aufgabe nicht gespeichert)
             $answeredDelta = 0;
             $flaggedDelta = 0;
             $contentSaved = false;
@@ -146,14 +147,24 @@ final class AnswerStore
                 }
 
                 $type = $task['type'];
+                // Eine ungültige Antwort darf die übrigen Aufgaben dieses Pakets nicht
+                // mitreißen: nur sie wird zurückgewiesen, alles andere gespeichert.
                 try {
                     $normalized = $type->normalizeContent($entry['content'], $task['config']);
                 } catch (\InvalidArgumentException $e) {
-                    throw new HttpException(422, 'Antwort zu Aufgabe ' . $taskId . ' ist ungültig: ' . $e->getMessage());
+                    $invalid[$taskId] = 'Antwort ist ungültig: ' . $e->getMessage();
+                    if ($existing !== null) {
+                        $versions[$taskId] = (int) $existing['version'];
+                    }
+                    continue;
                 }
                 $json = json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 if ($json === false || strlen($json) > TaskTypes\BaseTaskType::MAX_CONTENT_BYTES) {
-                    throw new HttpException(422, 'Die Antwort zu Aufgabe ' . $taskId . ' ist zu groß.');
+                    $invalid[$taskId] = 'Die Antwort ist zu groß.';
+                    if ($existing !== null) {
+                        $versions[$taskId] = (int) $existing['version'];
+                    }
+                    continue;
                 }
                 $flagged = $entry['flagged'] ? 1 : 0;
                 $nowAnswered = $type->isAnswered($normalized);
@@ -205,6 +216,7 @@ final class AnswerStore
                 'ack_seq' => $maxSeq,
                 'versions' => $versions,
                 'rejected' => $rejected,
+                'invalid' => (object) $invalid,
                 'saved_items' => $saved,
                 'server_time_ms' => $nowMs,
             ];

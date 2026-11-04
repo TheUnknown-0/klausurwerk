@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-/** Ausnahme mit HTTP-Statuscode — wird vom Front-Controller in eine Fehlerseite bzw. JSON-Antwort übersetzt. */
+/** Ausnahme mit HTTP-Statuscode, wird vom Front-Controller in eine Fehlerseite bzw. JSON-Antwort übersetzt. */
 final class HttpException extends \RuntimeException
 {
     public function __construct(

@@ -55,6 +55,14 @@ final class ResultReport
                 'preview' => $withPreview ? ($row['preview_png'] ?? null) : null,
             ];
         }
+        // Für die Textdarstellung der Antwort (PDF) wird die Konfiguration der Aufgabe gebraucht, nicht die gemischte Schüler-Fassung.
+        $configs = [];
+        if ($withPreview) {
+            foreach ($this->db->fetchAll('SELECT id, config FROM tasks WHERE exam_id = ?', [$examId]) as $row) {
+                $decoded = json_decode((string) $row['config'], true);
+                $configs[(int) $row['id']] = is_array($decoded) ? $decoded : [];
+            }
+        }
         $entries = $this->grading->entriesByCell($examId, null, $pid)[$pid] ?? [];
         $comments = [];
         foreach ($this->db->fetchAll(
@@ -73,7 +81,7 @@ final class ResultReport
         }
 
         $tasks = [];
-        $this->walk($tree, 0, $tasks, $entries, $answers, $comments, $ownerId, $forStudent);
+        $this->walk($tree, 0, $tasks, $entries, $answers, $comments, $ownerId, $forStudent, $configs);
 
         $totals = $this->grading->computeTotals($exam, [$pid])[$pid];
         $saved = $this->db->fetchOne('SELECT general_comment, finalized_at FROM participation_results WHERE participation_id = ?', [$pid]) ?? [];
@@ -128,8 +136,9 @@ final class ResultReport
      * @param array<int, list<array<string, mixed>>> $entries
      * @param array<int, array<string, mixed>> $answers
      * @param array<int, list<array<string, mixed>>> $comments
+     * @param array<int, array<string, mixed>> $configs Konfiguration je Aufgabe (nur für PDF)
      */
-    private function walk(array $nodes, int $depth, array &$out, array $entries, array $answers, array $comments, ?int $ownerId, bool $forStudent): void
+    private function walk(array $nodes, int $depth, array &$out, array $entries, array $answers, array $comments, ?int $ownerId, bool $forStudent, array $configs): void
     {
         foreach ($nodes as $node) {
             $id = (int) $node['id'];
@@ -151,10 +160,9 @@ final class ResultReport
                     $node['overtime'] = $answer['overtime'];
                     $node['preview_png'] = $answer['preview'];
                     $type = TaskTypeRegistry::get((string) $node['answer_type']);
-                    if ($type !== null && $answer['content'] !== []) {
+                    if ($type !== null && $answer['content'] !== [] && isset($configs[$id])) {
                         try {
-                            $config = is_array($node['config']) ? $node['config'] : (array) $node['config'];
-                            $node['answer_text'] = $type->toText($answer['content'], $config);
+                            $node['answer_text'] = $type->toText($answer['content'], $configs[$id]);
                         } catch (\Throwable) {
                             $node['answer_text'] = '';
                         }
@@ -171,7 +179,7 @@ final class ResultReport
                 }
             }
             $out[] = $node;
-            $this->walk($children, $depth + 1, $out, $entries, $answers, $comments, $ownerId, $forStudent);
+            $this->walk($children, $depth + 1, $out, $entries, $answers, $comments, $ownerId, $forStudent, $configs);
         }
     }
 }

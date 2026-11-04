@@ -46,7 +46,7 @@ final class RelationalType extends DiagramTaskType
     {
         $schema = self::normalizeSchema($solution);
         if ($schema['tables'] === []) {
-            throw new \InvalidArgumentException('Das Musterschema braucht mindestens eine Tabelle.');
+            return $this->defaultSolution(); // ohne Musterschema nur manuelle Bewertung
         }
         foreach ($schema['tables'] as $t) {
             if ($t['name'] === '') {

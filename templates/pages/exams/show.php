@@ -37,6 +37,7 @@ $post = static fn (string $action, string $label, string $class = 'btn', string 
         <?php if ($caps[ExamAccess::CAP_MONITOR]): ?><a class="btn btn-primary" href="<?= e($u('/pult')) ?>">🖥️ Pult öffnen</a><?php endif; ?>
         <?php if ($caps[ExamAccess::CAP_VIEW]): ?><a class="btn" href="<?= e($u('/vorschau')) ?>">👁️ Vorschau</a><?php endif; ?>
         <?php if ($gradingVisible): ?><a class="btn" href="<?= e($u('/korrektur')) ?>">✅ Korrektur</a><?php endif; ?>
+        <?php if ($gradingVisible && in_array($status, ['grading', 'returned', 'archived'], true)): ?><a class="btn" href="<?= e($u('/ergebnisse')) ?>">📊 Ergebnisse</a><?php endif; ?>
     </div>
 </div>
 

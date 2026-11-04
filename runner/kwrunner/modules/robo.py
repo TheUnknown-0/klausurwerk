@@ -145,16 +145,24 @@ def check_goal(world, goal: dict) -> list[dict]:
 # --- Nachrechnen -----------------------------------------------------------------
 
 def parse_stdout(text: str) -> tuple[list[str], str]:
-    """Trennt die Protokollzeilen vom übrigen Programmtext."""
+    """Trennt die Protokollzeilen vom übrigen Programmtext (das Präfix darf mitten in einer Zeile stehen)."""
     trace: list[str] = []
     rest: list[str] = []
-    for line in text.split("\n"):
-        if line.startswith(TRACE_PREFIX):
-            if len(trace) < MAX_TRACE:
-                trace.append(line[len(TRACE_PREFIX):].rstrip("\r"))
-        else:
-            rest.append(line)
-    return trace, "\n".join(rest)
+    i = 0
+    while True:
+        j = text.find(TRACE_PREFIX, i)
+        if j < 0:
+            rest.append(text[i:])
+            break
+        rest.append(text[i:j])
+        k = text.find("\n", j)
+        line = text[j + len(TRACE_PREFIX):(k if k >= 0 else len(text))]
+        if len(trace) < MAX_TRACE:
+            trace.append(line.rstrip("\r"))
+        if k < 0:
+            break
+        i = k + 1
+    return trace, "".join(rest)
 
 
 def replay(eng, world_raw: dict, trace: list[str]):

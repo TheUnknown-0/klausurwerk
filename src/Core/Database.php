@@ -25,7 +25,7 @@ final class Database
     }
 
     /**
-     * Instanz um eine bereits geöffnete Verbindung — für Tests, die ihre
+     * Instanz um eine bereits geöffnete Verbindung, für Tests, die ihre
      * eigene Transaktion auf derselben Verbindung führen müssen.
      */
     public static function fromPdo(PDO $pdo): self

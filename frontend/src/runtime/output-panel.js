@@ -6,6 +6,7 @@
 import { h } from '../lib/dom.js';
 import { createConsole } from './console.js';
 import { createTurtleView } from './turtle-view.js';
+import { createGuiView } from '../gui/view.js';
 import { formatCell, shortSql } from './sql-results.js';
 import { visibleWhitespace } from './compare.js';
 
@@ -14,6 +15,7 @@ const TABS = [
     ['tables', 'Ergebnis'],
     ['schema', 'Datenbank'],
     ['turtle', 'Zeichnung'],
+    ['gui', 'Fenster'],
     ['images', 'Bilder'],
     ['problems', 'Probleme'],
     ['tests', 'Beispieltests'],
@@ -36,6 +38,7 @@ export function createOutputPanel(parent, opts = {}) {
     const panes = new Map();
     let active = 'console';
     let turtleView = null;
+    let guiView = null;
     let imageCount = 0;
 
     for (const [key, label] of TABS) {
@@ -181,6 +184,23 @@ export function createOutputPanel(parent, opts = {}) {
             reveal('turtle', false);
         },
 
+        /**
+         * Fensterbereich für Java-GUI-Programme (Bibliothek kw.gui, Stufe 4): Frames aus gui_frames
+         * werden mit view.apply(frames) angezeigt, Ereignisse gehen über opts.onEvent zurück.
+         */
+        gui(guiOpts = {}) {
+            if (!guiView) {
+                guiView = createGuiView(panes.get('gui'), guiOpts);
+            }
+            reveal('gui', true);
+            return guiView;
+        },
+        hasGui: () => guiView !== null,
+        resetGui() {
+            guiView?.reset();
+            reveal('gui', false);
+        },
+
         addImage(dataUrl) {
             imageCount++;
             const pane = panes.get('images');
@@ -256,12 +276,14 @@ export function createOutputPanel(parent, opts = {}) {
             this.setProblems([]);
             this.clearImages();
             this.resetTurtle();
+            this.resetGui();
             show('console');
         },
 
         destroy() {
             consoleApi.destroy();
             turtleView?.destroy();
+            guiView?.destroy();
             root.remove();
         },
     };

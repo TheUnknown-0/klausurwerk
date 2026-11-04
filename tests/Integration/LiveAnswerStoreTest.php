@@ -241,7 +241,7 @@ final class LiveAnswerStoreTest extends DatabaseTestCase
         self::assertSame(200, $r['saved_items']);
     }
 
-    public function testInvalidContentIs422AndRollsBackTheWholePacket(): void
+    public function testInvalidContentRejectsOnlyThatTask(): void
     {
         $store = new AnswerStore($this->db, static fn (string $name): ?TaskType => new class () extends \App\Services\TaskTypes\BaseTaskType {
             public function name(): string { return 'text'; }
@@ -258,18 +258,19 @@ final class LiveAnswerStoreTest extends DatabaseTestCase
         });
         $p = $this->reloadParticipation((int) $this->p['id']);
 
-        try {
-            $store->save($this->exam, $p, [$this->item(1, $this->task1, 'gut'), $this->item(2, $this->task2, 'boese')], [
-                $this->task1 => ['content' => ['text' => 'gut']],
-                $this->task2 => ['content' => ['text' => 'boese']],
-            ], self::T0 + 60_000);
-            self::fail('422 erwartet');
-        } catch (HttpException $e) {
-            self::assertSame(422, $e->status);
-        }
-        // Die Ausnahme verlässt die (hier verschachtelte) Transaktion nicht; im Betrieb rollt sie zurück.
-        // Wichtig ist, dass der Fehler gemeldet wird und last_seq nicht fortgeschrieben wurde.
-        self::assertSame(0, (int) $this->reloadParticipation((int) $this->p['id'])['last_seq']);
+        $r = $store->save($this->exam, $p, [$this->item(1, $this->task1, 'gut'), $this->item(2, $this->task2, 'boese')], [
+            $this->task1 => ['content' => ['text' => 'gut']],
+            $this->task2 => ['content' => ['text' => 'boese']],
+        ], self::T0 + 60_000);
+
+        // Die gültige Antwort ist gespeichert, nur die ungültige wird gemeldet.
+        $invalid = (array) $r['invalid'];
+        self::assertArrayHasKey($this->task2, $invalid);
+        self::assertArrayNotHasKey($this->task1, $invalid);
+        self::assertSame(2, $r['ack_seq']);
+        $saved = $this->db->fetchValue('SELECT content FROM answers WHERE participation_id = ? AND task_id = ?', [(int) $p['id'], $this->task1]);
+        self::assertSame(['text' => 'gut'], json_decode((string) $saved, true));
+        self::assertNull($this->db->fetchValue('SELECT id FROM answers WHERE participation_id = ? AND task_id = ?', [(int) $p['id'], $this->task2]));
     }
 
     public function testUnknownTaskIs422(): void

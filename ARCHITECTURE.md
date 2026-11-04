@@ -181,4 +181,4 @@ Guards/Helfer aus `Controller`: `requireLogin()`, `requirePermission($p)`, `requ
 
 UI durchgehend Deutsch (Du-Form für Schüler:innen, neutral für Lehrkräfte).
 `declare(strict_types=1);` in jeder PHP-Datei, typisierte Signaturen, kurze deutsche Kommentare.
-Keine Gedankenstriche (—) in Texten und Kommentaren; Komma, Doppelpunkt oder Klammern verwenden.
+Keine Gedankenstriche (U+2014) in Texten und Kommentaren; Komma, Doppelpunkt oder Klammern verwenden.

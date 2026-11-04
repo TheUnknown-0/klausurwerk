@@ -7,11 +7,11 @@ namespace App\Services;
 /**
  * Schlanker SMTP-Client ohne externe Abhängigkeit (Projekt hat bewusst
  * keine Composer-Pakete, vgl. lib/fpdf für PDFs). Unterstützt STARTTLS,
- * implizites TLS und AUTH LOGIN — das deckt die üblichen Anbieter
+ * implizites TLS und AUTH LOGIN, das deckt die üblichen Anbieter
  * (Schul-Provider, Gmail, Office 365, o.ä.) ab.
  *
  * Wirft RuntimeException bei jedem Fehler (Verbindung, Auth, Ablehnung durch
- * den Server) — der Aufrufer entscheidet, was mit dem Fehler passiert
+ * den Server), der Aufrufer entscheidet, was mit dem Fehler passiert
  * (z. B. als 'failed' ins email_log schreiben).
  */
 final class Mailer
@@ -178,7 +178,7 @@ final class Mailer
         return implode("\r\n", $lines);
     }
 
-    /** RFC 2047 „encoded word" — nötig, sobald Umlaute im Betreff/Namen stecken. */
+    /** RFC 2047 „encoded word", nötig, sobald Umlaute im Betreff/Namen stecken. */
     private function encodeHeaderWord(string $value): string
     {
         return preg_match('/^[\x20-\x7E]*$/', $value) === 1

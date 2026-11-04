@@ -526,6 +526,7 @@ const CodeWidget = {
             }
             session = s;
             wireSession(s);
+            attachGui();
             s.onExit((result) => {
                 if (session !== s) {
                     return;
@@ -540,10 +541,36 @@ const CodeWidget = {
             }
         }
 
+        // Stufe 4 (Java-GUI, kw.gui): Frames des Laufs im Reiter "Fenster" anzeigen, Klicks und Eingaben
+        // als JSON-Zeilen an die Standardeingabe des Programms schicken. Nur bei config.gui.
+        let guiHandler = null;
+
+        function attachGui() {
+            if (language !== 'java' || !config.gui || !runtime) {
+                return;
+            }
+            const view = panel.gui({ onEvent: (ev) => session?.sendInput(JSON.stringify(ev)) });
+            view.reset();
+            panel.show('gui');
+            guiHandler = (frames) => view.apply(frames);
+            runtime.onGuiFrames = guiHandler;
+        }
+
+        function detachGui() {
+            if (guiHandler && runtime?.onGuiFrames === guiHandler) {
+                runtime.onGuiFrames = null;
+            }
+            guiHandler = null;
+            if (panel.hasGui()) {
+                panel.gui().finish();
+            }
+        }
+
         function finishRun(result, args, syntaxOnly) {
             if (destroyed) {
                 return;
             }
+            detachGui();
             panel.console.setWaiting(false);
             if (panel.hasTurtle()) {
                 if (result.stopped) {
@@ -697,6 +724,7 @@ const CodeWidget = {
                 destroyed = true;
                 cancelTests = true;
                 session?.stop();
+                detachGui();
                 resizeObserver?.disconnect();
                 for (const entry of editors.values()) {
                     entry.editor.destroy();

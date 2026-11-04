@@ -81,7 +81,7 @@ final class GradingController extends Controller
             'statusLabel' => ExamService::STATUS_LABELS[(string) $exam['status']] ?? (string) $exam['status'],
             'boot' => [
                 'exam_id' => $examId,
-                'api_base' => $this->baseUrl() . '/api/korrektur/' . $examId,
+                'api_base' => '/api/korrektur/' . $examId,
                 'status' => (string) $exam['status'],
                 'auto' => $grader->status($examId),
             ],
@@ -151,8 +151,8 @@ final class GradingController extends Controller
             'title' => (string) $exam['title'],
             'status' => $status,
             'read_only' => $status !== 'grading',
-            'api_base' => $this->baseUrl() . '/api/korrektur/' . $examId,
-            'pult_api_base' => $this->baseUrl() . '/api/pult/' . $examId,
+            'api_base' => '/api/korrektur/' . $examId,
+            'pult_api_base' => '/api/pult/' . $examId,
             'viewer_id' => (int) $user['id'],
             'is_owner' => $this->isOwner($examId),
             'sees_others' => $seeOthers,
@@ -180,7 +180,7 @@ final class GradingController extends Controller
             'exam' => $exam,
             'boot' => $boot,
             'bundles' => ['grading.js'],
-            'pageStyles' => ['grading.css', 'exam.css', 'code.css'],
+            'pageStyles' => ['grading.css', 'exam.css', 'code.css', 'diagrams.css', 'robo.css'],
             'wideContent' => true,
         ]);
     }

@@ -295,3 +295,13 @@ Alarm-Ereignisse lösen im Pult Ton und Meldung aus.
   "results": [ { "name": "Addition", "ok": true, "points": 1, "earned": 1, "message": "", "stdout": "…", "stderr": "" } ] }
 ```
 `suggested_points` = Punkte der Aufgabe × ratio (Tests: Summe `earned`, gedeckelt auf Aufgabenpunkte).
+
+## 7. Ergänzungen aus Stufe 3 und 4
+
+- `drawing.texts[].color`; `uml.relations[].route` (`orthogonal` | `straight`), Semantik: `from` = Unterklasse bzw. das Ganze, `to` = Zielklasse.
+- `logic.config.symbols` (`din` | `ansi`), `config.show_table`; Komponenten haben optional `n` (2 bis 4 Eingänge); `solution.circuit` (Musterschaltung, optional).
+- `automaton.config.allow_simulation`, `config.allow_epsilon`; `solution.automaton` (Musterautomat, optional).
+- `er`: `x`/`y` sind Mittelpunkte. Leere Musterlösungen sind bei allen Diagrammtypen erlaubt (dann nur manuelle Bewertung).
+- `robo`: `config.start_code`; `main_file` darf nicht `robo.py`/`Robo.java` heißen (Standard `main.py`); Testwelten in `task_solutions.tests`
+  (Ziel zusätzlich `robo_on_target`, `boxes_on_targets`). Antwort des Runners: `ok`, `trace`, `final_world`, `message`, `goal_results`, `steps`, `stdout`, `stderr`.
+- Vorbewertung (`auto_gradings.details.source`) zusätzlich `empty` (keine Antwort) und `error` (Prüfung fehlgeschlagen, wiederholbar).

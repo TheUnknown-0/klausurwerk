@@ -48,12 +48,12 @@ $isApi = str_contains($path, '/api/')
 
 // ---------- Dispatch ----------
 // Alles ab hier läuft im try-Block: Das Seitenpasswort und das Laden der Routen
-// greifen bereits auf Datenbank und Dateisystem zu — liefe das davor, endete
+// greifen bereits auf Datenbank und Dateisystem zu, liefe das davor, endete
 // ein Datenbankausfall in einer ungefangenen Exception mit HTTP 200, weil die
 // Header dann längst raus sind.
 try {
     // ---------- Globales Seitenpasswort (optional) ----------
-    // /healthz und /readyz müssen auch bei aktivem Seitenpasswort antworten —
+    // /healthz und /readyz müssen auch bei aktivem Seitenpasswort antworten , 
     // sonst meldet der Container-Healthcheck eine Weiterleitung statt Zustand.
     $exemptPrefixes = ['/zugang', '/assets/', '/favicon', '/healthz', '/readyz'];
     $exempt = false;
@@ -93,7 +93,7 @@ try {
         echo $result;
     }
 } catch (HttpException $e) {
-    // 419 ist kein Standard-Code — ohne explizite Statuszeile macht Apache daraus ein 500.
+    // 419 ist kein Standard-Code, ohne explizite Statuszeile macht Apache daraus ein 500.
     if ($e->status === 419) {
         header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' 419 Page Expired', true, 419);
     } else {

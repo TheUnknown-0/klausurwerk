@@ -28,6 +28,7 @@ return static function (Router $r): void {
     $r->post('/api/klausur/{id}/ereignis', [StudentExamController::class, 'event']);
     $r->post('/api/klausur/{id}/anfrage', [StudentExamController::class, 'request']);
     $r->post('/api/klausur/{id}/datei', [StudentExamController::class, 'upload']);
+    $r->post('/api/klausur/{id}/vorschaubild', [StudentExamController::class, 'previewImage']);
 
     // Java-Ausführung (Runner)
     $r->post('/api/ausfuehren', [RunController::class, 'start']);

@@ -105,9 +105,6 @@ final class AutomatonType extends DiagramTaskType
         if ($both !== []) {
             throw new \InvalidArgumentException('Das Wort "' . reset($both) . '" steht bei akzeptiert und bei verworfen.');
         }
-        if ($result['accept'] === [] && $result['reject'] === []) {
-            throw new \InvalidArgumentException('Gib mindestens ein Testwort an.');
-        }
         if (isset($solution['automaton']) && is_array($solution['automaton']) && ($solution['automaton']['states'] ?? []) !== []) {
             $result['automaton'] = self::normalizeAutomaton($solution['automaton'], $config);
         }

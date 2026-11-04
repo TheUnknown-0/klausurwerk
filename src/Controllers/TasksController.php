@@ -82,7 +82,7 @@ final class TasksController extends Controller
             'exam' => $exam,
             'boot' => $boot,
             'wideContent' => true,
-            'pageStyles' => ['exams.css', 'diagrams.css'],
+            'pageStyles' => ['exams.css', 'exam.css', 'code.css', 'diagrams.css', 'robo.css'],
             'bundles' => ['task-editor.js'],
         ]);
     }

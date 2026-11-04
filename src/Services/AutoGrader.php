@@ -145,6 +145,10 @@ final class AutoGrader
                 'solution' => json_decode((string) ($row['solution'] ?? '{}'), true) ?: [],
                 'tests' => json_decode((string) ($row['tests'] ?? '[]'), true) ?: [],
             ];
+            // Robo: Testwelten liegen in tests; ältere Aufgaben hatten sie in solution.tests.
+            if ($task['answer_type'] === 'robo' && $task['tests'] === [] && is_array($task['solution']['tests'] ?? null)) {
+                $task['tests'] = $task['solution']['tests'];
+            }
             if ($this->isAuto($task)) {
                 $tasks[$task['id']] = $task;
             }
@@ -162,8 +166,11 @@ final class AutoGrader
 
             return in_array($language, self::RUNNER_LANGUAGES, true) && $task['tests'] !== [];
         }
+        if ($task['answer_type'] === 'robo') {
+            return $task['tests'] !== [];
+        }
         $type = ($this->typeResolver)((string) $task['answer_type']);
-        if ($type === null || $task['answer_type'] === 'robo') {
+        if ($type === null) {
             return false;
         }
         try {
@@ -317,6 +324,9 @@ final class AutoGrader
         if ($task['answer_type'] === 'code') {
             return $this->gradeCode($exam, $task, $content);
         }
+        if ($task['answer_type'] === 'robo') {
+            return $this->gradeRobo($exam, $task, $content);
+        }
 
         try {
             $check = $type->autoCheck($task['config'], $task['solution'], $content);
@@ -387,6 +397,65 @@ final class AutoGrader
         $score = self::codeScore($tests, array_values($response['results']), $task['points']);
 
         return ['suggested' => $score['suggested'], 'details' => $score['details']];
+    }
+
+    /**
+     * Robo-Programm in jeder Testwelt im Runner ausführen (POST /robo) und wie Code-Tests bepunkten.
+     *
+     * @param array<string, mixed> $exam
+     * @param array<string, mixed> $task
+     * @param array<string, mixed> $content
+     * @return array{suggested: ?float, details: array<string, mixed>}
+     */
+    private function gradeRobo(array $exam, array $task, array $content): array
+    {
+        if ($this->runner === null) {
+            return ['suggested' => null, 'details' => ['source' => 'error', 'error' => 'Die Ausführungsumgebung ist nicht eingerichtet.', 'runner_down' => true]];
+        }
+        $config = $task['config'];
+        $language = (string) ($config['language'] ?? 'python');
+        $files = $this->codeFiles($task['id'], $content);
+        if ($files === []) {
+            return ['suggested' => 0.0, 'details' => ['source' => 'empty', 'ratio' => 0.0]];
+        }
+        $names = array_column($files, 'name');
+        $main = (string) ($config['main_file'] ?? '');
+        if ($main === '' || !in_array($main, $names, true)) {
+            $main = self::guessMain($language, $names) ?? $names[0];
+        }
+        $settings = ExamAccess::settingsOf($exam);
+        $tests = array_values($task['tests']);
+        $results = [];
+        foreach ($tests as $i => $test) {
+            try {
+                $response = $this->runner->robo([
+                    'language' => $language,
+                    'java_version' => (string) ($config['java_version'] ?? $settings['java_version'] ?? '21'),
+                    'files' => $files,
+                    'main_file' => $main,
+                    'world' => $test['world'] ?? [],
+                    'goal' => $test['goal'] ?? [],
+                    'limits' => ['seconds' => 10, 'memory_mb' => 256],
+                ]);
+            } catch (\RuntimeException $e) {
+                if ($e->getCode() === 0 || $e->getCode() >= 500) {
+                    return ['suggested' => null, 'details' => ['source' => 'error', 'error' => $e->getMessage(), 'runner_down' => true]];
+                }
+                $results[$i] = ['name' => $test['name'] ?? '', 'ok' => false, 'message' => $e->getMessage()];
+                continue;
+            }
+            $results[$i] = [
+                'name' => (string) ($test['name'] ?? ('Welt ' . ($i + 1))),
+                'ok' => !empty($response['ok']),
+                'message' => (string) ($response['message'] ?? ''),
+                'stdout' => (string) ($response['stdout'] ?? ''),
+                'stderr' => (string) ($response['stderr'] ?? ''),
+            ];
+        }
+
+        $score = self::codeScore($tests, $results, $task['points']);
+
+        return ['suggested' => $score['suggested'], 'details' => $score['details'] + ['kind' => 'robo']];
     }
 
     /**

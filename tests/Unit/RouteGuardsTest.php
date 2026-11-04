@@ -15,7 +15,7 @@ use ReflectionMethod;
  * POST registrierte Route muss requireCsrf() aufrufen (c).
  *
  * Arbeitet bewusst per Regex/Token-Analyse der Quelltexte statt die
- * Anwendung auszuführen — Routen-Dateien referenzieren Controller nur über
+ * Anwendung auszuführen, Routen-Dateien referenzieren Controller nur über
  * `Klasse::class`, was auch für (noch) nicht existierende Klassen keinen
  * Fehler wirft. Fehlende Controller/Methoden werden hier stattdessen als
  * klare Testfehler sichtbar, während parallel noch an Modulen gearbeitet
@@ -29,7 +29,7 @@ final class RouteGuardsTest extends TestCase
 
     /**
      * Controller, deren öffentliche Aktionen bewusst OHNE
-     * requireLogin/requirePermission/requireAdmin auskommen — mit Begründung.
+     * requireLogin/requirePermission/requireAdmin auskommen, mit Begründung.
      * Wird ein neuer Controller mit denselben Merkmalen ergänzt, gehört er
      * hier explizit (und begründet) hinein, nicht implizit übersprungen.
      *
@@ -55,7 +55,7 @@ final class RouteGuardsTest extends TestCase
     private const CSRF_PATTERN = '/\$this->requireCsrf\s*\(/';
 
     /**
-     * Routen, deren POST-Handler bewusst kein requireCsrf() aufrufen —
+     * Routen, deren POST-Handler bewusst kein requireCsrf() aufrufen , 
      * aktuell keine bekannt (Login/Setup/Zugang/Passwortwechsel rufen es
      * trotz fehlendem Login-Guard auf). Format: "METHOD /pfad".
      *
@@ -92,7 +92,7 @@ final class RouteGuardsTest extends TestCase
             }
             self::assertNotEmpty(
                 $matches,
-                "Keine Routen in {$file} gefunden — Regex und Router-Syntax abgleichen (\$r->get/post([...], [Klasse::class, 'aktion'])).",
+                "Keine Routen in {$file} gefunden, Regex und Router-Syntax abgleichen (\$r->get/post([...], [Klasse::class, 'aktion'])).",
             );
 
             foreach ($matches as $m) {
@@ -246,7 +246,7 @@ final class RouteGuardsTest extends TestCase
     /**
      * Prüft, ob eine Methode direkt einen Guard/CSRF-Aufruf enthält oder
      * (rekursiv, mit Zyklenschutz) über aufgerufene eigene Methoden einen
-     * enthält — deckt Muster wie `requireStudent()`/`requireStaff()` ab,
+     * enthält, deckt Muster wie `requireStudent()`/`requireStaff()` ab,
      * die intern requireLogin() aufrufen.
      */
     private function bodyOrCalleesMatch(ReflectionClass $class, string $methodName, string $regex, array &$visited = []): bool
@@ -342,7 +342,7 @@ final class RouteGuardsTest extends TestCase
             self::assertTrue(
                 $hasCsrf,
                 sprintf(
-                    "POST-Route %s (%s, %s::%s()) ruft requireCsrf() nicht auf — weder direkt noch über eine "
+                    "POST-Route %s (%s, %s::%s()) ruft requireCsrf() nicht auf, weder direkt noch über eine "
                     . 'intern aufgerufene Methode. Falls gewollt, in RouteGuardsTest::CSRF_EXEMPT_ROUTES eintragen.',
                     $route['pattern'],
                     $route['file'],

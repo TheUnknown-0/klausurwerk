@@ -118,6 +118,9 @@ final class TruthTableType extends DiagramTaskType
     public function normalizeSolution(array $solution, array $config): array
     {
         $rows = self::cells($solution['rows'] ?? [], $config['inputs'] ?? [], $config['outputs'] ?? []);
+        if ($rows === []) {
+            return ['rows' => []]; // keine Musterlösung: nur manuelle Bewertung
+        }
         foreach (self::rowKeys(count($config['inputs'] ?? [])) as $key) {
             foreach ($config['outputs'] ?? [] as $out) {
                 if (!isset($rows[$key][$out])) {

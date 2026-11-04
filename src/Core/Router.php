@@ -54,7 +54,7 @@ final class Router
     }
 
     /**
-     * Alle registrierten Routen — für Übersichten und den Guard-Test.
+     * Alle registrierten Routen, für Übersichten und den Guard-Test.
      *
      * @return list<array{method: string, pattern: string, handler: array{class-string, string}}>
      */

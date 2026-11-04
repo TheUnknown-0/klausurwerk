@@ -64,12 +64,15 @@ export function createAlarmSound() {
     const onGesture = () => {
         unlock().then((ok) => {
             if (ok) {
-                document.removeEventListener('pointerdown', onGesture, true);
+                document.removeEventListener('click', onGesture, true);
                 document.removeEventListener('keydown', onGesture, true);
             }
         });
     };
-    document.addEventListener('pointerdown', onGesture, true);
+    // 'click' statt 'pointerdown': Der Hinweis verschwindet erst, wenn der Klick
+    // sein Ziel schon erreicht hat. Sonst rutscht die Seite unter dem Mauszeiger
+    // weg und der erste Klick im Pult geht ins Leere.
+    document.addEventListener('click', onGesture, true);
     document.addEventListener('keydown', onGesture, true);
 
     return {

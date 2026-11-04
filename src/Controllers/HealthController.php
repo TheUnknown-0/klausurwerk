@@ -11,12 +11,12 @@ use Throwable;
  *
  * Bewusst ohne Anmeldung, ohne Seitenpasswort und ohne verwertbare Details:
  * Die Antwort sagt nur, ob die Anwendung ansprechbar ist und ob sie die
- * Datenbank erreicht — keine Versionen, keine Hostnamen, keine Fehlertexte.
+ * Datenbank erreicht, keine Versionen, keine Hostnamen, keine Fehlertexte.
  */
 final class HealthController extends Controller
 {
     /**
-     * GET /healthz — Lebenszeichen für den Container-Healthcheck.
+     * GET /healthz, Lebenszeichen für den Container-Healthcheck.
      *
      * Antwortet bewusst auch dann mit „ok“, wenn die Datenbank klemmt: Ein
      * Neustart des Webservers behebt einen Datenbankausfall nicht, und ein
@@ -31,7 +31,7 @@ final class HealthController extends Controller
     }
 
     /**
-     * GET /readyz — vollständige Bereitschaft inklusive Datenbank.
+     * GET /readyz, vollständige Bereitschaft inklusive Datenbank.
      * Für Monitoring und Lastverteiler: 200 = bedienbereit, 503 = nicht.
      */
     public function ready(array $params): array
