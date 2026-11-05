@@ -21,7 +21,7 @@
     <li><b>Name der Anwendung</b>: Titel in Seitenleiste und Browser-Tab, Standard „Klausurwerk“.</li>
     <li><b>Öffentliche Adresse</b>: zum Beispiel <code>https://klausuren.meine-schule.de</code>. Wird für den QR-Code auf den Zugangskarten und in der SEB-Datei benötigt (Abschnitt 2.4).</li>
     <li><b>Anmeldung von Lehrkräften</b>: Schalter für den Anmeldecode per E-Mail (Abschnitt 2.6).</li>
-    <li><b>Takt der Live-Ansichten</b>: <b>Herzschlag der Schüleransicht</b> (Standard 2000 ms) bestimmt, wie oft ein Gerät dem Server meldet, dass es da ist. <b>Abruf im Pult</b> (Standard 1500 ms) bestimmt, wie oft das Pult den Stand der Klasse abfragt. Kleinere Werte zeigen Änderungen schneller, belasten aber den Server stärker. <span class="ui">Auf Standard zurücksetzen</span> stellt beide Werte wieder her.</li>
+    <li><b>Takt der Live-Ansichten</b>: <b>Herzschlag der Schüleransicht</b> (Standard 2000 ms) bestimmt, wie oft ein Gerät dem Server meldet, dass es da ist; der Wert gilt ab dem nächsten Laden der Klausurseite. <b>Abruf im Pult</b> (Standard 1500 ms) bestimmt, wie oft das Pult den Stand der Klasse abfragt. Kleinere Werte zeigen Änderungen schneller, belasten aber den Server stärker. <span class="ui">Auf Standard zurücksetzen</span> stellt beide Werte wieder her.</li>
     <li><b>Seitenpasswort</b>: optionaler Vorhang vor der gesamten Anwendung. Wer die Adresse kennt, braucht dann zuerst ein gemeinsames Passwort (mindestens 8 Zeichen). Nützlich, solange das System noch nicht öffentlich sein soll. Nur Admins können es ändern.</li>
     <li><b>Test-Mail</b>: sendet eine Probemail an eine Adresse Ihrer Wahl.</li>
   </ul>
@@ -184,6 +184,7 @@ Lena;Fischer;10a;;</div>
     <figcaption><b>{fig}</b> Aufbewahrungsfristen; „Fällige Klausuren“ erscheinen nach Fristablauf</figcaption>
   </figure>
   <p>Nach Ablauf erinnert die Übersicht, und unter <b>Fällige Klausuren</b> erscheinen die betroffenen Klausuren. <b>Gelöscht wird nie automatisch, sondern nur nach Ihrer Bestätigung</b>; jede Löschung steht im Audit-Log. Protokolle (Ereignisse, Replay) lassen sich getrennt von den Klausuren löschen.</p>
+  <p>Mit einer Klausur verschwinden auch Material und die von Schülern hochgeladenen Dateien (Skizzen, PDFs zu Zeichenaufgaben) von der Festplatte; dasselbe gilt beim Löschen eines Schülerkontos für dessen Dateien. Übrig bleibende Dateien, etwa nach dem Einspielen einer älteren Datensicherung, findet <code>bin/cleanup.php</code> (Kapitel 2.9).</p>
 
   <h2 id="k3-12"><span class="num">3.12</span>Audit-Log</h2>
   <p><span class="nav">Verwaltung › Audit-Log</span> protokolliert sicherheitsrelevante Aktionen: Anmeldungen, Passwortänderungen, Kartendruck, begonnene Korrektur, übernommene Vorschläge, Freigabe, Export, PDF-Erzeugung, Löschungen. Jeder Eintrag hat Zeitpunkt, Benutzer, Aktion, Schweregrad (Info, Warnung, Kritisch), IP-Adresse und Details.</p>

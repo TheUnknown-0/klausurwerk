@@ -485,3 +485,34 @@ Bitte zu jedem kurz Bescheid geben; bei einigen habe ich eine Empfehlung.
   - Auswählen (Klick oder Fokus), dann Entf, Rücktaste oder Knopf „Löschen“.
   - In Textfeldern löscht die Rücktaste nur Zeichen.
   - Aufgaben und Dateien mit Inhalt nur nach Rückfrage, Diagrammelemente mit Strg+Z.
+
+## 20. Durchsicht des ganzen Programms (5. November 2026)
+
+Alle Bereiche wurden einmal komplett gelesen (Kern, Live-Ablauf, Aufgaben, Korrektur, Runner,
+Verwaltung, Frontend, Deployment). Gesamtbild: Rechte, CSRF, Lösungstrennung, Zustandsübergänge,
+Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
+
+- **Antwortdateien werden mitgelöscht.** Hochgeladene Dateien von Zeichenaufgaben
+  (`uploads/answers`) verschwanden beim Löschen einer Klausur oder eines Schülerkontos nur aus
+  der Datenbank, nicht von der Platte. Neuer Dienst `AnswerFiles`, genutzt von Klausur-, Konto-
+  und Aufbewahrungs-Löschung. Dazu `bin/cleanup.php` für verwaiste Dateien unter `uploads/`.
+- **Proxy-Header nur von vertrauenswürdigen Proxys.** `Core\Request` bündelt Client-IP, Schema
+  und Host. `X-Forwarded-Proto` zählt nur von Adressen in `TRUSTED_PROXIES` und bestimmt
+  einheitlich das Secure-Flag der Cookies, die öffentliche Adresse (QR-Codes) und die
+  SEB-Prüfung. Folge: Hinter einem Reverse-Proxy ist `TRUSTED_PROXIES` Pflicht;
+  `SECURE_COOKIES=1` bleibt als Notnagel.
+- **Herzschlag einstellbar.** Die Einstellung `heartbeat_ms` war ohne Wirkung; sie wird jetzt
+  über den Startblock der Klausurseite an die Schüleransicht gereicht.
+- **Lokale Sicherung je Benutzer-ID** statt Anzeigename (zwei gleichnamige Personen am selben
+  Gerät teilten sich sonst die IndexedDB-Outbox).
+- **Upload-Grenzen an einer Stelle** (`config/php.ini`, 200 MB für den Klausur-Import); die
+  abweichenden `php_value`-Zeilen in `.htaccess` sind weg.
+- **Runner-Status im Dashboard**, tmpfs der Live-Wand über `LIVE_DIR_SIZE` (Standard 256 MB,
+  etwa 25 MB je Raum mit Bildschirmfreigabe), Umgebungsvariablen vollständig dokumentiert.
+- **Kleinigkeiten:** Meldung bei Zusatzzeit am Höchstwert, Technik-Check prüft die
+  Fenstergröße, eine Ablehnung im Herzschlag (z. B. fehlender SEB-Header) erscheint als
+  Meldung statt als „offline“, ungenutzte Methoden und Textreste des Vorgängerprojekts
+  entfernt.
+- **Bewusst nicht geändert:** Anmeldung ohne zweiten Faktor, wenn eine Lehrkraft keine E-Mail
+  hat (steht im Audit-Log); stilles Umbinden des Geräts im Warteraum (der Klausurcode ist die
+  Absicherung); die Restrisiken aus Abschnitt 18.

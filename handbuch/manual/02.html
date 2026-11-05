@@ -51,11 +51,15 @@ docker compose ps</div>
       <tr><td><code>APP_PORT</code></td><td><code>9030</code></td><td>Port auf dem Host.</td></tr>
       <tr><td><code>APP_ENV</code></td><td><code>production</code></td><td><code>development</code> zeigt Fehlerdetails an. Im Betrieb nicht verwenden.</td></tr>
       <tr><td><code>BASE_URL</code></td><td><code>/</code></td><td>Basispfad, wenn die Anwendung in einem Unterverzeichnis läuft.</td></tr>
-      <tr><td><code>TRUSTED_PROXIES</code></td><td><i>leer</i></td><td>Adressen der eigenen Reverse-Proxys. Nur diese dürfen <code>X-Forwarded-For</code> setzen. Leer heißt: niemand.</td></tr>
+      <tr><td><code>TRUSTED_PROXIES</code></td><td><i>leer</i></td><td>Adressen oder Netzbereiche (CIDR, kommagetrennt) der eigenen Reverse-Proxys. Nur von dort gelten <code>X-Forwarded-For</code> (Adresse des Clients) und <code>X-Forwarded-Proto</code> (HTTPS: Secure-Flag der Cookies, QR-Codes, SEB-Prüfung). <b>Hinter einem Proxy Pflicht.</b> Leer heißt: nur die Loopback-Adresse.</td></tr>
+      <tr><td><code>SECURE_COOKIES</code></td><td><i>leer</i></td><td><code>1</code> erzwingt das Secure-Flag der Cookies. Nur nötig, wenn HTTPS am Proxy endet und <code>TRUSTED_PROXIES</code> sich nicht passend setzen lässt.</td></tr>
+      <tr><td><code>LIVE_DIR_SIZE</code></td><td><code>256m</code></td><td>Arbeitsspeicher für die Live-Wand (Standbilder, Live-Zustand). Je Raum mit Bildschirmfreigabe etwa 25 MB einplanen.</td></tr>
       <tr><td><code>RUNNER_MAX_PARALLEL</code></td><td><code>4</code></td><td>Gleichzeitig laufende Java-Läufe. Weitere warten in der Warteschlange.</td></tr>
       <tr><td><code>RUNNER_MAX_SECONDS</code></td><td><code>10</code></td><td>CPU-Zeit je Lauf.</td></tr>
       <tr><td><code>RUNNER_MAX_MEMORY_MB</code></td><td><code>256</code></td><td>Java-Heap je Lauf.</td></tr>
       <tr><td><code>RUNNER_MEM_LIMIT</code>, <code>RUNNER_CPUS</code></td><td><code>2g</code>, <code>2</code></td><td>Grenzen des Runner-Containers insgesamt.</td></tr>
+      <tr><td><code>RUNNER_TIMEOUT</code></td><td><code>20</code></td><td>Sekunden, die die App auf eine Antwort des Runners wartet.</td></tr>
+      <tr><td><code>DB_WAIT_TIMEOUT</code></td><td><code>120</code></td><td>Sekunden, die der App-Container beim Start auf die Datenbank wartet, bevor er abbricht.</td></tr>
       <tr><td><code>MAIL_HOST</code>, <code>MAIL_PORT</code>, <code>MAIL_ENCRYPTION</code>, <code>MAIL_USER</code>, <code>MAIL_PASS</code>, <code>MAIL_FROM_ADDRESS</code>, <code>MAIL_FROM_NAME</code></td><td>leer, <code>587</code>, <code>tls</code>, leer, leer, leer, <code>Klausurwerk</code></td><td>SMTP-Zugang für Anmeldecodes. <b>Leer heißt: Codes sind abgeschaltet</b>, Lehrkräfte melden sich nur mit Passwort an.</td></tr>
       <tr><td><code>APP_IMAGE</code>, <code>RUNNER_IMAGE</code></td><td>lokal gebaut</td><td>Fertige Images aus der GitHub Container Registry statt lokalem Build (siehe 2.5).</td></tr>
     </tbody>
@@ -64,7 +68,7 @@ docker compose ps</div>
   <h2 id="k2-4"><span class="num">2.4</span>Reverse-Proxy und HTTPS</h2>
   <p>Im Betrieb steht ein Reverse-Proxy (zum Beispiel Nginx Proxy Manager, Traefik oder Caddy) vor der Anwendung. Er terminiert HTTPS und leitet auf den Container <code>klausurwerk-app</code> (Port 80) im Netz <code>proxy_network</code> weiter. Wichtig:</p>
   <ul>
-    <li>Tragen Sie die Adresse des Proxys in <code>TRUSTED_PROXIES</code> ein, damit Anmeldedrossel und Audit-Log die echte Adresse der Clients sehen.</li>
+    <li>Tragen Sie die Adresse oder das Netz des Proxys in <code>TRUSTED_PROXIES</code> ein (bei Docker zum Beispiel das Subnetz von <code>proxy_network</code>, nachzusehen mit <code>docker network inspect proxy_network</code>). Erst dann weiß die Anwendung, dass die Anfragen über HTTPS kamen: Sitzungs- und Gerätecookies bekommen das Secure-Flag, QR-Codes und SEB-Dateien die richtige Adresse, und Anmeldedrossel und Audit-Log sehen die echte Adresse der Clients. Ohne den Eintrag sieht die Anwendung nur HTTP.</li>
     <li>Die Anwendung setzt strenge Sicherheitsköpfe (Content Security Policy, Cross-Origin-Isolation). <b>Der Proxy darf diese Köpfe nicht entfernen oder überschreiben.</b> Ohne Cross-Origin-Isolation kann Python-<code>input()</code> im Browser nicht auf Eingaben warten.</li>
     <li>WebSockets sind nicht nötig. Die Live-Ansichten arbeiten mit kurzem Abruf (Polling).</li>
     <li>Tragen Sie unter <span class="nav">Verwaltung › Einstellungen</span> die <b>Öffentliche Adresse</b> ein. Sie steckt im QR-Code der Zugangskarten und in der SEB-Datei. Ohne Eintrag wird die Adresse verwendet, mit der Sie gerade zugreifen, auf dem Server oft <code>localhost</code>, was auf den Karten wertlos ist.</li>
@@ -102,7 +106,7 @@ RUNNER_IMAGE=ghcr.io/theunknown-0/klausurwerk-runner:latest</div>
   </table>
   <p><b>Faustregel:</b> Mit 4 parallelen Läufen und etwa zwei Sekunden je Kompilierung schafft der Runner rund zwei Läufe pro Sekunde. 35 Schüler, die gelegentlich auf <span class="ui">Ausführen</span> klicken, sind unkritisch. Wenn eine ganze Klasse gleichzeitig Java startet (zum Beispiel nach einer Durchsage), entstehen kurze Wartezeiten. Dann hilft ein höheres <code>RUNNER_MAX_PARALLEL</code> bei ausreichend CPU-Kernen.</p>
   <div class="box warn"><span class="t">Ehrliche Grenzen der Isolation</span>
-    <p>Alle Läufe teilen sich im Container einen Benutzer. Ein gezielter Angriff könnte Dateien eines gleichzeitig laufenden fremden Laufs lesen (die Verzeichnisse sind zufällig benannt und gesperrt). Eine Thread- oder Fork-Bombe kann andere Läufe für Sekundenbruchteile stören, der Container selbst bleibt unversehrt. Für Schulklausuren ist das vertretbar; der Runner hat keinen Netzzugang und kann keine Daten nach außen senden. Er ist kein Hochsicherheits-Sandkasten.</p></div>
+    <p>Jeder Lauf bekommt einen eigenen Benutzer (UID aus einem Pool von 64), ein eigenes Arbeits- und Temp-Verzeichnis, das für andere Läufe unlesbar ist, und einen Systemaufruf-Filter (seccomp), der Netzwerk-Sockets und gemeinsame Kanäle zwischen Läufen sperrt. Eine Thread- oder Fork-Bombe trifft nur den eigenen Lauf. Was bleibt: Testcode und Schülercode laufen bei der automatischen Vorbewertung im selben Prozess, ein gezielt präpariertes Programm kann dort ein „bestanden“ vortäuschen. Vorbewertungen sind deshalb immer nur Vorschläge, die die Lehrkraft prüft. Der Runner hat keinen Netzzugang und kann keine Daten nach außen senden.</p></div>
 
   <h2 id="k2-8"><span class="num">2.8</span>Updates</h2>
   <ol class="steps">
@@ -120,16 +124,19 @@ docker compose exec -T -e MYSQL_PWD="$DB_ROOT_PASS" db mariadb-dump -uroot klaus
 # Hochgeladene Dateien sichern
 docker run --rm -v klausurwerk_uploads:/data -v "$(pwd)":/backup alpine tar czf /backup/uploads.tar.gz -C /data .</div>
   <p>Zum Wiederherstellen stoppen Sie die App, spielen den Dump mit <code>mariadb</code> in eine leere Datenbank ein und entpacken das Archiv ins Volume. Der Name des Volumes hängt vom Projektordner ab (<code>docker volume ls</code>).</p>
+  <p>Passen Datenbank und Dateien nach einer Wiederherstellung nicht mehr zusammen, bleiben unter <code>uploads/</code> Dateien ohne Datenbankzeile zurück. <code>docker compose exec app php bin/cleanup.php</code> listet sie, mit <code>--delete</code> werden sie gelöscht (Dateien jünger als eine Stunde bleiben unangetastet, jeder Lauf steht im Audit-Log). Beim Löschen einer Klausur oder eines Schülerkontos räumt die Anwendung Material und hochgeladene Antwortdateien selbst weg.</p>
   <div class="box warn"><span class="t">Einmal vor dem ersten Einsatz proben</span><p>Eine Sicherung, die nie zurückgespielt wurde, ist keine. Testen Sie die Wiederherstellung einmal auf einem Testsystem, bevor Sie sich in einer Klausurphase darauf verlassen.</p></div>
 
   <h2 id="k2-10"><span class="num">2.10</span>Betrieb und Fehlerbehebung</h2>
-  <p>Alle Container haben Healthchecks und die Einstellung <code>restart: unless-stopped</code>, starten also nach einem Neustart des Servers von selbst. Die Protokolle sind auf 3 Dateien à 10 MB begrenzt.</p>
+  <p>Alle Container haben Healthchecks und die Einstellung <code>restart: unless-stopped</code>, starten also nach einem Neustart des Servers von selbst. Die Protokolle sind auf 3 Dateien à 10 MB begrenzt. Die <b>Übersicht</b> zeigt Admins oben Hinweise, wenn etwas fehlt: Mailserver nicht eingerichtet, <code>RUNNER_TOKEN</code> leer, Runner nicht erreichbar, öffentliche Adresse nicht hinterlegt oder Aufbewahrungsfristen überschritten.</p>
   <table>
     <thead><tr><th>Symptom</th><th>Ursache und Abhilfe</th></tr></thead>
     <tbody>
       <tr><td>Seite nicht erreichbar</td><td><code>docker compose ps</code>: Läuft <code>app</code>? <code>docker compose logs app</code> lesen. Häufig fehlt das externe Netz <code>proxy_network</code> (<code>docker network create proxy_network</code>).</td></tr>
       <tr><td><span class="path">/readyz</span> liefert 503</td><td>Datenbank nicht erreichbar oder noch nicht bereit: <code>docker compose logs db</code>, <code>DB_PASS</code> in <code>.env</code> prüfen.</td></tr>
-      <tr><td>Java-Aufgaben melden „Runner nicht erreichbar“</td><td><code>RUNNER_TOKEN</code> fehlt oder ist in App und Runner verschieden; Runner-Container läuft nicht (<code>docker compose logs runner</code>).</td></tr>
+      <tr><td>Übersicht meldet „Runner nicht erreichbar“, Java-Aufgaben laufen nicht</td><td><code>RUNNER_TOKEN</code> fehlt oder ist in App und Runner verschieden; Runner-Container läuft nicht (<code>docker compose logs runner</code>).</td></tr>
+      <tr><td>Nach der Anmeldung sofort wieder abgemeldet, Browser warnt vor unsicheren Cookies</td><td>HTTPS endet am Proxy, aber <code>TRUSTED_PROXIES</code> passt nicht: Adresse des Proxys eintragen oder <code>SECURE_COOKIES=1</code> setzen.</td></tr>
+      <tr><td>Hochladen bricht bei großen Dateien ab</td><td>PHP-Grenze 200 MB je Upload (<code>config/php.ini</code>). Fachlich gelten darunter: Logo 2 MB, Material 20 MB, Antwortdateien 10 MB, Klausur-Import 200 MB. Prüfen Sie auch die Grenze des Proxys (bei Nginx <code>client_max_body_size</code>).</td></tr>
       <tr><td>Python-<code>input()</code> hängt, „SharedArrayBuffer“-Fehler</td><td>Der Proxy entfernt die Köpfe für Cross-Origin-Isolation, oder die Seite wird nicht über HTTPS ausgeliefert.</td></tr>
       <tr><td>QR-Code der Zugangskarte führt auf <code>localhost</code></td><td>Unter Einstellungen die <b>Öffentliche Adresse</b> eintragen und die Karten neu drucken.</td></tr>
       <tr><td>Lehrkraft kommt nicht ohne Code hinein</td><td>E-Mail-Versand nicht eingerichtet, aber zweiter Faktor aktiv? Schalter in den Einstellungen abschalten oder Mailserver prüfen.</td></tr>
