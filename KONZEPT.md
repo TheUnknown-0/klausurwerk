@@ -516,3 +516,25 @@ Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
 - **Bewusst nicht geändert:** Anmeldung ohne zweiten Faktor, wenn eine Lehrkraft keine E-Mail
   hat (steht im Audit-Log); stilles Umbinden des Geräts im Warteraum (der Klausurcode ist die
   Absicherung); die Restrisiken aus Abschnitt 18.
+
+## 21. Klausuren einfacher erstellen (5. November 2026)
+
+- **Autosave im Aufgaben-Editor:** etwa 1,2 s nach der letzten Eingabe und vor Wechsel, Verschieben
+  und Anlegen. Kein Neuaufbau des Formulars nach dem Speichern (Fokus und Cursor bleiben); Eingaben
+  während des Speicherns gehen mit der nächsten Speicherung raus. Rückfrage nur noch, wenn sich eine
+  Aufgabe nicht speichern lässt. Strg+S und der Knopf speichern sofort.
+- **Typauswahl als Kacheln:** Neue Aufgabe oder Teilaufgabe beginnt mit Kacheln je Antworttyp,
+  Programmcode getrennt nach Java, Python und SQL. Eine leere Klausur öffnet den Editor mit der Auswahl.
+- **Kürzeres Anlegen:** Pflicht sind Titel, Modus und bei Klausuren die Dauer; Raum, Termin und
+  Beschreibung eingeklappt; ein einziger eigener Kurs ist vorausgewählt. Danach direkt in den Editor
+  (Probe: Klausurseite).
+- **Vorlagen:** Beim Anlegen „Einstellungen“ = Standard, Profil oder „wie eine frühere Klausur“
+  (Lesezugriff genügt); „Aufgaben mitkopieren“ braucht Zugriff auf die Lösungen und nutzt die
+  vorhandene Kopierfunktion.
+- **Profile** (`ExamSettings::PROFILES`): „Klausur, streng“, „Klausur mit Safe Exam Browser“,
+  „Übung, locker“. Ein Profil ändert nur seine Werte, Feineinstellungen bleiben. Ein passendes Profil
+  ist auf der Einstellungsseite als aktiv markiert.
+- **Einstellungsseite nach Wichtigkeit:** Profile, Stammdaten, Überwachung und Abgabe, Editor-Hilfen
+  und Hilfsmittel; Feineinstellungen unter „Erweitert“, das bei Abweichungen vom Standard aufklappt.
+- **Behoben nebenbei:** Eine kopierte Klausur mit „Klausurcode verlangen“ bekam keinen Code, der
+  Beitritt ging dann ohne. Anlegen und Kopieren erzeugen jetzt einen eigenen Code.

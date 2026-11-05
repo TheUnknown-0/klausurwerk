@@ -111,4 +111,139 @@ final class ExamSettings
 
         return $s;
     }
+
+    // ---------- Profile ----------
+
+    /**
+     * Fertige Zusammenstellungen für den schnellen Start. Jedes Profil ändert nur die Werte,
+     * die es nennt; alles andere kommt aus den Standards des Modus.
+     */
+    public const PROFILES = [
+        'streng' => [
+            'label' => 'Klausur, streng',
+            'description' => 'Sperre bei Verstoß, Einfügen nur innerhalb der Klausur, Klausurcode, keine Editorhilfen, als Hilfsmittel nur die Operatorenliste.',
+        ],
+        'seb' => [
+            'label' => 'Klausur mit Safe Exam Browser',
+            'description' => 'Wie "streng", aber Beitritt nur mit Safe Exam Browser statt mit Klausurcode.',
+        ],
+        'locker' => [
+            'label' => 'Übung, locker',
+            'description' => 'Keine Sperre, Einfügen erlaubt (protokolliert), Autovervollständigung, Fehlermarkierung und alle Hilfsmittel.',
+        ],
+    ];
+
+    /** @return array<string, mixed> */
+    private static function profileOverrides(string $key): array
+    {
+        $strict = [
+            'lock_on_violation' => true,
+            'paste_policy' => 'internal',
+            'require_seb' => false,
+            'require_access_code' => true,
+            'allow_self_submit' => true,
+            'editor' => ['autocomplete' => false, 'lint' => false],
+            'aids' => ['java_api' => false, 'python_doc' => false, 'sql_cheatsheet' => false, 'operators' => true, 'calculator' => false],
+        ];
+
+        return match ($key) {
+            'streng' => $strict,
+            'seb' => array_replace_recursive($strict, ['require_seb' => true, 'require_access_code' => false]),
+            'locker' => [
+                'lock_on_violation' => false,
+                'paste_policy' => 'allow_log',
+                'require_seb' => false,
+                'require_access_code' => false,
+                'allow_self_submit' => true,
+                'editor' => ['autocomplete' => true, 'lint' => true, 'close_brackets' => true],
+                'aids' => ['java_api' => true, 'python_doc' => true, 'sql_cheatsheet' => true, 'operators' => true, 'calculator' => true],
+            ],
+            default => throw new \InvalidArgumentException('Unbekanntes Profil.'),
+        };
+    }
+
+    /**
+     * Vollständige Einstellungen eines Profils für den Modus.
+     *
+     * @return array<string, mixed>
+     */
+    public static function profile(string $key, string $mode = 'exam'): array
+    {
+        return self::normalize(array_replace_recursive(self::defaults($mode), self::profileOverrides($key)), $mode);
+    }
+
+    /**
+     * Wendet ein Profil auf bestehende Einstellungen an: nur die Werte des Profils ändern sich,
+     * Feineinstellungen wie Java-Version oder Schriftgröße bleiben.
+     *
+     * @param array<string, mixed> $current
+     * @return array<string, mixed>
+     */
+    public static function applyProfile(array $current, string $key, string $mode = 'exam'): array
+    {
+        return self::normalize(array_replace_recursive(self::normalize($current, $mode), self::profileOverrides($key)), $mode);
+    }
+
+    /**
+     * Welches Profil passt zu den Einstellungen? Verglichen werden nur die Werte, die ein Profil
+     * festlegt. null, wenn keines passt.
+     *
+     * @param array<string, mixed> $settings
+     */
+    public static function matchingProfile(array $settings, string $mode = 'exam'): ?string
+    {
+        $s = self::normalize($settings, $mode);
+        foreach (array_keys(self::PROFILES) as $key) {
+            if (self::matches($s, self::profileOverrides($key))) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /** @param array<string, mixed> $values @param array<string, mixed> $expected */
+    private static function matches(array $values, array $expected): bool
+    {
+        foreach ($expected as $k => $v) {
+            if (is_array($v)) {
+                if (!is_array($values[$k] ?? null) || !self::matches($values[$k], $v)) {
+                    return false;
+                }
+            } elseif (($values[$k] ?? null) !== $v) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Werte unter "Erweitert" auf der Einstellungsseite. */
+    public const ADVANCED_KEYS = ['violation_grace_ms', 'toilet_pauses_clock', 'live_view', 'screen_share', 'shuffle_choices', 'run_mode', 'java_version', 'python_packages', 'editor'];
+
+    /**
+     * Weicht unter "Erweitert" etwas vom Standard des Modus ab? Dann klappt der Bereich auf,
+     * damit nichts Wichtiges versteckt bleibt.
+     *
+     * @param array<string, mixed> $settings
+     */
+    public static function advancedChanged(array $settings, string $mode = 'exam'): bool
+    {
+        $s = self::normalize($settings, $mode);
+        $d = self::defaults($mode);
+        foreach (self::ADVANCED_KEYS as $key) {
+            if ($key === 'editor') {
+                // Autovervollständigung und Fehlermarkierung legen die Profile fest; nur der Rest zählt hier.
+                if ($s['editor']['close_brackets'] !== $d['editor']['close_brackets'] || $s['editor']['font_size'] !== $d['editor']['font_size']) {
+                    return true;
+                }
+                continue;
+            }
+            if ($s[$key] !== $d[$key]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

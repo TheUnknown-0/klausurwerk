@@ -17,6 +17,7 @@ return static function (Router $r): void {
     $r->get('/klausuren/{id}', [ExamsController::class, 'show']);
     $r->get('/klausuren/{id}/einstellungen', [ExamsController::class, 'settings']);
     $r->post('/klausuren/{id}/einstellungen', [ExamsController::class, 'saveSettings']);
+    $r->post('/klausuren/{id}/einstellungen/profil', [ExamsController::class, 'applyProfile']);
     $r->post('/klausuren/{id}/code', [ExamsController::class, 'regenerateCode']);
     $r->post('/klausuren/{id}/status', [ExamsController::class, 'setStatus']);
     $r->post('/klausuren/{id}/loeschen', [ExamsController::class, 'destroy']);

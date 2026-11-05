@@ -110,18 +110,24 @@ final class ExamService
         ];
     }
 
-    /** @param array<string, mixed> $in */
-    public function create(array $in, int $ownerId): int
+    /**
+     * Neue Klausur als Entwurf.
+     *
+     * @param array<string, mixed> $in
+     * @param array<string, mixed>|null $settings Einstellungen (Profil oder Vorlage); null = Standard des Modus
+     */
+    public function create(array $in, int $ownerId, ?array $settings = null): int
     {
         $meta = $this->normalizeMeta($in);
-        $settings = ExamSettings::defaults($meta['mode']);
+        $settings = ExamSettings::normalize($settings ?? ExamSettings::defaults($meta['mode']), $meta['mode']);
         $this->db->run(
-            'INSERT INTO exams (title, description, course_id, owner_id, room_id, mode, status, duration_minutes, scheduled_at, settings)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO exams (title, description, course_id, owner_id, room_id, mode, status, duration_minutes, scheduled_at, settings, access_code)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 $meta['title'], $meta['description'], $meta['course_id'], $ownerId, $meta['room_id'], $meta['mode'],
                 'draft', $meta['duration_minutes'], $meta['scheduled_at'],
                 json_encode($settings, JSON_UNESCAPED_UNICODE),
+                $settings['require_access_code'] ? $this->generateAccessCode() : null,
             ],
         );
 
@@ -142,6 +148,25 @@ final class ExamService
             'UPDATE exams SET title = ?, description = ?, course_id = ?, room_id = ?, mode = ?, duration_minutes = ?, scheduled_at = ? WHERE id = ?',
             [$meta['title'], $meta['description'], $meta['course_id'], $meta['room_id'], $meta['mode'], $meta['duration_minutes'], $meta['scheduled_at'], (int) $exam['id']],
         );
+    }
+
+    /**
+     * Profil auf die Einstellungen anwenden (nur die Werte des Profils ändern sich).
+     *
+     * @param array<string, mixed> $exam
+     */
+    public function applyProfile(array $exam, string $profile): void
+    {
+        $this->assertEditable($exam);
+        $mode = (string) $exam['mode'];
+        $settings = ExamSettings::applyProfile(ExamAccess::settingsOf($exam), $profile, $mode);
+        $code = $exam['access_code'] !== null ? (string) $exam['access_code'] : null;
+        if ($settings['require_access_code']) {
+            $code = $code ?: $this->generateAccessCode();
+        }
+        $this->db->run('UPDATE exams SET settings = ?, access_code = ? WHERE id = ?', [
+            json_encode($settings, JSON_UNESCAPED_UNICODE), $code, (int) $exam['id'],
+        ]);
     }
 
     /**
@@ -262,12 +287,16 @@ final class ExamService
         $sourceId = (int) $exam['id'];
 
         return (int) $this->db->transaction(function () use ($exam, $ownerId, $title, $sourceId): int {
+            // Verlangt die Vorlage einen Klausurcode, bekommt die Kopie einen eigenen (sonst gälte
+            // "Klausurcode verlangen" ohne Code, und der Beitritt ginge ohne).
+            $settings = ExamSettings::normalize(ExamAccess::settingsOf($exam), (string) $exam['mode']);
             $this->db->run(
-                'INSERT INTO exams (title, description, course_id, owner_id, room_id, mode, status, duration_minutes, settings, copied_from_exam_id)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                'INSERT INTO exams (title, description, course_id, owner_id, room_id, mode, status, duration_minutes, settings, copied_from_exam_id, access_code)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     mb_substr($title ?? ((string) $exam['title'] . ' (Kopie)'), 0, 200), $exam['description'], $exam['course_id'], $ownerId,
                     $exam['room_id'], $exam['mode'], 'draft', $exam['duration_minutes'], $exam['settings'], $sourceId,
+                    $settings['require_access_code'] ? $this->generateAccessCode() : null,
                 ],
             );
             $newId = $this->db->lastInsertId();

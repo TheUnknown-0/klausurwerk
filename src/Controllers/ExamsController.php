@@ -75,17 +75,113 @@ final class ExamsController extends Controller
         $this->requirePermission(P::KLAUSUREN_ERSTELLEN);
         $this->requireCsrf();
         $in = $this->jsonInput();
+        $ownerId = (int) $this->ctx->auth->id();
+        $template = (string) ($in['template'] ?? '');
+        $copyTasks = filter_var($in['copy_tasks'] ?? false, FILTER_VALIDATE_BOOLEAN);
         try {
             $this->assertCourseAllowed($in);
-            $id = $this->exams()->create($in, (int) $this->ctx->auth->id());
+            $svc = $this->exams();
+            $meta = $svc->normalizeMeta($in);
+            $note = '';
+            if (preg_match('/^klausur:(\d+)$/', $template, $m) === 1) {
+                // Wie eine frühere Klausur: Einstellungen, auf Wunsch auch Aufgaben, Lösungen und Material.
+                $source = $this->templateSource((int) $m[1], $copyTasks);
+                if ($copyTasks) {
+                    $id = $svc->copy($source, $ownerId, $meta['title']);
+                    $svc->updateMeta($this->ctx->exams->require($id, ExamAccess::CAP_EDIT), $in);
+                    $note = ' Aufgaben, Lösungen und Material von "' . $source['title'] . '" sind übernommen.';
+                } else {
+                    $id = $svc->create($in, $ownerId, ExamAccess::settingsOf($source));
+                    $note = ' Die Einstellungen stammen von "' . $source['title'] . '".';
+                }
+                $this->ctx->audit->log('klausur_angelegt', 'info', 'Klausur #' . $id . ' angelegt, Vorlage #' . $source['id'] . ($copyTasks ? ' mit Aufgaben.' : '.'));
+            } elseif (preg_match('/^profil:([a-z]+)$/', $template, $m) === 1 && isset(ExamSettings::PROFILES[$m[1]])) {
+                $id = $svc->create($in, $ownerId, ExamSettings::profile($m[1], $meta['mode']));
+                $note = ' Einstellungen: Profil "' . ExamSettings::PROFILES[$m[1]]['label'] . '".';
+                $this->ctx->audit->log('klausur_angelegt', 'info', 'Klausur #' . $id . ' angelegt, Profil ' . $m[1] . '.');
+            } else {
+                $id = $svc->create($in, $ownerId);
+                $this->ctx->audit->log('klausur_angelegt', 'info', 'Klausur #' . $id . ' angelegt.');
+            }
         } catch (\InvalidArgumentException $e) {
             $this->flash('error', $e->getMessage());
 
             return $this->render('pages/exams/form', $this->formData(null, $in));
         }
-        $this->ctx->audit->log('klausur_angelegt', 'info', 'Klausur #' . $id . ' angelegt.');
-        $this->flash('success', 'Die Klausur wurde als Entwurf angelegt. Als Nächstes kannst du Aufgaben erstellen.');
-        $this->redirect($this->examUrl($id));
+        $this->ctx->exams->forget($id);
+        // Probe (Technik-Check) hat keine Aufgaben: dann auf die Klausurseite, sonst gleich in den Editor.
+        if ($meta['mode'] === 'probe') {
+            $this->flash('success', 'Die Probe wurde als Entwurf angelegt.' . $note);
+            $this->redirect($this->examUrl($id));
+        }
+        $this->flash('success', 'Die Klausur wurde als Entwurf angelegt.' . $note . ' Lege jetzt die Aufgaben an, gespeichert wird automatisch.');
+        $this->redirect($this->examUrl($id, '/aufgaben'));
+    }
+
+    /**
+     * Vorlage für "Wie eine frühere Klausur". Für das Mitkopieren der Aufgaben braucht es Zugriff
+     * auf die Lösungen, sonst reicht Lesezugriff.
+     *
+     * @return array<string, mixed>
+     */
+    private function templateSource(int $id, bool $withTasks): array
+    {
+        try {
+            return $this->ctx->exams->require($id, $withTasks ? ExamAccess::CAP_SOLUTIONS : ExamAccess::CAP_VIEW);
+        } catch (HttpException) {
+            throw new \InvalidArgumentException($withTasks
+                ? 'Die Aufgaben dieser Klausur kannst du nicht übernehmen (kein Zugriff auf die Lösungen).'
+                : 'Diese Klausur steht als Vorlage nicht zur Verfügung.');
+        }
+    }
+
+    /**
+     * Frühere Klausuren als Vorlage: alle sichtbaren, die neuesten zuerst.
+     *
+     * @return list<array{id: int, title: string, course: ?string, date: ?string}>
+     */
+    private function templateOptions(): array
+    {
+        $ids = $this->ctx->exams->visibleExamIds();
+        if ($ids === []) {
+            return [];
+        }
+        $marks = implode(',', array_fill(0, count($ids), '?'));
+        $rows = $this->ctx->db->fetchAll(
+            "SELECT e.id, e.title, c.name AS course, COALESCE(e.scheduled_at, e.created_at) AS sort_at
+             FROM exams e LEFT JOIN courses c ON c.id = e.course_id
+             WHERE e.id IN ($marks) ORDER BY sort_at DESC, e.id DESC LIMIT 50",
+            array_values($ids),
+        );
+
+        return array_map(static fn (array $r): array => [
+            'id' => (int) $r['id'],
+            'title' => (string) $r['title'],
+            'course' => $r['course'] !== null ? (string) $r['course'] : null,
+            'date' => $r['sort_at'] !== null ? date('d.m.Y', (int) strtotime((string) $r['sort_at'])) : null,
+        ], $rows);
+    }
+
+    /** POST /klausuren/{id}/einstellungen/profil */
+    public function applyProfile(array $params): never
+    {
+        $this->requireStaff();
+        $this->requireCsrf();
+        $id = (int) $params['id'];
+        $exam = $this->ctx->exams->require($id, ExamAccess::CAP_EDIT);
+        $profile = (string) ($this->jsonInput()['profile'] ?? '');
+        if (!isset(ExamSettings::PROFILES[$profile])) {
+            throw new HttpException(400);
+        }
+        try {
+            $this->exams()->applyProfile($exam, $profile);
+            $this->flash('success', 'Profil "' . ExamSettings::PROFILES[$profile]['label'] . '" übernommen. Prüfe die Schalter und passe sie bei Bedarf an.');
+            $this->ctx->audit->log('klausur_einstellungen', 'info', 'Profil ' . $profile . ' auf Klausur #' . $id . ' angewendet.');
+        } catch (HttpException $e) {
+            $this->flash('error', $e->getMessage());
+        }
+        $this->ctx->exams->forget($id);
+        $this->redirect($this->examUrl($id, '/einstellungen'));
     }
 
     /** Eigene Kurse für Lehrkräfte; Admins und ALLE_KURSE dürfen jeden Kurs wählen. */
@@ -105,13 +201,20 @@ final class ExamsController extends Controller
     private function formData(?array $exam, array $old): array
     {
         $svc = $this->exams();
+        $courses = $svc->courseOptions((int) $this->ctx->auth->id(), $this->canSeeAllCourses());
+        // Neue Klausur mit genau einem eigenen Kurs: gleich vorauswählen.
+        if ($exam === null && !array_key_exists('course_id', $old) && count($courses) === 1) {
+            $old['course_id'] = (string) $courses[0]['id'];
+        }
 
         return [
             'title' => $exam === null ? 'Neue Klausur' : 'Stammdaten',
             'exam' => $exam,
             'old' => $old,
-            'courses' => $svc->courseOptions((int) $this->ctx->auth->id(), $this->canSeeAllCourses()),
+            'courses' => $courses,
             'rooms' => $svc->roomOptions(),
+            'profiles' => ExamSettings::PROFILES,
+            'templates' => $exam === null ? $this->templateOptions() : [],
             'pageStyles' => ['exams.css'],
         ];
     }
@@ -168,6 +271,9 @@ final class ExamsController extends Controller
             (string) ($old['mode'] ?? $exam['mode']),
         );
         $data['editable'] = ExamService::isEditable($exam);
+        $mode = (string) ($old['mode'] ?? $exam['mode']);
+        $data['activeProfile'] = ExamSettings::matchingProfile($data['settings'], $mode);
+        $data['advancedOpen'] = ExamSettings::advancedChanged($data['settings'], $mode);
 
         return $data;
     }

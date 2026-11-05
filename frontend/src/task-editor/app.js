@@ -2,13 +2,21 @@
  * Aufgaben-Editor: Baum links, Formular der gewählten Aufgabe rechts.
  * Zustand kommt als JSON-Block (#task-editor-boot), gespeichert wird über die JSON-API
  * unter boot.urls.api (siehe TasksController).
+ *
+ * Gespeichert wird automatisch kurz nach der letzten Änderung und vor jedem Wechsel, Verschieben
+ * oder Anlegen. Strg+S und der Knopf speichern sofort. Das Formular wird nach dem Speichern
+ * nicht neu aufgebaut, damit Fokus und Cursor bleiben, wo sie sind.
  */
 import { h, icon, toast } from '../lib/dom.js';
 import { bootData, post } from '../lib/api.js';
 import { editorSelectionOf, restoreEditorSelection } from '../lib/code-editor.js';
 import { captureFocus, restoreFocus } from '../lib/focus-keep.js';
 import { createTaskForm } from './form.js';
+import { typePicker } from './type-picker.js';
 import { button, isDeleteKey } from './ui.js';
+
+/** Wartezeit nach der letzten Eingabe bis zum automatischen Speichern. */
+export const AUTOSAVE_MS = 1200;
 
 export function initTaskEditor() {
     const root = document.getElementById('task-editor-app');
@@ -24,16 +32,17 @@ export function initTaskEditor() {
     let form = null;
     let dirty = false;
     let busy = false;
-    // Während des Speicherns getippte Änderungen: Das Formular darf dann nicht neu aufgebaut werden.
-    let saving = false;
+    let saving = null; // laufende Speicherung (Promise)
     let editedWhileSaving = false;
+    let timer = null;
+    let picking = false;
 
     const treeList = h('ul', { class: 'te-tree-list', role: 'listbox', 'aria-label': 'Aufgaben' });
     const total = h('div', { class: 'te-total' });
     const treeActions = h('div', { class: 'te-tree-actions' });
     const tree = h('aside', { class: 'card te-tree', 'aria-label': 'Aufgabenübersicht' }, h('h2', {}, 'Aufgaben'), treeList, total, treeActions);
     const statusEl = h('span', { class: 'te-status', role: 'status' }, '');
-    const saveBtn = h('button', { type: 'button', class: 'btn btn-primary', onclick: () => save() }, 'Speichern');
+    const saveBtn = h('button', { type: 'button', class: 'btn', onclick: () => save({ auto: false }), title: 'Speichert sofort (Strg+S). Sonst speichert der Editor automatisch.' }, icon('save'), 'Speichern');
     const toolbar = h('div', { class: 'te-toolbar' }, saveBtn, statusEl);
     const formHost = h('div', {});
     const main = h('section', { class: 'card te-main', 'aria-label': 'Aufgabe bearbeiten' }, toolbar, formHost);
@@ -42,16 +51,36 @@ export function initTaskEditor() {
     const byId = (id) => tasks.find((t) => t.id === id) ?? null;
     const childrenOf = (id) => tasks.filter((t) => t.parent_id === id);
 
+    function showStatus(text, kind = '') {
+        statusEl.textContent = text;
+        statusEl.classList.toggle('dirty', kind === 'dirty');
+        statusEl.classList.toggle('error', kind === 'error');
+    }
+
     function setDirty(flag) {
         dirty = flag;
-        statusEl.textContent = flag ? 'Ungespeicherte Änderungen' : (selectedId ? 'Gespeichert' : '');
-        statusEl.classList.toggle('dirty', flag);
+        if (flag) {
+            showStatus('Ungespeicherte Änderungen ...', 'dirty');
+        } else {
+            showStatus(selectedId && !picking ? 'Alles gespeichert' : '');
+        }
+    }
+
+    function scheduleAutosave() {
+        clearTimeout(timer);
+        timer = setTimeout(() => { save({ auto: true }); }, AUTOSAVE_MS);
     }
 
     window.addEventListener('beforeunload', (ev) => {
-        if (dirty) {
+        if (dirty || saving) {
+            save({ auto: true });
             ev.preventDefault();
             ev.returnValue = '';
+        }
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && dirty) {
+            save({ auto: true });
         }
     });
 
@@ -64,7 +93,7 @@ export function initTaskEditor() {
         treeList.replaceChildren();
         for (const t of tasks) {
             const li = h('li', {
-                class: `te-node depth-${t.depth}${t.id === selectedId ? ' active' : ''}`,
+                class: `te-node depth-${t.depth}${t.id === selectedId && !picking ? ' active' : ''}`,
                 role: 'option', tabindex: '0', 'aria-selected': t.id === selectedId ? 'true' : 'false',
                 onclick: () => select(t.id),
                 onkeydown: (ev) => {
@@ -74,12 +103,11 @@ export function initTaskEditor() {
                     } else if (isDeleteKey(ev) && !locked) {
                         // Entf oder Rücktaste: die Aufgabe in der Liste löschen (Rückfrage bleibt).
                         ev.preventDefault();
-                        if (t.id !== selectedId) {
-                            select(t.id);
-                        }
-                        if (selectedId === t.id) {
-                            remove();
-                        }
+                        select(t.id).then(() => {
+                            if (selectedId === t.id) {
+                                remove();
+                            }
+                        });
                     }
                 },
             },
@@ -97,7 +125,8 @@ export function initTaskEditor() {
 
         treeActions.replaceChildren();
         if (!locked) {
-            const sel = byId(selectedId);
+            // Während der Typauswahl gibt es keine gewählte Aufgabe, auf die sich die Knöpfe beziehen.
+            const sel = picking ? null : byId(selectedId);
             treeActions.append(
                 button([icon('plus'), 'Aufgabe'], () => addTask(null)),
                 button([icon('plus'), 'Teilaufgabe'], () => addTask(sel?.parent_id ?? sel?.id ?? null), { disabled: !sel }),
@@ -125,28 +154,33 @@ export function initTaskEditor() {
 
     const fmt = (n) => String(Math.round(Number(n) * 100) / 100).replace('.', ',');
 
-    function renderForm() {
+    function renderForm({ preset = null } = {}) {
+        // Wird dieselbe Aufgabe neu aufgebaut (etwa nach dem Verschieben), bleibt der Fokus im Feld.
+        const keep = form && !picking ? captureFocus(formHost, { extra: editorSelectionOf }) : null;
+        clearTimeout(timer);
+        picking = false;
         form?.destroy();
         form = null;
+        setDirty(false);
         const task = byId(selectedId);
         saveBtn.disabled = !task;
         if (!task) {
             formHost.replaceChildren(h('div', { class: 'te-empty' },
                 h('p', {}, 'Wähle links eine Aufgabe oder lege eine neue an.'),
                 locked ? null : button([icon('plus'), 'Erste Aufgabe anlegen'], () => addTask(null), { class: 'btn btn-primary' })));
-            setDirty(false);
             return;
         }
         form = createTaskForm({
-            host: formHost, task, boot, hasChildren: childrenOf(task.id).length > 0,
+            host: formHost, task, boot, hasChildren: childrenOf(task.id).length > 0, preset,
             onChange: () => {
                 setDirty(true);
                 if (saving) {
                     editedWhileSaving = true;
                 }
+                scheduleAutosave();
             },
         });
-        setDirty(false);
+        restoreFocus(formHost, keep, { extra: restoreEditorSelection });
     }
 
     function applyTasks(list, newSelected = selectedId) {
@@ -154,15 +188,27 @@ export function initTaskEditor() {
         selectedId = tasks.some((t) => t.id === newSelected) ? newSelected : (tasks[0]?.id ?? null);
     }
 
-    function confirmLeave() {
-        return !dirty || window.confirm('Es gibt ungespeicherte Änderungen an dieser Aufgabe. Wirklich wechseln und die Änderungen verwerfen?');
+    /** Speichert offene Änderungen. Gelingt das nicht, entscheidet die Lehrkraft, ob sie verworfen werden. */
+    async function flushOrConfirm() {
+        clearTimeout(timer);
+        for (let i = 0; i < 3 && (dirty || saving); i += 1) {
+            if (saving) {
+                await saving;
+                continue;
+            }
+            if (!(await save({ auto: true }))) {
+                break;
+            }
+        }
+        return !dirty || window.confirm('Die Änderungen an dieser Aufgabe ließen sich nicht speichern (Hinweis im Formular). Trotzdem weiter und die Änderungen verwerfen?');
     }
 
-    function select(id) {
-        if (id === selectedId || !confirmLeave()) {
+    async function select(id) {
+        if ((id === selectedId && !picking) || !(await flushOrConfirm())) {
             return;
         }
         selectedId = id;
+        picking = false;
         renderTree();
         renderForm();
     }
@@ -182,15 +228,41 @@ export function initTaskEditor() {
         return res;
     }
 
+    /** Neue Aufgabe: erst den Typ als Kachel wählen, dann wird sie angelegt. */
     async function addTask(parentId) {
-        if (!confirmLeave()) {
+        if (!(await flushOrConfirm())) {
             return;
         }
-        const res = await call('', { parent_id: parentId }, 'Aufgabe konnte nicht angelegt werden: ');
+        openPicker(parentId);
+    }
+
+    function openPicker(parentId) {
+        clearTimeout(timer);
+        form?.destroy();
+        form = null;
+        picking = true;
+        dirty = false;
+        saveBtn.disabled = true;
+        showStatus('');
+        const parent = parentId !== null ? byId(parentId) : null;
+        const picker = typePicker({
+            types: boot.types,
+            heading: parent ? `Neue Teilaufgabe zu ${parent.number}: Welcher Antworttyp?` : (tasks.length === 0 ? 'Erste Aufgabe: Welcher Antworttyp?' : 'Neue Aufgabe: Welcher Antworttyp?'),
+            onPick: (tile) => createTask(parentId, tile),
+            onCancel: tasks.length > 0 ? () => { picking = false; renderTree(); renderForm(); } : null,
+        });
+        formHost.replaceChildren(picker.el);
+        renderTree();
+        picker.focus();
+    }
+
+    async function createTask(parentId, tile) {
+        const res = await call('', { parent_id: parentId, answer_type: tile.type || null }, 'Aufgabe konnte nicht angelegt werden: ');
         if (res?.ok) {
             applyTasks(res.data.tasks, res.data.task_id);
+            picking = false;
             renderTree();
-            renderForm();
+            renderForm({ preset: { type: tile.type, config: tile.config } });
             form?.focus();
         }
     }
@@ -205,6 +277,10 @@ export function initTaskEditor() {
         if (!window.confirm(msg)) {
             return;
         }
+        clearTimeout(timer);
+        if (saving) {
+            await saving;
+        }
         const res = await call(`/${t.id}/loeschen`, {}, 'Löschen nicht möglich: ');
         if (res?.ok) {
             const idx = tasks.findIndex((x) => x.id === t.id);
@@ -217,11 +293,7 @@ export function initTaskEditor() {
 
     async function move(direction) {
         const t = byId(selectedId);
-        if (!t) {
-            return;
-        }
-        if (dirty) {
-            toast('Speichere zuerst deine Änderungen, bevor du die Aufgabe verschiebst.', 'warning');
+        if (!t || !(await flushOrConfirm())) {
             return;
         }
         const res = await call(`/${t.id}/verschieben`, { direction }, 'Verschieben nicht möglich: ');
@@ -232,60 +304,79 @@ export function initTaskEditor() {
         }
     }
 
-    async function save() {
+    /**
+     * Speichert die gewählte Aufgabe. auto: still (ohne Erfolgsmeldung), sonst mit Rückmeldung.
+     * @returns {Promise<boolean>} ob danach alles gespeichert ist
+     */
+    async function save({ auto }) {
+        clearTimeout(timer);
+        if (saving) {
+            await saving;
+        }
         const t = byId(selectedId);
-        if (!t || !form || busy) {
-            return;
+        if (!t || !form || picking) {
+            return true;
+        }
+        if (!dirty) {
+            if (!auto) {
+                toast('Alles gespeichert.', 'success', 2000);
+            }
+            return true;
         }
         form.clearErrors();
         const problems = form.validate();
         if (problems.length > 0) {
-            toast('Bitte prüfe die Eingaben im Antworttyp.', 'error');
-            return;
+            showStatus('Nicht gespeichert: Eingaben im Antworttyp prüfen', 'error');
+            if (!auto) {
+                toast('Bitte prüfe die Eingaben im Antworttyp.', 'error');
+            }
+            return false;
         }
-        // Fokus und Cursor merken: Das Formular wird nach dem Speichern neu aufgebaut, und der
-        // Speichern-Knopf ist währenddessen gesperrt. Ohne das fiele der Fokus auf die Seite.
-        const onSaveBtn = document.activeElement === saveBtn;
-        const scrollY = window.scrollY;
-        saving = true;
+        if (busy) {
+            // Anlegen, Verschieben oder Löschen läuft gerade: gleich noch einmal versuchen.
+            scheduleAutosave();
+            return false;
+        }
         editedWhileSaving = false;
-        saveBtn.disabled = true;
-        statusEl.textContent = 'Speichert ...';
-        const res = await call(`/${t.id}`, form.getPayload(), 'Speichern fehlgeschlagen: ');
-        saving = false;
-        saveBtn.disabled = false;
-        if (res?.ok) {
-            applyTasks(res.data.tasks, t.id);
-            renderTree();
-            if (editedWhileSaving) {
-                // Neue Eingaben seit dem Absenden behalten statt sie mit dem Serverstand zu überschreiben.
-                setDirty(true);
-                toast('Gespeichert. Was du seitdem geändert hast, ist noch nicht gespeichert.', 'info', 4000);
-            } else {
-                const focus = captureFocus(formHost, { extra: editorSelectionOf });
-                renderForm();
-                restoreFocus(formHost, focus, { extra: restoreEditorSelection });
-                window.scrollTo({ top: scrollY });
-                toast('Aufgabe gespeichert.', 'success', 2500);
-            }
-        } else {
-            statusEl.textContent = 'Nicht gespeichert';
+        showStatus('Speichert ...');
+        const run = call(`/${t.id}`, form.getPayload(), 'Speichern fehlgeschlagen: ');
+        saving = run;
+        const res = await run;
+        saving = null;
+        if (!res?.ok) {
+            showStatus('Nicht gespeichert', 'error');
             if (res && res.data?.field) {
-                form.showServerError(res.data.field, res.error);
+                form?.showServerError(res.data.field, res.error);
             }
+            return false;
         }
-        if (onSaveBtn) {
-            saveBtn.focus();
+        applyTasks(res.data.tasks, t.id);
+        renderTree();
+        if (editedWhileSaving) {
+            // Was seit dem Absenden getippt wurde, geht mit der nächsten Speicherung raus.
+            setDirty(true);
+            scheduleAutosave();
+            return false;
         }
+        setDirty(false);
+        if (!auto) {
+            toast('Aufgabe gespeichert.', 'success', 2000);
+        }
+        return true;
     }
 
     document.addEventListener('keydown', (ev) => {
         if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 's' && root.contains(document.activeElement)) {
             ev.preventDefault();
-            save();
+            save({ auto: false });
         }
     });
 
     renderTree();
-    renderForm();
+    if (tasks.length === 0 && !locked) {
+        // Neue Klausur: gleich mit der ersten Aufgabe beginnen.
+        openPicker(null);
+    } else {
+        renderForm();
+    }
 }

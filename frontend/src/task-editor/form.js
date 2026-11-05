@@ -42,9 +42,11 @@ function fallbackEditor(container, ctx) {
 }
 
 /**
- * @param {{host: HTMLElement, task: any, boot: any, hasChildren: boolean, onChange: () => void}} opts
+ * @param {{host: HTMLElement, task: any, boot: any, hasChildren: boolean, onChange: () => void,
+ *   preset?: {type: string, config?: object}}} opts
+ *   preset: Typ aus der Kachelauswahl für eine neue, noch typlose Aufgabe (wird gleich gespeichert).
  */
-export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
+export function createTaskForm({ host, task, boot, hasChildren, onChange, preset = null }) {
     const locked = !!boot.exam.locked;
     const s = {
         title: task.title ?? '',
@@ -209,7 +211,24 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
     });
 
     // ---------- Zusammenbau ----------
-    mountType({ config: clone(task.config), solution: clone(task.solution), files: clone(task.files ?? []), tests: clone(task.tests ?? []) });
+    // Voreinstellung aus der Kachelauswahl: Typ (falls noch keiner gespeichert ist) und Konfiguration
+    // (z. B. die Sprache bei Programmcode). Gilt nur für frisch angelegte Aufgaben ohne Teilaufgaben.
+    const usePreset = !!preset && preset.type !== '' && !hasChildren && !locked
+        && boot.types.some((t) => t.name === preset.type)
+        && (!task.answer_type || task.answer_type === preset.type);
+    if (usePreset) {
+        const def = boot.types.find((t) => t.name === preset.type);
+        const stored = task.answer_type === preset.type;
+        s.answer_type = preset.type;
+        typeSel.value = preset.type;
+        mountType({
+            config: { ...(stored ? clone(task.config) : clone(def?.defaultConfig)), ...clone(preset.config) },
+            solution: stored ? clone(task.solution) : clone(def?.defaultSolution),
+            files: clone(task.files ?? []), tests: clone(task.tests ?? []),
+        });
+    } else {
+        mountType({ config: clone(task.config), solution: clone(task.solution), files: clone(task.files ?? []), tests: clone(task.tests ?? []) });
+    }
     renderModel();
     updatePointsState();
     updateTestWarning();
@@ -234,6 +253,10 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange }) {
         h('div', { class: 'te-section' }, modelHost, expectationField.el),
     );
     host.replaceChildren(root);
+    if (usePreset && (task.answer_type !== preset.type || preset.config)) {
+        // Typ oder Voreinstellung ist noch nicht gespeichert: als Änderung melden, das Autosave übernimmt.
+        onChange();
+    }
 
     return {
         /** Vollständiger Stand für die Speicher-API. */

@@ -19,6 +19,9 @@ if ($scheduledValue !== '' && !str_contains($scheduledValue, 'T')) {
     $scheduledValue = $ts ? date('Y-m-d\TH:i', $ts) : '';
 }
 $disabled = isset($editable) && !$editable ? ' disabled' : '';
+// Beim Anlegen sind Raum, Termin und Beschreibung eingeklappt (optional), außer sie sind schon ausgefüllt.
+$collapseOptional = $exam === null;
+$optionalFilled = $mv('room_id') !== '' || $scheduledValue !== '' || $mv('description') !== '';
 ?>
 <div class="form-grid">
     <div class="field field-wide">
@@ -53,6 +56,11 @@ $disabled = isset($editable) && !$editable ? ' disabled' : '';
                value="<?= e($mv('duration_minutes')) ?>" placeholder="z. B. 90">
         <div class="hint">Bei Übungen darf die Dauer leer bleiben (ohne Zeitlimit).</div>
     </div>
+<?php if ($collapseOptional): ?>
+    <details class="field-wide form-more"<?= $optionalFilled ? ' open' : '' ?>>
+        <summary>Weitere Angaben (optional): Raum, Termin, Beschreibung</summary>
+        <div class="form-grid">
+<?php endif; ?>
     <div class="field">
         <label for="room_id">Raum</label>
         <select id="room_id" name="room_id"<?= $disabled ?>>
@@ -70,4 +78,8 @@ $disabled = isset($editable) && !$editable ? ' disabled' : '';
         <label for="description">Beschreibung (intern)</label>
         <textarea class="input" id="description" name="description" rows="3" maxlength="5000"<?= $disabled ?>><?= e($mv('description')) ?></textarea>
     </div>
+<?php if ($collapseOptional): ?>
+        </div>
+    </details>
+<?php endif; ?>
 </div>
