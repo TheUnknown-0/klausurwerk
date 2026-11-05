@@ -11,7 +11,7 @@ use App\Core\Database;
  *
  * Konto und IP werden GETRENNT gezählt, nicht über ODER zusammengeworfen:
  * Eine Schule sitzt hinter einer einzigen öffentlichen IP. Eine gemeinsame
- * Grenze von zehn Fehlversuchen würde am Morgen des Aktionstags, wenn sich hunderte
+ * Grenze von zehn Fehlversuchen würde am Morgen eines Klausurtags, wenn sich hunderte
  * Schüler:innen anmelden und sich einige vertippen, den Login für ALLE
  * sperren. Deshalb:
  *

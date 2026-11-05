@@ -112,7 +112,15 @@ final class StudentExamController extends Controller
         $needsCode = !empty($settings['require_access_code']) && (string) ($exam['access_code'] ?? '') !== ''
             && ($participation === null || DeviceBinding::check($participation, DeviceBinding::tokenFromRequest($examId)) !== DeviceBinding::OK);
 
-        $boot = ExamContent::boot($exam, $user, (string) $this->ctx->config['app']['base_url'], false, $needsCode, SebGuard::headerPresent());
+        $boot = ExamContent::boot(
+            $exam,
+            $user,
+            (string) $this->ctx->config['app']['base_url'],
+            false,
+            $needsCode,
+            SebGuard::headerPresent(),
+            $this->ctx->settings->getInt('heartbeat_ms', ExamContent::HEARTBEAT_DEFAULT_MS),
+        );
 
         return $this->render('pages/student/exam', [
             'title' => (string) $exam['title'],

@@ -84,22 +84,6 @@ final class AccessCards
     }
 
     /**
-     * Aktive Schüler:innen eines Kurses.
-     *
-     * @return list<int>
-     */
-    public function activeStudentIdsOfCourse(int $courseId): array
-    {
-        $rows = $this->db->fetchAll(
-            "SELECT u.id FROM course_members cm JOIN users u ON u.id = cm.user_id
-             WHERE cm.course_id = ? AND u.role = 'student' AND u.is_active = 1",
-            [$courseId],
-        );
-
-        return array_map('intval', array_column($rows, 'id'));
-    }
-
-    /**
      * Baut das PDF (8 Karten je A4-Seite) und gibt die Bytes zurück.
      *
      * @param list<array{name: string, username: string, courses: string, password: string}> $cards

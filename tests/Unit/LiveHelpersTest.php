@@ -15,7 +15,7 @@ final class LiveHelpersTest extends TestCase
 {
     protected function tearDown(): void
     {
-        unset($_SERVER['HTTPS'], $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI'], $_SERVER['HTTP_X_FORWARDED_PROTO'], $_SERVER[SebGuard::HEADER]);
+        unset($_SERVER['HTTPS'], $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI'], $_SERVER['HTTP_X_FORWARDED_PROTO'], $_SERVER['REMOTE_ADDR'], $_SERVER[SebGuard::HEADER]);
     }
 
     public function testClientPayloadWithMsKeyIsToleratedAsDuration(): void
@@ -152,13 +152,18 @@ final class LiveHelpersTest extends TestCase
         self::assertSame('https://klausur.schule.example/klausur/3', $guard->absoluteUrl());
     }
 
-    public function testSebGuardHonoursForwardedProto(): void
+    public function testSebGuardHonoursForwardedProtoOnlyFromTrustedProxy(): void
     {
         $_SERVER['HTTP_HOST'] = 'k.example';
         $_SERVER['REQUEST_URI'] = '/x';
         $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
         $guard = new SebGuard(null, $this->eventsStub());
-        self::assertSame('https://k.example/x', $guard->absoluteUrl());
+
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        self::assertSame('https://k.example/x', $guard->absoluteUrl(), 'Loopback-Proxy gilt als vertrauenswürdig');
+
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+        self::assertSame('http://k.example/x', $guard->absoluteUrl(), 'ein beliebiger Rechner darf das Schema nicht vorgeben');
     }
 
     public function testSebGuardPassesWithoutRequirementAndFailsWithoutKeyOrHeader(): void

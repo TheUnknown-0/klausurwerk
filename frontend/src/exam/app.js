@@ -23,7 +23,10 @@ import { collectLive } from './live-collect.js';
 import { PICK_GRACE_MS, ScreenShare } from './screenshare.js';
 import { acceptsLive, liveRequired, shareRequired } from './live-logic.js';
 
-const PULSE_MS = 2000;
+/** Herzschlag: Standard und Grenzen wie die Einstellung heartbeat_ms auf dem Server. */
+const PULSE_DEFAULT_MS = 2000;
+const PULSE_MIN_MS = 500;
+const PULSE_MAX_MS = 30000;
 const CONTENT_STATES = new Set(['active', 'locked', 'absent', 'paused', 'submit_requested']);
 
 const ss = {
@@ -106,7 +109,10 @@ export class ExamApp {
         this.currentOverlay = null;
         this.timeUpShown = false;
         this.fatal = false;
+        // Lokale Sicherung je Person: die Benutzer-ID, nie der Anzeigename (Namen können sich gleichen).
         this.userKey = String(boot?.user?.id ?? boot?.user?.name ?? 'anon');
+        const pulse = Number(boot?.heartbeat_ms);
+        this.pulseMs = Number.isFinite(pulse) && pulse > 0 ? Math.min(PULSE_MAX_MS, Math.max(PULSE_MIN_MS, pulse)) : PULSE_DEFAULT_MS;
     }
 
     get monitorEnabled() {
@@ -356,7 +362,7 @@ export class ExamApp {
             console.warn('Herzschlag-Auswertung fehlgeschlagen', err);
         }
         if (!this.pulseStopped) {
-            this.pulseTimer = setTimeout(() => this.pulse(), Math.max(200, PULSE_MS - rtt));
+            this.pulseTimer = setTimeout(() => this.pulse(), Math.max(200, this.pulseMs - rtt));
         }
     }
 
@@ -368,12 +374,29 @@ export class ExamApp {
             this.viewHost.querySelector('.wait-card')?.append(a);
             return;
         }
+        if (!res.transient && res.status >= 400) {
+            // Der Server ist erreichbar, lehnt aber ab (z. B. SEB-Header fehlt, nicht mehr im Kurs):
+            // das ist kein Verbindungsproblem, die Meldung des Servers muss sichtbar werden.
+            this.pulseRejected = true;
+            if (this.view) {
+                this.view.banner('pulse', res.error, { type: 'error', dismissible: false });
+            } else {
+                this.joinError = res.error;
+                this.phase = 'error';
+                this.updateWaiting();
+            }
+            return;
+        }
         this.pulseFails += 1;
         this.updateConnection();
     }
 
     onPulseOk(d, rtt) {
         this.pulseFails = 0;
+        if (this.pulseRejected) {
+            this.pulseRejected = false;
+            this.view?.clearBanner('pulse');
+        }
         if (typeof d.server_time_ms === 'number') {
             this.offset = d.server_time_ms - (Date.now() - rtt / 2);
         }

@@ -86,8 +86,11 @@ services:
       APP_ENV: ${APP_ENV:-production}
       BASE_URL: ${BASE_URL:-/}
       DB_WAIT_TIMEOUT: ${DB_WAIT_TIMEOUT:-120}
-      # Nur diese Adressen dürfen X-Forwarded-For setzen. Leer = niemand.
+      # Nur diese Adressen dürfen X-Forwarded-For und X-Forwarded-Proto setzen. Leer = niemand.
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+      # 1 = Cookies immer mit Secure-Flag (hinter einem HTTPS-Proxy, dessen Adresse nicht in
+      # TRUSTED_PROXIES steht). Sonst folgt das Flag aus HTTPS bzw. X-Forwarded-Proto.
+      SECURE_COOKIES: ${SECURE_COOKIES:-}
       RUNNER_URL: http://runner:8080
       RUNNER_TOKEN: ${RUNNER_TOKEN}
       # E-Mail-Versand (Anmeldecodes). Leer = Versand deaktiviert.
@@ -102,8 +105,10 @@ services:
       - uploads:/var/www/html/uploads
     # Live-Wand: Live-Zustand und Bildschirm-Standbilder nur im Arbeitsspeicher, nie auf der
     # Platte. www-data ist uid/gid 33. Beim Klausurende wird alles gelöscht.
+    # Platzbedarf: je Raum mit Bildschirmfreigabe etwa 35 x 600 KB; ist das tmpfs voll,
+    # bleiben im Pult alte Bilder stehen. 256 MB reichen für etwa zehn Räume gleichzeitig.
     tmpfs:
-      - /run/klausurwerk-live:size=64m,mode=0700,uid=33,gid=33
+      - /run/klausurwerk-live:size=${LIVE_DIR_SIZE:-256m},mode=0700,uid=33,gid=33
     # "default" muss ausdrücklich dabeistehen: sobald ein Service eigene
     # Netze nennt, fällt das implizite Standardnetz weg.
     networks:

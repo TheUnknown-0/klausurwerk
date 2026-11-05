@@ -54,15 +54,25 @@ Fertige Images aus der GitHub Container Registry statt lokal bauen: in `.env`
 | `APP_PORT` | `9030` | Host-Port |
 | `APP_ENV` | `production` | `development` zeigt Fehlerdetails |
 | `BASE_URL` | `/` | Basis-Pfad bei Betrieb im Unterverzeichnis |
-| `TRUSTED_PROXIES` | *(leer)* | Adressen der eigenen Reverse-Proxys |
+| `TRUSTED_PROXIES` | *(leer)* | Adressen oder CIDR-Bereiche der eigenen Reverse-Proxys. Nur von dort gelten `X-Forwarded-For` (Client-IP) und `X-Forwarded-Proto` (HTTPS für Cookies, QR-Codes und SEB-Prüfung). **Hinter einem Proxy Pflicht.** |
+| `SECURE_COOKIES` | *(leer)* | `1` erzwingt das Secure-Flag der Cookies; nötig nur, wenn HTTPS am Proxy endet und `TRUSTED_PROXIES` nicht passt |
+| `LIVE_DIR_SIZE` | `256m` | tmpfs der Live-Wand (je Raum mit Bildschirmfreigabe etwa 25 MB) |
 | `RUNNER_MAX_PARALLEL` | `4` | gleichzeitige Java-Läufe, weitere warten |
 | `RUNNER_MAX_SECONDS` | `10` | CPU-Zeit je Lauf |
 | `RUNNER_MAX_MEMORY_MB` | `256` | Heap je Java-Lauf |
 | `RUNNER_MEM_LIMIT` / `RUNNER_CPUS` | `2g` / `2` | Grenzen des Runner-Containers |
+| `RUNNER_TIMEOUT` | `20` | Wartezeit der App auf Runner-Antworten in Sekunden |
+| `DB_WAIT_TIMEOUT` | `120` | Wartezeit auf die Datenbank beim Start in Sekunden |
 | `MAIL_*` | *(leer)* | SMTP für Anmeldecodes; leer = Codes abgeschaltet |
 
 **Mindestanforderungen:** 2 CPU-Kerne und 4 GB RAM für einen Raum mit etwa 35 Schüler:innen.
-Für mehrere Räume gleichzeitig `RUNNER_CPUS`, `RUNNER_MEM_LIMIT` und `RUNNER_MAX_PARALLEL` erhöhen.
+Für mehrere Räume gleichzeitig `RUNNER_CPUS`, `RUNNER_MEM_LIMIT` und `RUNNER_MAX_PARALLEL` erhöhen;
+bei Bildschirmfreigabe in vielen Räumen auch `LIVE_DIR_SIZE`.
+
+**Hinter einem Reverse-Proxy mit HTTPS:** `TRUSTED_PROXIES` auf die Adresse oder das Netz des Proxys
+setzen (bei Docker z. B. das Subnetz von `proxy_network`). Ohne diesen Eintrag sieht die App nur
+HTTP: Cookies gehen ohne Secure-Flag raus, und QR-Codes sowie SEB-Dateien bekommen falsche Adressen,
+solange in den Einstellungen keine öffentliche Adresse hinterlegt ist.
 
 ## Betrieb
 
@@ -72,7 +82,11 @@ Für mehrere Räume gleichzeitig `RUNNER_CPUS`, `RUNNER_MEM_LIMIT` und `RUNNER_M
 | `/readyz` | Vollständig bereit inkl. Datenbank (`200` / `503`). |
 
 Migrationen laufen beim Container-Start, abgesichert über eine Datenbanksperre.
-Alle Container haben Healthchecks und `restart: unless-stopped`.
+Alle Container haben Healthchecks und `restart: unless-stopped`. Das Dashboard zeigt Admins,
+wenn der Runner nicht erreichbar ist, der Mailserver fehlt oder Aufbewahrungsfristen überschritten sind.
+
+Verwaiste Dateien unter `uploads/` (ohne Datenbankzeile, z. B. nach Datenbankimporten) findet
+`docker compose exec app php bin/cleanup.php`; mit `--delete` werden sie entfernt.
 
 ## Entwicklung und Tests
 

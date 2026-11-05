@@ -36,5 +36,4 @@ Options -Indexes
     ExpiresByType application/wasm "access plus 30 days"
 </IfModule>
 
-php_value upload_max_filesize 20M
-php_value post_max_size 24M
+# Upload-Grenzen stehen nur in config/php.ini (sonst gälten hier stillschweigend andere Werte).

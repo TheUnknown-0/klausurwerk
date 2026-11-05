@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\HttpException;
+use App\Core\Request;
 
 /**
  * Safe-Exam-Browser-Prüfung. Verlangt die Klausur SEB (settings.require_seb), muss jede Anfrage den
@@ -109,9 +110,7 @@ final class SebGuard
             }
         }
 
-        $https = (($_SERVER['HTTPS'] ?? 'off') !== 'off' && ($_SERVER['HTTPS'] ?? '') !== '')
-            || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
-
-        return ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        // Schema und Host wie bei Cookies und QR-Codes (X-Forwarded-Proto nur von vertrauenswürdigen Proxys).
+        return Request::origin();
     }
 }

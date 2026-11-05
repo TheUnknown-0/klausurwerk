@@ -106,18 +106,6 @@ final class Auth
         return in_array($permission, $this->permissions(), true);
     }
 
-    /** Hat der Nutzer mindestens eine der Berechtigungen? */
-    public function canAny(string ...$permissions): bool
-    {
-        foreach ($permissions as $permission) {
-            if ($this->can($permission)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /** @return list<string> Effektive granulare Berechtigungen des Nutzers. */
     public function permissions(): array
     {

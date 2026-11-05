@@ -16,6 +16,11 @@ use App\Services\TaskTypes\TaskTypeRegistry;
  */
 final class ExamContent
 {
+    /** Herzschlag der Schüleransicht in Millisekunden (Einstellung heartbeat_ms). */
+    public const HEARTBEAT_DEFAULT_MS = 2000;
+    public const HEARTBEAT_MIN_MS = 500;
+    public const HEARTBEAT_MAX_MS = 30000;
+
     /** @var callable(string): ?TaskTypes\TaskType */
     private $typeResolver;
 
@@ -257,7 +262,7 @@ final class ExamContent
      * @param array<string, mixed> $user
      * @return array<string, mixed>
      */
-    public static function boot(array $exam, array $user, string $baseUrl, bool $preview, bool $needsAccessCode, bool $sebDetected): array
+    public static function boot(array $exam, array $user, string $baseUrl, bool $preview, bool $needsAccessCode, bool $sebDetected, int $heartbeatMs = self::HEARTBEAT_DEFAULT_MS): array
     {
         $settings = ExamAccess::settingsOf($exam);
         $norm = ExamSettings::normalize($settings, (string) $exam['mode']);
@@ -267,8 +272,11 @@ final class ExamContent
             'mode' => (string) $exam['mode'],
             'preview' => $preview,
             'title' => (string) $exam['title'],
-            'user' => ['name' => display_name($user)],
+            // Die id trennt lokale Sicherungen (IndexedDB) verschiedener Personen am selben Gerät.
+            'user' => ['id' => (int) $user['id'], 'name' => display_name($user)],
             'api_base' => $baseUrl . '/api/klausur/' . (int) $exam['id'],
+            // Takt des Herzschlags (Einstellung heartbeat_ms, Grenzen wie SettingsController).
+            'heartbeat_ms' => max(self::HEARTBEAT_MIN_MS, min(self::HEARTBEAT_MAX_MS, $heartbeatMs)),
             'needs_access_code' => $needsAccessCode,
             'seb' => ['required' => !empty($settings['require_seb']), 'detected' => $sebDetected],
             // Live-Wand: im Warteraum noch ohne Inhalt bekannt (Schritt "Bildschirm freigeben").

@@ -6,6 +6,9 @@ declare(strict_types=1);
  * Zentrale Konfiguration, liest Umgebungsvariablen mit sinnvollen Defaults.
  */
 
+// Ohne Autoloader geladen: bin/migrate.php liest die Konfiguration direkt.
+require_once dirname(__DIR__) . '/src/Core/Request.php';
+
 $env = static fn (string $key, ?string $default = null): ?string => (
     ($v = getenv($key)) !== false && $v !== '' ? $v : $default
 );
@@ -14,9 +17,9 @@ return [
     'app' => [
         'env' => $env('APP_ENV', 'production'),
         'base_url' => rtrim($env('BASE_URL', '/'), '/'),
-        // Secure-Cookie-Flag automatisch bei HTTPS, per Env erzwingbar.
-        'secure_cookies' => $env('SECURE_COOKIES') === '1'
-            || (($_SERVER['HTTPS'] ?? '') !== '' && ($_SERVER['HTTPS'] ?? 'off') !== 'off'),
+        // Secure-Cookie-Flag automatisch bei HTTPS (direkt oder per X-Forwarded-Proto eines
+        // vertrauenswürdigen Proxys, siehe TRUSTED_PROXIES), per SECURE_COOKIES=1 erzwingbar.
+        'secure_cookies' => $env('SECURE_COOKIES') === '1' || \App\Core\Request::isHttps(),
     ],
     'db' => [
         'host' => $env('DB_HOST', '127.0.0.1'),
@@ -34,10 +37,12 @@ return [
         'from_address' => $env('MAIL_FROM_ADDRESS', ''),
         'from_name' => $env('MAIL_FROM_NAME', 'Klausurwerk'),
     ],
+    // Upload-Grenzen je Art stehen bei den Diensten (Materials::MAX_BYTES, Antwortdateien im
+    // StudentExamController, Klausur-Import im ExamTransferController); die PHP-Obergrenzen
+    // dazu in config/php.ini.
     'uploads' => [
         'dir' => dirname(__DIR__) . '/uploads',
         'max_logo_bytes' => 2 * 1024 * 1024,
-        'max_document_bytes' => 20 * 1024 * 1024,
     ],
     // Java-Runner (eigener Container, nur im internen Netz erreichbar).
     'runner' => [

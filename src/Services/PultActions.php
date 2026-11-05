@@ -449,7 +449,9 @@ final class PultActions
         $old = (int) $p['extra_minutes'];
         $new = max(0, min(self::MAX_EXTRA_MINUTES * 2, $old + $minutes));
         if ($new === $old) {
-            throw new \DomainException('Es gibt keine Zusatzzeit, die zurückgenommen werden könnte.');
+            throw new \DomainException($minutes > 0
+                ? 'Die Zusatzzeit ist schon am Höchstwert (' . (self::MAX_EXTRA_MINUTES * 2) . ' Minuten).'
+                : 'Es gibt keine Zusatzzeit, die zurückgenommen werden könnte.');
         }
         $this->db->run('UPDATE participations SET extra_minutes = ? WHERE id = ?', [$new, $id]);
 

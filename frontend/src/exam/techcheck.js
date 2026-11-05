@@ -106,7 +106,9 @@ export class TechCheck {
         }
         this.setBadge(r.seb, 'info', this.o.seb ? 'erkannt' : 'nicht erkannt');
         r.screen.detail.textContent = this.screenText();
-        this.setBadge(r.screen, 'success', 'ok');
+        // Unter 1024 x 600 passen Aufgabe und Editor nicht mehr nebeneinander.
+        const small = window.innerWidth < 1024 || window.innerHeight < 600;
+        this.setBadge(r.screen, small ? 'warning' : 'success', small ? 'klein' : 'ok');
     }
 
     screenText() {

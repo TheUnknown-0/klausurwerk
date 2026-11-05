@@ -127,30 +127,26 @@ final class Retention
     public function deleteExam(int $examId, string $uploadsDir): array
     {
         $materials = $this->db->fetchAll('SELECT stored_name FROM exam_materials WHERE exam_id = ?', [$examId]);
-        $answerFiles = $this->db->fetchAll(
-            'SELECT af.stored_name FROM answer_files af
-             JOIN participations p ON p.id = af.participation_id WHERE p.exam_id = ?',
-            [$examId],
-        );
+        // Antwortdateien über denselben Dienst wie ExamService::delete und UsersController::destroy.
+        $answers = (new AnswerFiles($this->db, $uploadsDir))->deleteFilesOfExam($examId);
 
         $this->db->run('DELETE FROM exams WHERE id = ?', [$examId]);
+        (new LiveStore())->clearExam($examId);
 
-        $files = 0;
-        $missing = 0;
-        foreach ([['materials', $materials], ['answers', $answerFiles]] as [$subdir, $list]) {
-            foreach ($list as $row) {
-                $name = (string) $row['stored_name'];
-                // Nur einfache Dateinamen, nie Pfade.
-                if ($name === '' || $name !== basename($name) || str_contains($name, '..')) {
-                    $missing++;
-                    continue;
-                }
-                $path = rtrim($uploadsDir, '/\\') . '/' . $subdir . '/' . $name;
-                if (is_file($path) && @unlink($path)) {
-                    $files++;
-                } else {
-                    $missing++;
-                }
+        $files = $answers['files'];
+        $missing = $answers['missing'];
+        foreach ($materials as $row) {
+            $name = (string) $row['stored_name'];
+            // Nur einfache Dateinamen, nie Pfade.
+            if ($name === '' || $name !== basename($name) || str_contains($name, '..')) {
+                $missing++;
+                continue;
+            }
+            $path = rtrim($uploadsDir, '/\\') . '/' . Materials::SUBDIR . '/' . $name;
+            if (is_file($path) && @unlink($path)) {
+                $files++;
+            } else {
+                $missing++;
             }
         }
 

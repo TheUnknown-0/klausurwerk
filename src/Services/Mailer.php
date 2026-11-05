@@ -144,7 +144,7 @@ final class Mailer
 
     private function buildMessage(string $toEmail, string $toName, string $subject, string $text, string $html): string
     {
-        $boundary = 'gat-' . bin2hex(random_bytes(12));
+        $boundary = 'kw-' . bin2hex(random_bytes(12));
         $fromHeader = $this->encodeHeaderWord($this->config['from_name']) . ' <' . $this->config['from_address'] . '>';
         $toHeader = $toName !== '' ? $this->encodeHeaderWord($toName) . ' <' . $toEmail . '>' : $toEmail;
 

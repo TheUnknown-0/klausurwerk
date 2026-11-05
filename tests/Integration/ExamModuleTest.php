@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use App\Core\HttpException;
+use App\Services\AnswerFiles;
 use App\Services\ExamExport;
 use App\Services\ExamService;
 use App\Services\Materials;
@@ -32,7 +33,7 @@ final class ExamModuleTest extends DatabaseTestCase
         mkdir($this->uploadDir, 0775, true);
         $this->materials = new Materials($this->db, $this->uploadDir);
         $this->tasks = new TaskService($this->db, $this->materials);
-        $this->exams = new ExamService($this->db, $this->tasks, $this->materials);
+        $this->exams = new ExamService($this->db, $this->tasks, $this->materials, new AnswerFiles($this->db, $this->uploadDir));
         $this->export = new ExamExport($this->db, $this->tasks, $this->materials);
 
         $this->db->run("INSERT INTO users (username, firstname, lastname, role) VALUES (?, 'Lena', 'Lehrer', 'teacher')", ['lehrer' . bin2hex(random_bytes(3))]);
@@ -42,10 +43,12 @@ final class ExamModuleTest extends DatabaseTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        foreach (glob($this->uploadDir . '/materials/*') ?: [] as $f) {
-            @unlink($f);
+        foreach (['materials', 'answers'] as $subdir) {
+            foreach (glob($this->uploadDir . '/' . $subdir . '/*') ?: [] as $f) {
+                @unlink($f);
+            }
+            @rmdir($this->uploadDir . '/' . $subdir);
         }
-        @rmdir($this->uploadDir . '/materials');
         @rmdir($this->uploadDir);
     }
 
@@ -153,6 +156,59 @@ final class ExamModuleTest extends DatabaseTestCase
         $code = $after['access_code'];
         $this->exams->saveSettings($after, ['title' => 'Neu', 'mode' => 'exam', 'duration_minutes' => '45', 'settings' => ['require_access_code' => '1']]);
         self::assertSame($code, $this->exam($id)['access_code']);
+    }
+
+    public function testLoeschenEntferntAuchAntwortdateien(): void
+    {
+        $id = $this->newExam();
+        $taskId = $this->tasks->create($this->exam($id), null, 'drawing');
+        $this->db->run("INSERT INTO users (username, firstname, lastname, role) VALUES (?, 'Sina', 'Schüler', 'student')", ['s' . bin2hex(random_bytes(3))]);
+        $studentId = $this->db->lastInsertId();
+        $this->db->run(
+            "INSERT INTO participations (exam_id, user_id, state, state_changed_at, joined_at, last_seen_at) VALUES (?, ?, 'submitted', NOW(3), NOW(3), NOW(3))",
+            [$id, $studentId],
+        );
+        $pid = $this->db->lastInsertId();
+
+        mkdir($this->uploadDir . '/answers', 0775, true);
+        $stored = bin2hex(random_bytes(16)) . '.png';
+        $path = $this->uploadDir . '/answers/' . $stored;
+        file_put_contents($path, base64_decode(self::PNG));
+        $this->db->run(
+            'INSERT INTO answer_files (participation_id, task_id, original_name, stored_name, mime, size_bytes) VALUES (?, ?, ?, ?, ?, ?)',
+            [$pid, $taskId, 'skizze.png', $stored, 'image/png', 68],
+        );
+        $this->db->run("UPDATE exams SET status = 'archived' WHERE id = ?", [$id]);
+
+        self::assertFileExists($path);
+        $this->exams->delete($this->exam($id));
+        self::assertFileDoesNotExist($path, 'Die Kaskade löscht nur die Zeile, die Datei muss der Dienst entfernen');
+        self::assertNull($this->db->fetchOne('SELECT id FROM exams WHERE id = ?', [$id]));
+    }
+
+    public function testAntwortdateienEinerPersonLoeschen(): void
+    {
+        $id = $this->newExam();
+        $taskId = $this->tasks->create($this->exam($id), null, 'drawing');
+        $this->db->run("INSERT INTO users (username, firstname, lastname, role) VALUES (?, 'Sina', 'Schüler', 'student')", ['s' . bin2hex(random_bytes(3))]);
+        $studentId = $this->db->lastInsertId();
+        $this->db->run("INSERT INTO participations (exam_id, user_id, state) VALUES (?, ?, 'submitted')", [$id, $studentId]);
+        $pid = $this->db->lastInsertId();
+        mkdir($this->uploadDir . '/answers', 0775, true);
+        $stored = bin2hex(random_bytes(16)) . '.png';
+        file_put_contents($this->uploadDir . '/answers/' . $stored, 'x');
+        $this->db->run(
+            'INSERT INTO answer_files (participation_id, task_id, original_name, stored_name, mime, size_bytes) VALUES (?, ?, ?, ?, ?, ?)',
+            [$pid, $taskId, 'a.png', $stored, 'image/png', 1],
+        );
+        $this->db->run(
+            'INSERT INTO answer_files (participation_id, task_id, original_name, stored_name, mime, size_bytes) VALUES (?, ?, ?, ?, ?, ?)',
+            [$pid, $taskId, 'weg.png', 'fehlt.png', 'image/png', 1],
+        );
+
+        $result = (new AnswerFiles($this->db, $this->uploadDir))->deleteFilesOfUser($studentId);
+        self::assertSame(['files' => 1, 'missing' => 1], $result);
+        self::assertFileDoesNotExist($this->uploadDir . '/answers/' . $stored);
     }
 
     public function testEinstellungenNachStartGesperrt(): void

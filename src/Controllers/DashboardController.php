@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Core\Permissions as P;
 use App\Services\CourseService;
 use App\Services\Retention;
+use App\Services\RunnerClient;
 
 /**
  * Startseite für Lehrkräfte und Admins: eigene Klausuren nach Zustand, eigene Kurse,
@@ -98,6 +99,14 @@ final class DashboardController extends Controller
             $hints[] = [
                 'level' => 'error',
                 'text' => 'RUNNER_TOKEN ist leer. Ohne dieses Geheimnis kann die App keinen Code im Runner ausführen.',
+                'url' => null,
+                'link' => null,
+            ];
+        } elseif (!(new RunnerClient((array) ($config['runner'] ?? [])))->health()) {
+            // Kurzer Verbindungstest (3 s), damit das vor der Klausur auffällt und nicht erst beim ersten "Ausführen".
+            $hints[] = [
+                'level' => 'error',
+                'text' => 'Der Runner (Java-Ausführung und automatische Tests) ist nicht erreichbar. Container "runner" und RUNNER_URL prüfen.',
                 'url' => null,
                 'link' => null,
             ];

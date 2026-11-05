@@ -36,8 +36,9 @@ Die Klausurseite enthält einen JSON-Bootstrap-Block:
   "mode": "exam",
   "preview": false,
   "title": "Klausur Q1: Listen",
-  "user": { "name": "Mia Muster" },
+  "user": { "id": 57, "name": "Mia Muster" },
   "api_base": "/api/klausur/12",
+  "heartbeat_ms": 2000,
   "needs_access_code": false,
   "seb": { "required": false, "detected": false },
   "assets": {
@@ -102,7 +103,7 @@ Teilnahme nicht `waiting`); vorher 409. Vorschau (Lehrkraft): immer.
 `config` ist `TaskType::studentConfig()` (gemischt, mit gerenderten `text_html`-Feldern für Optionen).
 `operators` nur, wenn `settings.aids.operators` aktiv ist (sonst leere Liste).
 
-### 1.4 `POST /api/klausur/{id}/puls` (Herzschlag, alle 2 s)
+### 1.4 `POST /api/klausur/{id}/puls` (Herzschlag, Takt `heartbeat_ms` aus dem Startblock, Standard 2 s)
 
 Request:
 ```json

@@ -102,7 +102,7 @@ alle 5 s ein kleines Bild; im Fokus (Pult setzt `POST /api/pult/{id}/fokus`, gil
 pro Sekunde in groß. Endpunkte: `docs/API.md` Abschnitte 3.7 und 7.
 
 Datenschutz: **nichts wird persistent gespeichert.** `Services\LiveStore` hält Live-Zustand und Bilder
-nur im Arbeitsspeicher (tmpfs `/run/klausurwerk-live`, `LIVE_DIR`, 64 MB, nur `www-data`), je Teilnahme
+nur im Arbeitsspeicher (tmpfs `/run/klausurwerk-live`, `LIVE_DIR`, Größe `LIVE_DIR_SIZE`, Standard 256 MB, nur `www-data`), je Teilnahme
 nur das jeweils letzte, Einträge älter als 120 s gelten als veraltet. Nichts davon in der Datenbank.
 Beim Übergang der Klausur in `finished` (`PultActions::finish`), beim Löschen und beim Archivieren wird
 das Klausurverzeichnis gelöscht. Dateinamen entstehen nur aus int-IDs. Beendet oder verweigert jemand

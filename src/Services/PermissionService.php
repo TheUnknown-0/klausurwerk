@@ -72,22 +72,6 @@ final class PermissionService
         return $map;
     }
 
-    /**
-     * Effektive Rechte: direkt + über Gruppen + Rollen-Standards.
-     * (admin hat laut Auth implizit alle Rechte, das wird
-     * hier bewusst NICHT aufgelöst, die Anzeige weist gesondert darauf hin.)
-     *
-     * @return list<string>
-     */
-    public function effectivePermissions(int $userId, string $role): array
-    {
-        return self::sanitize([
-            ...$this->directPermissions($userId),
-            ...array_keys($this->permissionsByGroup($userId)),
-            ...Permissions::defaultsForRole($role),
-        ]);
-    }
-
     // ---------- Erteilen & Entziehen ----------
 
     /**
@@ -212,15 +196,6 @@ final class PermissionService
                 'denied' => array_values(array_unique($denied)),
             ];
         });
-    }
-
-    /** Entfernt alle direkten Rechte eines Benutzers (z. B. bei Rollenwechsel). */
-    public function clearDirect(int $userId): int
-    {
-        $count = count($this->directPermissions($userId));
-        $this->db->run('DELETE FROM user_permissions WHERE user_id = ?', [$userId]);
-
-        return $count;
     }
 
     // ---------- Berechtigungsgruppen ----------

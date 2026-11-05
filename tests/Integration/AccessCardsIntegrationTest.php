@@ -91,16 +91,15 @@ final class AccessCardsIntegrationTest extends DatabaseTestCase
         self::assertStringStartsWith('%PDF-', $result['pdf']);
     }
 
-    public function testAktiveSchuelerEinesKurses(): void
+    public function testDeaktivierteKontenBekommenKeineKarte(): void
     {
         $course = $this->createCourse('10a');
         $in = $this->createUser('student');
         $off = $this->createUser('student', ['is_active' => 0]);
-        $out = $this->createUser('student');
         $this->addMember((int) $course['id'], (int) $in['id']);
         $this->addMember((int) $course['id'], (int) $off['id']);
 
-        self::assertSame([(int) $in['id']], (new AccessCards($this->db))->activeStudentIdsOfCourse((int) $course['id']));
-        self::assertNotSame((int) $out['id'], (int) $in['id']);
+        $cards = (new AccessCards($this->db))->issue([(int) $in['id'], (int) $off['id']]);
+        self::assertSame([(int) $in['id']], array_map(static fn (array $c): int => $c['id'], $cards));
     }
 }

@@ -8,6 +8,7 @@ use App\Core\HttpException;
 use App\Core\Permissions as P;
 use App\Services\AccessCards;
 use App\Services\CourseService;
+use App\Services\ExamKit;
 use App\Services\UserImport;
 use PDO;
 
@@ -409,6 +410,8 @@ final class UsersController extends Controller
             $this->redirect($list);
         }
 
+        // Hochgeladene Antwortdateien zuerst: die Kaskade entfernt nur die Datenbankzeilen.
+        ExamKit::answerFiles($this->ctx)->deleteFilesOfUser($userId);
         $this->ctx->db->run('DELETE FROM users WHERE id = ?', [$userId]);
         $this->ctx->audit->log('benutzer.loeschen', 'warning', sprintf('%s (%s) gelöscht', $user['username'], self::ROLE_LABELS[$user['role']] ?? $user['role']));
         $this->flash('success', 'Das Konto „' . $user['username'] . '“ wurde gelöscht.');

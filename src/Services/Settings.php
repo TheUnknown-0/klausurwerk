@@ -9,8 +9,8 @@ use App\Core\Database;
 /**
  * Laufzeit-Einstellungen aus der settings-Tabelle (Key/Value).
  *
- * Zeiträume und Limits eines Aktionstags liegen bewusst NICHT hier,
- * sondern in garden_days.
+ * Einstellungen einer einzelnen Klausur liegen bewusst NICHT hier,
+ * sondern in exams.settings (Services\ExamSettings).
  */
 final class Settings
 {

@@ -57,10 +57,7 @@ final class Context
             return $base;
         }
 
-        $scheme = (($_SERVER['HTTPS'] ?? 'off') !== 'off') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-
-        return $scheme . '://' . $host . ($this->config['app']['base_url'] ?? '');
+        return Request::origin() . ($this->config['app']['base_url'] ?? '');
     }
 
     public function baseIsGuessed(): bool

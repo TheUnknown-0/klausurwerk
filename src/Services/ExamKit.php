@@ -19,9 +19,14 @@ final class ExamKit
         return new TaskService($ctx->db, self::materials($ctx));
     }
 
+    public static function answerFiles(Context $ctx): AnswerFiles
+    {
+        return new AnswerFiles($ctx->db, (string) $ctx->config['uploads']['dir']);
+    }
+
     public static function exams(Context $ctx): ExamService
     {
-        return new ExamService($ctx->db, self::tasks($ctx), self::materials($ctx));
+        return new ExamService($ctx->db, self::tasks($ctx), self::materials($ctx), self::answerFiles($ctx));
     }
 
     public static function export(Context $ctx): ExamExport

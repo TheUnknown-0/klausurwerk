@@ -35,6 +35,7 @@ final class ExamService
         private readonly Database $db,
         private readonly TaskService $tasks,
         private readonly Materials $materials,
+        private readonly ?AnswerFiles $answerFiles = null,
     ) {
     }
 
@@ -243,7 +244,9 @@ final class ExamService
             throw new HttpException(409, 'Eine gestartete oder laufende Klausur kann nicht gelöscht werden. Schließe sie ab und archiviere sie zuerst.');
         }
         $id = (int) $exam['id'];
+        // Dateien vor der Zeile: Die Kaskade löscht nur die Datenbankzeilen, nicht die Uploads.
         $this->materials->deleteFilesOfExam($id);
+        $this->answerFiles?->deleteFilesOfExam($id);
         (new LiveStore())->clearExam($id);
         $this->db->run('DELETE FROM exams WHERE id = ?', [$id]);
     }

@@ -68,18 +68,6 @@ final class EmailService
         }
     }
 
-    /** @return list<array<string, mixed>> */
-    public function recentLog(int $limit = 100): array
-    {
-        $limit = max(1, min($limit, 500));
-
-        return $this->db->fetchAll(
-            'SELECT el.*, u.firstname, u.lastname FROM email_log el
-             LEFT JOIN users u ON u.id = el.user_id
-             ORDER BY el.created_at DESC LIMIT ' . $limit,
-        );
-    }
-
     // ---------- Helfer ----------
 
     private function log(?int $unused, ?int $userId, string $recipient, string $subject, string $template, string $status, ?string $error): void
