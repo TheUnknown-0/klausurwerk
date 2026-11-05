@@ -5,6 +5,8 @@
  */
 import { h, icon, toast } from '../lib/dom.js';
 import { bootData, post } from '../lib/api.js';
+import { editorSelectionOf, restoreEditorSelection } from '../lib/code-editor.js';
+import { captureFocus, restoreFocus } from '../lib/focus-keep.js';
 import { createTaskForm } from './form.js';
 import { button, isDeleteKey } from './ui.js';
 
@@ -22,6 +24,9 @@ export function initTaskEditor() {
     let form = null;
     let dirty = false;
     let busy = false;
+    // Während des Speicherns getippte Änderungen: Das Formular darf dann nicht neu aufgebaut werden.
+    let saving = false;
+    let editedWhileSaving = false;
 
     const treeList = h('ul', { class: 'te-tree-list', role: 'listbox', 'aria-label': 'Aufgaben' });
     const total = h('div', { class: 'te-total' });
@@ -134,7 +139,12 @@ export function initTaskEditor() {
         }
         form = createTaskForm({
             host: formHost, task, boot, hasChildren: childrenOf(task.id).length > 0,
-            onChange: () => setDirty(true),
+            onChange: () => {
+                setDirty(true);
+                if (saving) {
+                    editedWhileSaving = true;
+                }
+            },
         });
         setDirty(false);
     }
@@ -233,20 +243,39 @@ export function initTaskEditor() {
             toast('Bitte prüfe die Eingaben im Antworttyp.', 'error');
             return;
         }
+        // Fokus und Cursor merken: Das Formular wird nach dem Speichern neu aufgebaut, und der
+        // Speichern-Knopf ist währenddessen gesperrt. Ohne das fiele der Fokus auf die Seite.
+        const onSaveBtn = document.activeElement === saveBtn;
+        const scrollY = window.scrollY;
+        saving = true;
+        editedWhileSaving = false;
         saveBtn.disabled = true;
         statusEl.textContent = 'Speichert ...';
         const res = await call(`/${t.id}`, form.getPayload(), 'Speichern fehlgeschlagen: ');
+        saving = false;
         saveBtn.disabled = false;
         if (res?.ok) {
             applyTasks(res.data.tasks, t.id);
             renderTree();
-            renderForm();
-            toast('Aufgabe gespeichert.', 'success', 2500);
+            if (editedWhileSaving) {
+                // Neue Eingaben seit dem Absenden behalten statt sie mit dem Serverstand zu überschreiben.
+                setDirty(true);
+                toast('Gespeichert. Was du seitdem geändert hast, ist noch nicht gespeichert.', 'info', 4000);
+            } else {
+                const focus = captureFocus(formHost, { extra: editorSelectionOf });
+                renderForm();
+                restoreFocus(formHost, focus, { extra: restoreEditorSelection });
+                window.scrollTo({ top: scrollY });
+                toast('Aufgabe gespeichert.', 'success', 2500);
+            }
         } else {
             statusEl.textContent = 'Nicht gespeichert';
             if (res && res.data?.field) {
                 form.showServerError(res.data.field, res.error);
             }
+        }
+        if (onSaveBtn) {
+            saveBtn.focus();
         }
     }
 

@@ -279,3 +279,59 @@ test('Struktogramm: Block anklicken, Entf löscht ihn, Knopf "Löschen" wirkt au
     assert.equal(inst.getContent().root.children.length, 1);
     inst.destroy();
 });
+
+test('Listen: Knopf "Löschen" sperrt sich, der Fokus geht auf die neu gewählte Zeile statt auf die Seite', () => {
+    const { items, ed, rows } = listEditor({ min: 2 });
+    rows()[2].click();
+    ed.selection.button.focus();
+    ed.selection.button.click();
+    assert.deepEqual(items.map((i) => i.id), ['a', 'b']);
+    assert.equal(ed.selection.button.disabled, true, 'min = 2 erreicht');
+    assert.equal(document.activeElement, rows()[1], 'Fokus auf der Nachbarzeile');
+});
+
+test('rowSelection: Knopf in der gelöschten Zeile selbst, Fokus landet auf der Nachbarzeile', async () => {
+    const { rowSelection } = await import('../src/widgets/delete-keys.js');
+    const data = ['x', 'y', 'z'];
+    const host = document.createElement('div');
+    body.append(host);
+    const sel = rowSelection({
+        label: 'Eintrag',
+        onDelete: (k) => {
+            const i = data.indexOf(k);
+            data.splice(i, 1);
+            render();
+            sel.select(data[Math.min(i, data.length - 1)] ?? null);
+        },
+    });
+    function render() {
+        host.replaceChildren();
+        sel.begin();
+        for (const k of data) {
+            const removeBtn = document.createElement('button');
+            removeBtn.addEventListener('click', () => { sel.select(k); sel.remove(false); });
+            const row = document.createElement('div');
+            row.append(removeBtn);
+            sel.bind(row, k);
+            host.append(row);
+        }
+        sel.end();
+    }
+    render();
+    const removeBtn = host.children[1].children[0];
+    removeBtn.focus();
+    removeBtn.click();
+    assert.deepEqual(data, ['x', 'z']);
+    assert.equal(removeBtn.isConnected, false);
+    assert.equal(document.activeElement, host.children[1], 'Fokus auf der Zeile, die nachgerückt ist');
+});
+
+test('rowSelection: Knopf bleibt bedienbar, dann bleibt der Fokus auf dem Knopf', () => {
+    const { items, ed, rows } = listEditor({ min: 1 });
+    rows()[0].click();
+    ed.selection.button.focus();
+    ed.selection.button.click();
+    assert.equal(items.length, 2);
+    assert.equal(ed.selection.button.disabled, false);
+    assert.equal(document.activeElement, ed.selection.button);
+});

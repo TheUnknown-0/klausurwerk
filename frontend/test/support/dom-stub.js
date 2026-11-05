@@ -18,6 +18,17 @@ class StubNode {
         return this.childNodes[0] ?? null;
     }
 
+    /** Hängt der Knoten (noch) am Dokument? */
+    get isConnected() {
+        for (let cur = this; cur; cur = cur.parentNode) {
+            if (cur === globalThis.document?.body) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     append(...nodes) {
         for (const n of nodes.flat()) {
             if (n === null || n === undefined) {

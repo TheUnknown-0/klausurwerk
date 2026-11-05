@@ -38,6 +38,17 @@ export function isDeleteKey(ev) {
     return (ev.key === 'Delete' || ev.key === 'Backspace') && !ev.ctrlKey && !ev.metaKey && !ev.altKey;
 }
 
+/**
+ * Ist der Fokus verloren gegangen? Das passiert, wenn das fokussierte Element beim Neuzeichnen
+ * entfernt oder gesperrt wurde (etwa der Knopf "Löschen" nach dem Löschen der letzten Auswahl).
+ */
+export function focusLost() {
+    const doc = globalThis.document;
+    const active = doc?.activeElement;
+
+    return !active || active === doc.body || active.isConnected === false || active.disabled === true;
+}
+
 /** Ist das Ziel ein bedienbares Element (Knopf, Feld, Link), das einen Klick selbst verwertet? */
 export function isControlTarget(el, stop = null) {
     for (let cur = el; cur && cur !== stop; cur = cur.parentNode) {
@@ -103,6 +114,11 @@ export function rowSelection({ label, onDelete }) {
         const key = selected;
         selected = null;
         onDelete(key, { viaKey });
+        // Per Knopf gelöscht: Der Knopf ist jetzt gesperrt oder weg. Statt auf die Seite geht der
+        // Fokus auf die neu ausgewählte Zeile, damit man mit der Tastatur weiterarbeiten kann.
+        if (focusLost() && selected !== null) {
+            rows.get(selected)?.el.focus?.({ preventScroll: true });
+        }
 
         return true;
     }

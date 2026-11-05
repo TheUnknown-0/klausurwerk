@@ -16,7 +16,7 @@
  * changes ist ChangeSet.toJSON() und eignet sich für das Replay
  * (siehe docs/DATENFORMATE.md, „answer_ops“).
  */
-import { EditorState, Compartment, StateEffect, StateField, RangeSetBuilder, Transaction } from '@codemirror/state';
+import { EditorState, EditorSelection, Compartment, StateEffect, StateField, RangeSetBuilder, Transaction } from '@codemirror/state';
 import {
     EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter,
     drawSelection, rectangularSelection, highlightSpecialChars, Decoration,
@@ -217,6 +217,32 @@ export function createCodeEditor(options) {
         focus: () => view.focus(),
         destroy: () => view.destroy(),
     };
+}
+
+/** Auswahl des Code-Editors, zu dem el gehört (JSON), oder null. Für die Fokus-Rettung beim Neuzeichnen. */
+export function editorSelectionOf(el) {
+    const dom = el?.closest?.('.cm-editor');
+    const view = dom ? EditorView.findFromDOM(dom) : null;
+
+    return view ? view.state.selection.toJSON() : null;
+}
+
+/** Setzt eine mit editorSelectionOf gemerkte Auswahl, sofern sie in den Text passt. */
+export function restoreEditorSelection(el, json) {
+    const dom = el?.closest?.('.cm-editor');
+    const view = dom ? EditorView.findFromDOM(dom) : null;
+    if (!view || !json) {
+        return;
+    }
+    try {
+        const selection = EditorSelection.fromJSON(json);
+        const length = view.state.doc.length;
+        if (selection.ranges.every((r) => r.from <= length && r.to <= length)) {
+            view.dispatch({ selection, scrollIntoView: true });
+        }
+    } catch {
+        // Ungültige Auswahl: Cursor bleibt am Anfang.
+    }
 }
 
 /**

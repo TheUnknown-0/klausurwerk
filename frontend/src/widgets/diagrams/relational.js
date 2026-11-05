@@ -11,7 +11,7 @@ import {
 } from './core/tables-model.js';
 import { bindUndoKeys, createTracker, textLinesPng } from './core/simple.js';
 import { smallButton, withIcon } from './core/form.js';
-import { isControlTarget, isDeleteKey, isTypingTarget } from '../delete-keys.js';
+import { focusLost, isControlTarget, isDeleteKey, isTypingTarget } from '../delete-keys.js';
 
 let counter = 0;
 
@@ -178,7 +178,7 @@ export const RelationalWidget = {
                 selection = next;
                 mutate((m) => { m.tables[ti].columns.splice(sel.index, 1); }, { rebuild: true });
             }
-            selectRow(next, { focus: viaKey });
+            selectRow(next, { focus: viaKey || focusLost() });
             if (!viaKey && next === null) {
                 addBtn.focus?.();
             }
