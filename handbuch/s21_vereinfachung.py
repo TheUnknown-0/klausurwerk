@@ -1,5 +1,5 @@
 """Aufnahmen zum vereinfachten Anlegen (Kapitel 4.1 bis 4.3): Anlegeformular, Profile,
-Einstellungen mit "Erweitert", Aufgaben-Editor mit Autosave und Typauswahl als Kacheln.
+Einstellungen mit "Erweitert", Fragenliste und Aufgaben-Editor mit Autosave und Typauswahl als Kacheln.
 
 Speichert nichts: Formulare werden nur ausgefüllt, nicht abgeschickt. Nutzt die Entwurfs-Kopie
 der Demo-Klausur (Klausur 6), damit Profile und Editor bearbeitbar erscheinen.
@@ -29,6 +29,11 @@ def main(b):
     shot_at(pg, "207-einstellungen-darstellung", text="Darstellung und Ausführung", offset=80)
 
     goto(pg, f"/klausuren/{DRAFT}/aufgaben", 500)
+    shot(pg, "f-302-fragenliste")
+    pg.locator('.qf-card.is-preview:has(.qf-title:text-is("Datentypen"))').click()
+    pg.wait_for_timeout(700)
+    shot_at(pg, "f-303-fragenliste-karte", selector=".qf-card.is-active", offset=110)
+    detail_view(pg)
     pg.locator(".te-tree-list").get_by_text("Datentypen", exact=True).first.click()
     pg.wait_for_timeout(900)
     shot(pg, "f-300-editor-choice-1")

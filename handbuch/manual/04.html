@@ -111,7 +111,30 @@
   <p><b>Im Archiv für Kolleg:innen freigeben</b>: Andere Lehrkräfte finden die Aufgaben dieser Klausur im Archiv und dürfen sie samt Musterlösungen in eigene Klausuren kopieren. Kopien sind unabhängig vom Original.</p>
 
   <h2 id="k4-3"><span class="num">4.3</span>Der Aufgaben-Editor</h2>
-  <p><span class="ui">Aufgaben bearbeiten</span> öffnet den Editor; nach dem Anlegen einer Klausur landen Sie direkt hier. Links steht der <b>Aufgabenbaum</b> mit Nummer, Titel, Antworttyp und Punkten; unten die Summe („Gesamt: 30 Punkte“). Rechts bearbeiten Sie die gewählte Aufgabe.</p>
+  <p><span class="ui">Aufgaben bearbeiten</span> öffnet den Editor; nach dem Anlegen einer Klausur landen Sie direkt hier. Oben wählen Sie die Ansicht: Die <b>Fragenliste</b> (Standard) eignet sich zum schnellen Anlegen und Überblicken, der <b>Detail-Editor</b> für alle Feinheiten einer Aufgabe. Der Editor merkt sich Ihre Wahl. Gespeichert wird in beiden Ansichten automatisch.</p>
+
+  <h3>Die Fragenliste</h3>
+  <p>Die Fragenliste funktioniert wie ein Formular-Baukasten (ähnlich Google Forms): Alle Aufgaben stehen untereinander als Karten, Überschriften mit Teilaufgaben haben einen farbigen Rand oben, Teilaufgaben sind eingerückt. Jede Karte zeigt Nummer, Titel, Antworttyp, Punkte und den Anfang des Aufgabentexts; bei Auswahlaufgaben auch die Optionen mit den richtigen Antworten, bei Reihenfolgen die Lösung, bei Code die Sprache.</p>
+  <figure>
+    <img src="img/f-302-fragenliste.jpg" alt="Fragenliste">
+    <figcaption><b>{fig}</b> Die Fragenliste: alle Aufgaben als Karten</figcaption>
+  </figure>
+  <p>Ein Klick auf eine Karte klappt sie auf. Dann bearbeiten Sie direkt:</p>
+  <ul>
+    <li><b>Titel</b> und <b>Aufgabentext</b> (Markdown, Formeln mit <code>$…$</code>),</li>
+    <li>den <b>Antworttyp</b> in der Auswahl rechts oben, Programmcode gleich als Java, Python oder SQL,</li>
+    <li>bei <b>Multiple Choice, Lückentext, Zuordnung und Reihenfolge</b> die Optionen, Lücken, Paare oder Schritte samt richtiger Lösung,</li>
+    <li>die <b>Punkte</b>.</li>
+  </ul>
+  <p>Unten auf der Karte stehen <span class="ui">Details</span> (öffnet die Aufgabe im Detail-Editor), <span class="ui">Frage darunter</span> (neue Aufgabe direkt unter dieser, mit demselben Antworttyp), bei Überschriften <span class="ui">Teilaufgabe</span>, außerdem <b>Duplizieren</b>, <b>Nach oben</b>, <b>Nach unten</b> und <b>Löschen</b>. Am Ende der Liste legen <span class="ui p">Frage hinzufügen</span> und <span class="ui">Überschrift mit Teilaufgaben</span> neue Aufgaben auf oberster Ebene an. Eine leere Klausur beginnt mit der Typauswahl als Kacheln.</p>
+  <figure>
+    <img src="img/f-303-fragenliste-karte.jpg" alt="Aufgeklappte Karte">
+    <figcaption><b>{fig}</b> Eine aufgeklappte Karte: Multiple Choice mit Optionen und richtigen Antworten</figcaption>
+  </figure>
+  <div class="box note"><span class="t">Was nur im Detail-Editor geht</span><p>Musterlösung, Erwartungshorizont, Operator und Anforderungsbereich, Material einfügen, bei Code Startdateien, Tests und „Musterlösung testen“, bei Diagrammen und Robo die Vorgabe und Lösung. Wechselt der Antworttyp einer Karte, gehen die Angaben des alten Typs verloren; der Editor fragt vorher nach.</p></div>
+
+  <h3>Der Detail-Editor</h3>
+  <p>Links steht der <b>Aufgabenbaum</b> mit Nummer, Titel, Antworttyp und Punkten; unten die Summe („Gesamt: 30 Punkte“). Rechts bearbeiten Sie die gewählte Aufgabe mit allen Feldern.</p>
   <div class="box tip"><span class="t">Gespeichert wird automatisch</span><p>Etwa eine Sekunde nach der letzten Eingabe speichert der Editor die Aufgabe selbst, ebenso vor jedem Wechsel zu einer anderen Aufgabe, vor dem Verschieben und vor dem Anlegen einer neuen. Oben steht „Ungespeicherte Änderungen …“, „Speichert …“ oder „Alles gespeichert“. <span class="ui">Speichern</span> oder <span class="kbd">Strg</span> + <span class="kbd">S</span> speichern sofort; der Cursor bleibt dabei, wo er ist. Nur wenn sich eine Aufgabe nicht speichern lässt (Hinweis im Formular, etwa ein ungültiger Test), fragt der Editor beim Wechsel, ob die Änderungen verworfen werden sollen.</p></div>
   <figure>
     <img src="img/f-300-editor-choice-1.jpg" alt="Aufgaben-Editor">

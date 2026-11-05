@@ -185,6 +185,14 @@ def shot_at(page: Page, name: str, selector: str | None = None, text: str | None
     return shot(page, name)
 
 
+def detail_view(page: Page) -> None:
+    """Aufgaben-Editor in die Ansicht "Detail-Editor" schalten (Standard ist die Fragenliste)."""
+    btn = page.locator('.te-viewbar [data-view="detail"]')
+    if btn.count() and btn.get_attribute("aria-pressed") != "true":
+        btn.click()
+        page.wait_for_timeout(600)
+
+
 def post_json(page: Page, path: str, body: dict | None = None, method: str = "POST") -> dict:
     """JSON-Aufruf mit der Sitzung der Seite (CSRF aus dem Meta-Tag)."""
     return page.evaluate(

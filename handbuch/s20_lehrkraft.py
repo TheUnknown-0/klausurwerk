@@ -38,6 +38,7 @@ def main(b):
 
     for ex, title, name in TYPES:
         goto(pg, f"/klausuren/{ex}/aufgaben", 500)
+        detail_view(pg)
         pg.locator(".te-tree-list").get_by_text(title, exact=True).first.click()
         pg.wait_for_timeout(900)
         shot(pg, f"f-300-editor-{name}-1")
