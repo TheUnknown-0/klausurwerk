@@ -5,6 +5,8 @@ on:
     branches: [ main ]
     tags: [ 'v*' ]
   pull_request:
+  # Von Hand starten (Actions › Tests und Images › Run workflow), falls ein Push keinen Lauf ausgelöst hat.
+  workflow_dispatch:
 
 permissions:
   contents: read
