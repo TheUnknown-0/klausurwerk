@@ -31,6 +31,15 @@ Lehrkräfte überwachen die Klausur live im **Pult**, Schüler:innen arbeiten im
 
 ## Installation auf dem Server
 
+Auf einem Linux-Server mit Docker genügt ein Befehl:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash
+```
+
+Das Skript klont Klausurwerk nach `/opt/klausurwerk` (anderer Ordner auf Nachfrage) und startet den
+Installations-Assistenten. Wer das Skript vorher lesen möchte, klont selbst und startet es im Ordner:
+
 ```bash
 git clone https://github.com/TheUnknown-0/klausurwerk.git /opt/klausurwerk
 cd /opt/klausurwerk
