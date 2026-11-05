@@ -148,6 +148,10 @@ final class TasksController extends Controller
             $parent = ($in['parent_id'] ?? null) === null || $in['parent_id'] === '' ? null : (int) $in['parent_id'];
             $type = isset($in['answer_type']) && is_string($in['answer_type']) && $in['answer_type'] !== '' ? $in['answer_type'] : null;
             $taskId = $this->service()->create($exam, $parent, $type, mb_substr((string) ($in['title'] ?? ''), 0, 200));
+            // "Frage darunter einfügen": direkt hinter die genannte Aufgabe derselben Ebene.
+            if (isset($in['after_id']) && is_numeric($in['after_id'])) {
+                $this->service()->placeAfter($exam, $taskId, (int) $in['after_id']);
+            }
 
             return $this->refresh($id, $taskId) + ['task_id' => $taskId];
         });
@@ -198,6 +202,22 @@ final class TasksController extends Controller
             $this->ctx->audit->log('aufgabe_geloescht', 'info', 'Aufgabe #' . $taskId . ' der Klausur #' . $id . ' gelöscht.');
 
             return $this->refresh($id);
+        });
+    }
+
+    /** POST /api/klausuren/{id}/aufgaben/{tid}/duplizieren */
+    public function duplicate(array $params): array
+    {
+        $this->requireStaff();
+        $this->requireCsrf();
+        $id = (int) $params['id'];
+        $exam = $this->ctx->exams->require($id, ExamAccess::CAP_EDIT);
+        $taskId = (int) $params['tid'];
+
+        return $this->guarded(function () use ($exam, $id, $taskId): array {
+            $newId = $this->service()->duplicate($exam, $taskId);
+
+            return $this->refresh($id, $newId) + ['task_id' => $newId];
         });
     }
 

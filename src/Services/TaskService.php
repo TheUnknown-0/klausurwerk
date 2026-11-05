@@ -436,6 +436,63 @@ final class TaskService
         });
     }
 
+    /**
+     * Setzt eine Aufgabe direkt hinter eine andere derselben Ebene (für "Frage darunter einfügen"
+     * und Duplizieren). Liegen beide auf verschiedenen Ebenen, bleibt alles, wie es ist.
+     *
+     * @param array<string, mixed> $exam
+     */
+    public function placeAfter(array $exam, int $taskId, int $afterId): void
+    {
+        $this->assertEditableStructure($exam);
+        $examId = (int) $exam['id'];
+        $task = $this->db->fetchOne('SELECT id, parent_id FROM tasks WHERE id = ? AND exam_id = ?', [$taskId, $examId])
+            ?? throw new HttpException(404, 'Aufgabe nicht gefunden.');
+        $after = $this->db->fetchOne('SELECT id, parent_id FROM tasks WHERE id = ? AND exam_id = ?', [$afterId, $examId])
+            ?? throw new HttpException(404, 'Aufgabe nicht gefunden.');
+        $parentId = $task['parent_id'] !== null ? (int) $task['parent_id'] : null;
+        $afterParent = $after['parent_id'] !== null ? (int) $after['parent_id'] : null;
+        if ($taskId === $afterId || $parentId !== $afterParent) {
+            return;
+        }
+        $this->db->transaction(function () use ($examId, $parentId, $taskId, $afterId): void {
+            $ids = array_map('intval', array_column($this->db->fetchAll(
+                'SELECT id FROM tasks WHERE exam_id = ? AND parent_id <=> ? ORDER BY position, id',
+                [$examId, $parentId],
+            ), 'id'));
+            $ids = array_values(array_filter($ids, static fn (int $id): bool => $id !== $taskId));
+            $at = array_search($afterId, $ids, true);
+            array_splice($ids, $at === false ? count($ids) : $at + 1, 0, [$taskId]);
+            $this->renumber($examId, $parentId, $ids);
+        });
+    }
+
+    /**
+     * Dupliziert eine Aufgabe (samt Teilaufgaben, Lösung und Tests) direkt hinter das Original.
+     *
+     * @param array<string, mixed> $exam
+     * @return int ID der Kopie
+     */
+    public function duplicate(array $exam, int $taskId): int
+    {
+        $this->assertEditableStructure($exam);
+        $examId = (int) $exam['id'];
+        $task = $this->db->fetchOne('SELECT id, parent_id, title FROM tasks WHERE id = ? AND exam_id = ?', [$taskId, $examId])
+            ?? throw new HttpException(404, 'Aufgabe nicht gefunden.');
+        $count = (int) $this->db->fetchValue('SELECT COUNT(*) FROM tasks WHERE exam_id = ?', [$examId]);
+        $subtree = 1 + (int) $this->db->fetchValue('SELECT COUNT(*) FROM tasks WHERE parent_id = ?', [$taskId]);
+        if ($count + $subtree > self::MAX_TASKS_PER_EXAM) {
+            throw new TaskValidationException('Eine Klausur kann höchstens ' . self::MAX_TASKS_PER_EXAM . ' Aufgaben enthalten.');
+        }
+        $parentId = $task['parent_id'] !== null ? (int) $task['parent_id'] : null;
+        $newId = $this->copyTask($taskId, $examId, $parentId);
+        $title = trim((string) $task['title']);
+        $this->db->run('UPDATE tasks SET title = ? WHERE id = ?', [mb_substr($title === '' ? '' : $title . ' (Kopie)', 0, 200), $newId]);
+        $this->placeAfter($exam, $newId, $taskId);
+
+        return $newId;
+    }
+
     /** Positionen einer Ebene lückenlos neu vergeben. */
     private function renumber(int $examId, ?int $parentId, ?array $order = null): void
     {

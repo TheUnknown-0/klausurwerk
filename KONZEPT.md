@@ -538,3 +538,15 @@ Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
   und Hilfsmittel; Feineinstellungen unter „Erweitert“, das bei Abweichungen vom Standard aufklappt.
 - **Behoben nebenbei:** Eine kopierte Klausur mit „Klausurcode verlangen“ bekam keinen Code, der
   Beitritt ging dann ohne. Anlegen und Kopieren erzeugen jetzt einen eigenen Code.
+
+## 22. Fragenliste im Stil von Google Forms (5. November 2026)
+
+- **Zwei Ansichten im Aufgaben-Editor:** Fragenliste (Standard, Wahl wird im Browser gemerkt) und
+  Detail-Editor (Baum und vollständiges Formular). Wechsel speichert vorher.
+- **Fragenliste:** alle Aufgaben als Karten; eine aufgeklappt mit Titel, Text, Antworttyp (Code je
+  Sprache), Punkten und bei choice, gaps, matching und ordering den vorhandenen Typ-Editoren. Andere
+  Typen nur Hinweis; Musterlösung, Erwartungshorizont, Tests, Operator, Material und Diagramm-Vorgaben
+  bleiben dem Detail-Editor („Details“). Autosave wie im Detail-Editor, kein Neuaufbau nach dem Speichern.
+- **Neue Server-Funktionen:** `after_id` beim Anlegen (Frage darunter, gleiche Ebene) und
+  `POST …/aufgaben/{tid}/duplizieren` (Kopie samt Teilaufgaben, Lösung und Tests direkt hinter dem
+  Original, Titel mit „(Kopie)“). Beides nur, solange die Struktur nicht gesperrt ist.

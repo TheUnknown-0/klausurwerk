@@ -3,6 +3,9 @@
  * Zustand kommt als JSON-Block (#task-editor-boot), gespeichert wird über die JSON-API
  * unter boot.urls.api (siehe TasksController).
  *
+ * Zwei Ansichten: die Fragenliste im Stil von Google Forms (quick-list.js, Standard) zum schnellen
+ * Anlegen und der Detail-Editor (Baum und vollständiges Formular) für alle Feinheiten.
+ *
  * Gespeichert wird automatisch kurz nach der letzten Änderung und vor jedem Wechsel, Verschieben
  * oder Anlegen. Strg+S und der Knopf speichern sofort. Das Formular wird nach dem Speichern
  * nicht neu aufgebaut, damit Fokus und Cursor bleiben, wo sie sind.
@@ -12,11 +15,28 @@ import { bootData, post } from '../lib/api.js';
 import { editorSelectionOf, restoreEditorSelection } from '../lib/code-editor.js';
 import { captureFocus, restoreFocus } from '../lib/focus-keep.js';
 import { createTaskForm } from './form.js';
+import { createQuickList } from './quick-list.js';
 import { typePicker } from './type-picker.js';
 import { button, isDeleteKey } from './ui.js';
 
 /** Wartezeit nach der letzten Eingabe bis zum automatischen Speichern. */
 export const AUTOSAVE_MS = 1200;
+
+const VIEW_KEY = 'kw-task-editor-view';
+const readView = () => {
+    try {
+        return localStorage.getItem(VIEW_KEY) === 'detail' ? 'detail' : 'list';
+    } catch {
+        return 'list';
+    }
+};
+const storeView = (v) => {
+    try {
+        localStorage.setItem(VIEW_KEY, v);
+    } catch {
+        // ohne Speicher: beim nächsten Mal wieder die Fragenliste
+    }
+};
 
 export function initTaskEditor() {
     const root = document.getElementById('task-editor-app');
@@ -46,7 +66,17 @@ export function initTaskEditor() {
     const toolbar = h('div', { class: 'te-toolbar' }, saveBtn, statusEl);
     const formHost = h('div', {});
     const main = h('section', { class: 'card te-main', 'aria-label': 'Aufgabe bearbeiten' }, toolbar, formHost);
-    root.replaceChildren(tree, main);
+    const listHost = h('section', { class: 'qf', 'aria-label': 'Fragenliste' });
+    const viewBtn = (v, label, iconName, hint) => h('button', {
+        type: 'button', class: 'btn btn-sm', 'aria-pressed': 'false', dataset: { view: v }, title: hint,
+        onclick: () => switchView(v),
+    }, icon(iconName), label);
+    const viewBar = h('div', { class: 'te-viewbar', role: 'group', 'aria-label': 'Ansicht' },
+        viewBtn('list', 'Fragenliste', 'list-ordered', 'Alle Fragen untereinander, schnell anlegen und ändern'),
+        viewBtn('detail', 'Detail-Editor', 'pencil', 'Eine Aufgabe mit allen Feldern: Musterlösung, Erwartungshorizont, Tests, Operator'));
+    root.replaceChildren(viewBar, tree, main, listHost);
+    let view = readView();
+    let quick = null;
 
     const byId = (id) => tasks.find((t) => t.id === id) ?? null;
     const childrenOf = (id) => tasks.filter((t) => t.parent_id === id);
@@ -72,6 +102,12 @@ export function initTaskEditor() {
     }
 
     window.addEventListener('beforeunload', (ev) => {
+        if (quick?.pending) {
+            quick.flush();
+            ev.preventDefault();
+            ev.returnValue = '';
+            return;
+        }
         if (dirty || saving) {
             save({ auto: true });
             ev.preventDefault();
@@ -368,15 +404,89 @@ export function initTaskEditor() {
     document.addEventListener('keydown', (ev) => {
         if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 's' && root.contains(document.activeElement)) {
             ev.preventDefault();
-            save({ auto: false });
+            if (view === 'list') {
+                quick?.saveNow();
+            } else {
+                save({ auto: false });
+            }
         }
     });
 
-    renderTree();
-    if (tasks.length === 0 && !locked) {
-        // Neue Klausur: gleich mit der ersten Aufgabe beginnen.
-        openPicker(null);
+    // ---------- Ansichten ----------
+    function paintViewBar() {
+        for (const b of viewBar.querySelectorAll('button')) {
+            const on = b.dataset.view === view;
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            b.classList.toggle('btn-primary', on);
+        }
+        tree.hidden = view !== 'detail';
+        main.hidden = view !== 'detail';
+        listHost.hidden = view !== 'list';
+        root.classList.toggle('is-list', view === 'list');
+    }
+
+    function showDetail() {
+        renderTree();
+        if (tasks.length === 0 && !locked) {
+            // Neue Klausur: gleich mit der ersten Aufgabe beginnen.
+            openPicker(null);
+        } else {
+            renderForm();
+        }
+    }
+
+    function showList(activeId = null) {
+        // Das Formular der Detailansicht abbauen: Auswahl-Editoren in beiden Ansichten teilten
+        // sich sonst die Namen ihrer Optionsfelder.
+        clearTimeout(timer);
+        form?.destroy();
+        form = null;
+        picking = false;
+        dirty = false;
+        quick ??= createQuickList({
+            host: listHost, boot, locked,
+            getTasks: () => tasks,
+            setTasks: (list) => { tasks = list; },
+            call,
+            openDetail: (id) => switchView('detail', id),
+        });
+        quick.setActive(activeId);
+        quick.render({ focus: activeId !== null ? 'title' : null });
+    }
+
+    async function switchView(next, taskId = null) {
+        if (next === view && taskId === null) {
+            return;
+        }
+        if (view === 'list' && quick && !(await quick.flush())) {
+            return;
+        }
+        if (view === 'detail' && !(await flushOrConfirm())) {
+            return;
+        }
+        if (next === 'detail') {
+            const target = taskId ?? quick?.activeId ?? selectedId;
+            if (target !== null && tasks.some((t) => t.id === target)) {
+                selectedId = target;
+            } else if (!tasks.some((t) => t.id === selectedId)) {
+                selectedId = tasks[0]?.id ?? null;
+            }
+            quick?.destroy();
+            view = 'detail';
+            paintViewBar();
+            showDetail();
+        } else {
+            view = 'list';
+            paintViewBar();
+            showList(picking ? null : selectedId);
+        }
+        storeView(view);
+    }
+
+    paintViewBar();
+    if (view === 'list') {
+        showList(null);
     } else {
-        renderForm();
+        showDetail();
     }
 }

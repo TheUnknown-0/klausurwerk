@@ -176,6 +176,64 @@ fieldset.field { border: 0; padding: 0; margin-left: 0; margin-right: 0; min-wid
 .te-empty { text-align: center; padding: 48px 12px; color: var(--ink-soft); }
 .te-status.error { color: var(--danger); font-weight: 500; }
 
+/* Aufgaben-Editor: Umschalter Fragenliste / Detail-Editor */
+.te-viewbar { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+.qf { grid-column: 1 / -1; max-width: 860px; width: 100%; margin: 0 auto; }
+
+/* Fragenliste im Stil von Google Forms */
+.qf-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+.qf-count { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .04em; color: var(--ink-soft); }
+.qf-list { display: flex; flex-direction: column; gap: 12px; }
+.qf-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 14px 18px; position: relative;
+}
+.qf-card.depth-1 { margin-left: 32px; }
+.qf-card.is-section { border-top: 4px solid var(--primary); }
+.qf-card.is-preview { cursor: pointer; }
+.qf-card.is-preview:hover { border-color: var(--border-strong); }
+.qf-card.is-preview:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.qf-card.is-active { border-color: var(--primary); box-shadow: inset 4px 0 0 var(--primary); padding: 16px 20px 12px 24px; }
+.qf-card-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.qf-num { font-family: var(--font-mono); font-weight: 600; color: var(--primary); min-width: 2ch; }
+.qf-title { font-weight: 700; flex: 1; min-width: 12ch; }
+.qf-pts { font-family: var(--font-mono); font-size: .82rem; color: var(--ink-soft); }
+.qf-excerpt { margin: 6px 0 0; color: var(--ink-soft); font-size: .92rem; }
+.qf-items { margin: 8px 0 0; padding-left: 0; list-style: none; font-size: .92rem; }
+.qf-items.is-ordered { list-style: decimal; padding-left: 1.6em; }
+.qf-items li { padding: 2px 0; }
+.qf-items li.is-correct { color: var(--success); font-weight: 600; }
+.qf-mark { display: inline-block; width: 1.4em; color: var(--ink-faint); }
+.qf-items li.is-correct .qf-mark { color: var(--success); }
+.qf-line { margin: 6px 0 0; color: var(--ink-faint); font-size: .86rem; }
+.qf-card-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.qf-title-input { flex: 1 1 260px; font-size: 1.08rem; font-weight: 600; background: var(--bg-sunken); border-color: transparent; border-bottom: 2px solid var(--border-strong); border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.qf-title-input:focus { border-bottom-color: var(--primary); }
+.qf-type { flex: 0 1 260px; }
+.qf-body { margin-top: 10px; width: 100%; resize: vertical; min-height: 2.6em; }
+.qf-type-area { margin-top: 10px; }
+.qf-type-area:empty { display: none; }
+.qf-type-area .te-type-box { border: 0; padding: 0; margin: 0; }
+.qf-hint { margin: 0; color: var(--ink-faint); font-size: .88rem; }
+/* Optionen, Paare und Schritte auf der Karte schlank wie bei Google Forms: eine Zeile je Eintrag */
+.qf-type-area .te-items { gap: 2px; margin: 6px 0; }
+.qf-type-area .te-item { align-items: center; padding: 2px 4px; border-color: transparent; background: transparent; }
+.qf-type-area .te-item:hover, .qf-type-area .te-item.is-selected { border-color: var(--border); }
+.qf-type-area .te-item textarea { min-height: 0; height: 2.4em; padding-top: 6px; padding-bottom: 6px; resize: vertical; border-color: transparent; border-bottom-color: var(--border); background: transparent; }
+.qf-type-area .te-item textarea:focus { border-bottom-color: var(--primary); }
+.qf-type-area .te-item-actions .btn { padding: 4px 6px; }
+.qf-type-area .te-item > .checkbox-row { white-space: nowrap; }
+.qf-card-foot { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-top: 1px solid var(--rule-line); margin-top: 12px; padding-top: 10px; }
+.qf-points-label { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--ink-soft); }
+.qf-points { width: 6.5em; }
+.qf-spacer { flex: 1; }
+.btn-icon { padding-left: 8px; padding-right: 8px; }
+.qf-foot { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+@media (max-width: 600px) {
+  .qf-card.depth-1 { margin-left: 14px; }
+  .qf-card.is-active { padding-left: 16px; }
+}
+
 /* Anlegen: optionale Angaben eingeklappt */
 .form-more { margin: 4px 0 14px; }
 .form-more > summary { cursor: pointer; color: var(--primary); font-weight: 500; padding: 6px 0; }

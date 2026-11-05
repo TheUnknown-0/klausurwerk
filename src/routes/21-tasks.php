@@ -14,4 +14,5 @@ return static function (Router $r): void {
     $r->post('/api/klausuren/{id}/aufgaben/{tid}', [TasksController::class, 'save']);
     $r->post('/api/klausuren/{id}/aufgaben/{tid}/loeschen', [TasksController::class, 'delete']);
     $r->post('/api/klausuren/{id}/aufgaben/{tid}/verschieben', [TasksController::class, 'move']);
+    $r->post('/api/klausuren/{id}/aufgaben/{tid}/duplizieren', [TasksController::class, 'duplicate']);
 };
