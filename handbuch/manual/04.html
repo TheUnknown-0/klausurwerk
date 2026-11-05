@@ -16,14 +16,15 @@
   <ol class="steps">
     <li><span class="ui p">Neue Klausur</span> wählen (auch auf der Übersicht).</li>
     <li><b>Titel</b> eintragen (Pflicht) und den <b>Modus</b> wählen: Klausur, Übung oder Probe (Technik-Check).</li>
-    <li><b>Kurs</b> wählen. Nur Mitglieder dieses Kurses können teilnehmen.</li>
+    <li><b>Kurs</b> prüfen. Haben Sie nur einen Kurs, ist er schon gewählt. Nur Mitglieder dieses Kurses können teilnehmen.</li>
     <li><b>Dauer in Minuten</b> eintragen. Bei Übungen darf sie leer bleiben (ohne Zeitlimit).</li>
-    <li>Optional einen <b>Raum</b> (für den Sitzplan im Pult), einen <b>Geplanten Termin</b> und eine interne <b>Beschreibung</b> angeben.</li>
-    <li><span class="ui p">Klausur anlegen</span>. Sie wird als <b>Entwurf</b> angelegt; Sie sind Hauptlehrkraft.</li>
+    <li>Unter <b>Einstellungen</b> wählen, womit die Klausur startet: dem Standard des Modus, einem <b>Profil</b> (4.2) oder <b>wie eine frühere Klausur</b>. Bei einer früheren Klausur können Sie mit <b>Aufgaben, Musterlösungen und Material mitkopieren</b> gleich deren Aufgaben übernehmen; die Kopie ist unabhängig vom Original.</li>
+    <li><span class="ui p">Klausur anlegen</span>. Sie wird als <b>Entwurf</b> angelegt, Sie sind Hauptlehrkraft, und es geht direkt in den Aufgaben-Editor (4.3).</li>
   </ol>
+  <p>Raum (für den Sitzplan im Pult), geplanter Termin und interne Beschreibung sind beim Anlegen unter <b>Weitere Angaben (optional)</b> eingeklappt. Sie lassen sich jederzeit in den Einstellungen nachtragen.</p>
   <figure class="narrow">
     <img src="img/202-klausur-neu.jpg" alt="Neue Klausur">
-    <figcaption><b>{fig}</b> Eine neue Klausur anlegen</figcaption>
+    <figcaption><b>{fig}</b> Eine neue Klausur anlegen, hier mit dem Profil „Klausur, streng“</figcaption>
   </figure>
   <p>Die Klausurseite zeigt danach Status, Modus, die Kennzahlen (Aufgaben, Gesamtpunkte, Dauer, Material), die Eckdaten, die Aufgabenliste mit Antworttyp und Punkten, die Lehrkräfte und die Karte „Bearbeiten und weitergeben“. Ihre Aktionen sind gruppiert: <b>Vorbereiten</b> (<span class="ui">Aufgaben bearbeiten</span>, <span class="ui">Einstellungen</span>, <span class="ui">Material</span>, <span class="ui">SEB-Datei</span>), <b>Zustand</b> (<span class="ui">Fertigstellen</span> beziehungsweise <span class="ui">Zurück in den Entwurf</span>) und <b>Weitergeben</b> (<span class="ui">Export (ZIP)</span>, <span class="ui">Als Vorlage kopieren</span>). Oben stehen <span class="ui">Pult öffnen</span>, <span class="ui">Vorschau</span> und, je nach Status, <span class="ui">Korrektur</span> und <span class="ui">Ergebnisse</span>.</p>
   <figure>
@@ -33,71 +34,99 @@
 
   <h2 id="k4-2"><span class="num">4.2</span>Einstellungen im Einzelnen</h2>
   <p>Unter <span class="ui">Einstellungen</span> auf der Klausurseite stehen alle Schalter. Die Einstellungen lassen sich ändern, solange die Klausur ein Entwurf ist; einzelne Werte (Titel, Beschreibung, Erwartungshorizont) bleiben auch später bearbeitbar. In der Probe und in Übungen sind Überwachungsschalter ohne Wirkung.</p>
+  <p>Die Seite ist nach Wichtigkeit geordnet: oben die <b>Profile</b>, dann <b>Stammdaten</b>, <b>Überwachung und Abgabe</b> sowie <b>Editor-Hilfen und Hilfsmittel</b>. Feineinstellungen stehen eingeklappt unter <b>Erweitert</b>. Weicht dort etwas vom Standard ab, ist der Bereich von selbst aufgeklappt, damit nichts übersehen wird.</p>
+  <h3>Profile</h3>
+  <p>Ein Profil setzt mit einem Klick auf <span class="ui">Anwenden</span> die wichtigen Schalter. Feineinstellungen wie Java-Version, Python-Pakete oder Schriftgröße bleiben, wie sie sind. Passen die Einstellungen genau zu einem Profil, trägt es die Marke <b>aktiv</b>. Danach können Sie jeden Schalter einzeln ändern.</p>
+  <table>
+    <thead><tr><th>Profil</th><th>Was es setzt</th></tr></thead>
+    <tbody>
+      <tr><td><b>Klausur, streng</b></td><td>Sperre bei Verstoß, Einfügen nur innerhalb der Klausur, Klausurcode, keine Autovervollständigung und Fehlermarkierung, als Hilfsmittel nur die Operatorenliste.</td></tr>
+      <tr><td><b>Klausur mit Safe Exam Browser</b></td><td>Wie „streng“, aber Beitritt nur mit Safe Exam Browser statt mit Klausurcode. Die SEB-Datei erzeugen Sie danach unter „SEB-Datei“ (4.10).</td></tr>
+      <tr><td><b>Übung, locker</b></td><td>Keine Sperre, Einfügen erlaubt (protokolliert), Autovervollständigung, Fehlermarkierung und alle Hilfsmittel einschließlich Taschenrechner.</td></tr>
+    </tbody>
+  </table>
   <figure>
-    <img src="img/206-einstellungen-ueberwachung.jpg" alt="Einstellungen Überwachung">
-    <figcaption><b>{fig}</b> Einstellungen, Abschnitt „Überwachung“</figcaption>
+    <img src="img/205b-einstellungen-profile.jpg" alt="Profile in den Einstellungen">
+    <figcaption><b>{fig}</b> Schnellstart mit Profil</figcaption>
   </figure>
   <h3>Stammdaten</h3>
   <p><b>Titel</b>, <b>Modus</b>, <b>Kurs</b>, <b>Dauer in Minuten</b>, <b>Raum</b>, <b>Geplanter Termin</b> und die interne <b>Beschreibung</b> wie beim Anlegen.</p>
-  <h3>Überwachung</h3>
+  <h3>Überwachung und Abgabe</h3>
+  <figure>
+    <img src="img/206-einstellungen-ueberwachung.jpg" alt="Einstellungen Überwachung">
+    <figcaption><b>{fig}</b> Einstellungen, Abschnitt „Überwachung und Abgabe“</figcaption>
+  </figure>
   <table>
     <thead><tr><th>Einstellung</th><th>Wirkung und Empfehlung</th></tr></thead>
     <tbody>
       <tr><td><b>Bei Verstoß sperren</b> (Standard an)</td><td>Verlässt jemand das Vollbild oder den Klausur-Tab, wird die Person gesperrt, bis die Lehrkraft sie freigibt. Ohne Sperre wird der Verstoß nur protokolliert und gemeldet.</td></tr>
-      <tr><td><b>Toleranz für kurze Fokusverluste (Millisekunden)</b> (Standard 300)</td><td>Fokusverluste, die kürzer sind, zählen nur als Hinweis und nicht als Verstoß (0 bis 5000). Fängt Fehlalarme durch Systemdialoge ab.</td></tr>
       <tr><td><b>Einfügen (Copy &amp; Paste)</b></td><td><i>nur innerhalb der Klausur</i> (Standard): Es lässt sich nur einfügen, was in der Klausur selbst kopiert wurde. Alles andere wird blockiert und mit Länge protokolliert. <i>gar nicht erlaubt</i> blockiert jedes Einfügen. <i>erlaubt, aber protokolliert</i> lässt alles zu und vermerkt es im Protokoll. Auch Ziehen und Ablegen von außen wird nach der ersten Regel blockiert.</td></tr>
       <tr><td><b>Nur mit Safe Exam Browser</b></td><td>Der Beitritt gelingt nur mit einer passenden SEB-Datei (Prüfung des Config Keys bei jeder Anfrage). Die Datei erzeugen Sie unter „SEB-Datei“ (4.10).</td></tr>
-      <tr><td><b>Klausurcode verlangen</b></td><td>Zum Beitritt wird ein 6-stelliger Code benötigt, den Sie im Raum nennen oder anschreiben. Verhindert, dass jemand von zu Hause einen Platz belegt. Den Code sehen Sie im Pult und können ihn neu erzeugen.</td></tr>
+      <tr><td><b>Klausurcode verlangen</b></td><td>Zum Beitritt wird ein 6-stelliger Code benötigt, den Sie im Raum nennen oder anschreiben. Verhindert, dass jemand von zu Hause einen Platz belegt. Den Code sehen Sie im Pult und können ihn neu erzeugen. Auch eine kopierte Klausur bekommt einen eigenen Code.</td></tr>
+      <tr><td><b>Abgabe-Knopf anzeigen</b></td><td>Schüler können die Abgabe anfragen; Sie bestätigen sie im Pult. Aus: Es gibt keinen Knopf, Sie geben für die Schüler ab.</td></tr>
+      <tr><td><b>Punkte bei den Aufgaben anzeigen</b></td><td>Schüler sehen, wie viele Punkte eine Aufgabe bringt.</td></tr>
+    </tbody>
+  </table>
+  <h3>Editor-Hilfen und Hilfsmittel</h3>
+  <figure>
+    <img src="img/208-einstellungen-editor.jpg" alt="Editor-Hilfen und Hilfsmittel">
+    <figcaption><b>{fig}</b> Editor-Hilfen und Hilfsmittel</figcaption>
+  </figure>
+  <ul>
+    <li><b>Autovervollständigung</b>: Der Editor schlägt Wörter und Schlüsselwörter vor. Für Klausuren meist aus, für Übungen an.</li>
+    <li><b>Fehlermarkierung im Editor</b>: Syntaxfehler werden schon beim Tippen markiert.</li>
+    <li><b>Hilfsmittel</b> erscheinen in einer Seitenleiste der Schüleransicht (Knopf <span class="ui">Hilfsmittel</span>). Zur Wahl stehen die <b>Java-API-Referenz</b> (Kurzreferenz der häufigsten Klassen), die <b>Python-Kurzreferenz</b>, der <b>SQL-Spickzettel</b>, die <b>Operatorenliste</b> und ein einfacher <b>Taschenrechner</b>. Hochgeladene Materialien mit „als Hilfsmittel“ (4.7) kommen zusätzlich dazu.</li>
+  </ul>
+  <h3>Erweitert</h3>
+  <table>
+    <thead><tr><th>Einstellung</th><th>Wirkung und Empfehlung</th></tr></thead>
+    <tbody>
+      <tr><td><b>Toleranz für kurze Fokusverluste (Millisekunden)</b> (Standard 300)</td><td>Fokusverluste, die kürzer sind, zählen nur als Hinweis und nicht als Verstoß (0 bis 5000). Fängt Fehlalarme durch Systemdialoge ab.</td></tr>
       <tr><td><b>Abwesenheit hält die Uhr an</b> (Standard aus)</td><td>Wer den Raum kurz verlässt (Toilette) und im Pult als abwesend markiert wird, behält die Zeit. Aus: Die Uhr läuft weiter.</td></tr>
       <tr><td><b>Live-Ansicht der Klausurseite im Pult</b> (Standard an)</td><td>Das Pult zeigt in der Live-Wand je Person die aktuelle Aufgabe, einen Code-Ausschnitt um die Cursorzeile und die letzten Konsolenzeilen (5.15). Das funktioniert überall, auch im Safe Exam Browser. Es wird nichts gespeichert: Nur der jeweils letzte Stand liegt im Arbeitsspeicher des Servers und wird am Klausurende gelöscht.</td></tr>
       <tr><td><b>Bildschirmfreigabe verlangen (ganzer Bildschirm)</b> (Standard aus)</td><td>Der Browser der Schüler fragt nach der Freigabe des ganzen Bildschirms. Die Live-Wand zeigt dann zusätzlich ein Standbild (etwa alle 5 Sekunden klein, bei Fokus etwa 1 Bild pro Sekunde groß). Das ist ein Eingriff in die Privatsphäre: Teilen Sie den Schülern vorab mit, dass der Bildschirm übertragen wird (Vorlage in Anhang E). Beendet oder verweigert jemand die Freigabe oder gibt nur ein Fenster oder einen Tab frei, gibt es einen Alarm im Pult, aber keine Sperre. Im Safe Exam Browser entfällt die Freigabe ohne Alarm.</td></tr>
-      <tr><td><b>Abgabe-Knopf anzeigen</b></td><td>Schüler können die Abgabe anfragen; Sie bestätigen sie im Pult. Aus: Es gibt keinen Knopf, Sie geben für die Schüler ab.</td></tr>
     </tbody>
   </table>
   <figure>
     <img src="img/206b-einstellungen-live.jpg" alt="Schalter Live-Ansicht und Bildschirmfreigabe">
     <figcaption><b>{fig}</b> Die zwei Schalter für die Live-Wand: Live-Ansicht der Klausurseite und Bildschirmfreigabe</figcaption>
   </figure>
-  <h3>Darstellung und Ausführung</h3>
+  <h4>Darstellung und Ausführung</h4>
   <figure>
     <img src="img/207-einstellungen-darstellung.jpg" alt="Einstellungen Darstellung">
     <figcaption><b>{fig}</b> Darstellung und Ausführung, Java-Version und Python-Pakete</figcaption>
   </figure>
   <ul>
     <li><b>Auswahlaufgaben mischen</b>: Antwortoptionen und Zuordnungen erscheinen je Person in anderer Reihenfolge (fest aus der Teilnahme berechnet, also nach Neuladen gleich).</li>
-    <li><b>Punkte bei den Aufgaben anzeigen</b>: Schüler sehen, wie viele Punkte eine Aufgabe bringt.</li>
     <li><b>Code ausführen</b>: <i>Programme ausführen</i>, <i>nur Syntax prüfen</i> oder <i>nicht ausführen</i>. Das ist der Standard für alle Code-Aufgaben; einzelne Aufgaben können abweichen (Feld „Ausführung“ im Aufgaben-Editor).</li>
     <li><b>Java-Version</b>: Java 21 oder Java 25.</li>
     <li><b>Python-Pakete zusätzlich laden</b>: NumPy und Matplotlib. Mehr Pakete verlängern die Ladezeit beim ersten Start von Python. Nur ankreuzen, wenn die Aufgaben sie brauchen.</li>
   </ul>
-  <h3>Editor-Komfort</h3>
-  <figure>
-    <img src="img/208-einstellungen-editor.jpg" alt="Editor-Komfort und Hilfsmittel">
-    <figcaption><b>{fig}</b> Editor-Komfort, Hilfsmittel und Archiv-Freigabe</figcaption>
-  </figure>
+  <h4>Editor</h4>
   <ul>
-    <li><b>Autovervollständigung</b>: Der Editor schlägt Wörter und Schlüsselwörter vor. Für Klausuren meist aus, für Übungen an.</li>
-    <li><b>Fehlermarkierung im Editor</b>: Syntaxfehler werden schon beim Tippen markiert.</li>
     <li><b>Klammern automatisch schließen</b>: Beim Tippen von <code>( [ { "</code> wird die schließende Klammer ergänzt.</li>
     <li><b>Schriftgröße im Editor</b>: 11 bis 24 Pixel. Schüler können sie zusätzlich selbst mit A− und A+ ändern.</li>
   </ul>
-  <h3>Hilfsmittel</h3>
-  <p>Hilfsmittel erscheinen in einer Seitenleiste der Schüleransicht (Knopf <span class="ui">Hilfsmittel</span>). Zur Wahl stehen die <b>Java-API-Referenz</b> (Kurzreferenz der häufigsten Klassen), die <b>Python-Kurzreferenz</b>, der <b>SQL-Spickzettel</b>, die <b>Operatorenliste</b> und ein einfacher <b>Taschenrechner</b>. Hochgeladene Materialien mit „als Hilfsmittel“ (4.7) kommen zusätzlich dazu.</p>
-  <h3>Archiv</h3>
+  <h4>Archiv</h4>
   <p><b>Im Archiv für Kolleg:innen freigeben</b>: Andere Lehrkräfte finden die Aufgaben dieser Klausur im Archiv und dürfen sie samt Musterlösungen in eigene Klausuren kopieren. Kopien sind unabhängig vom Original.</p>
 
   <h2 id="k4-3"><span class="num">4.3</span>Der Aufgaben-Editor</h2>
-  <p><span class="ui">Aufgaben bearbeiten</span> öffnet den Editor. Links steht der <b>Aufgabenbaum</b> mit Nummer, Titel, Antworttyp und Punkten; unten die Summe („Gesamt: 30 Punkte“). Rechts bearbeiten Sie die gewählte Aufgabe.</p>
+  <p><span class="ui">Aufgaben bearbeiten</span> öffnet den Editor; nach dem Anlegen einer Klausur landen Sie direkt hier. Links steht der <b>Aufgabenbaum</b> mit Nummer, Titel, Antworttyp und Punkten; unten die Summe („Gesamt: 30 Punkte“). Rechts bearbeiten Sie die gewählte Aufgabe.</p>
+  <div class="box tip"><span class="t">Gespeichert wird automatisch</span><p>Etwa eine Sekunde nach der letzten Eingabe speichert der Editor die Aufgabe selbst, ebenso vor jedem Wechsel zu einer anderen Aufgabe, vor dem Verschieben und vor dem Anlegen einer neuen. Oben steht „Ungespeicherte Änderungen …“, „Speichert …“ oder „Alles gespeichert“. <span class="ui">Speichern</span> oder <span class="kbd">Strg</span> + <span class="kbd">S</span> speichern sofort; der Cursor bleibt dabei, wo er ist. Nur wenn sich eine Aufgabe nicht speichern lässt (Hinweis im Formular, etwa ein ungültiger Test), fragt der Editor beim Wechsel, ob die Änderungen verworfen werden sollen.</p></div>
   <figure>
     <img src="img/f-300-editor-choice-1.jpg" alt="Aufgaben-Editor">
     <figcaption><b>{fig}</b> Der Aufgaben-Editor: links der Baum, rechts Titel, Aufgabentext mit Live-Vorschau</figcaption>
   </figure>
+  <figure>
+    <img src="img/f-301-editor-typauswahl.jpg" alt="Typauswahl als Kacheln">
+    <figcaption><b>{fig}</b> Neue Aufgabe: den Antworttyp als Kachel wählen</figcaption>
+  </figure>
   <h3>Aufgaben und Teilaufgaben</h3>
   <ul>
-    <li><span class="ui">Aufgabe</span> (Plus-Symbol) legt eine Aufgabe auf oberster Ebene an (1, 2, 3 …), <span class="ui">Teilaufgabe</span> (Plus-Symbol) eine untergeordnete (1a, 1b …).</li>
+    <li><span class="ui">Aufgabe</span> (Plus-Symbol) legt eine Aufgabe auf oberster Ebene an (1, 2, 3 …), <span class="ui">Teilaufgabe</span> (Plus-Symbol) eine untergeordnete (1a, 1b …). Zuerst wählen Sie den <b>Antworttyp als Kachel</b>: Programmcode gibt es direkt als Java, Python oder SQL, dazu Freitext, Auswahl, Lücken, Zuordnung, Reihenfolge, die Diagramme, Robo und „Überschrift mit Teilaufgaben“. <span class="ui">Abbrechen</span> oder <span class="kbd">Esc</span> schließt die Auswahl. Den Typ können Sie später im Formular noch ändern. Eine leere Klausur öffnet den Editor gleich mit dieser Auswahl.</li>
     <li>Die Pfeil-Knöpfe über der Aufgabenliste verschieben die Aufgabe (nach oben, nach unten), machen sie zur Teilaufgabe der vorherigen (Pfeil nach rechts) oder holen sie wieder eine Ebene hoch (Pfeil nach links). <span class="ui d">Löschen</span> (oder <span class="kbd">Entf</span> beziehungsweise die Rücktaste bei markierter Aufgabe) entfernt sie samt Teilaufgaben, nach einer Rückfrage.</li>
     <li>Eine Aufgabe mit Teilaufgaben ist ein <b>Container</b>: Sie hat einen eigenen Text (zum Beispiel eine Ausgangslage), aber keinen Antworttyp. Ihre <b>Punkte</b> sind die Summe der Teilaufgaben und werden automatisch berechnet.</li>
-    <li><span class="ui p">Speichern</span> speichert die gewählte Aufgabe; daneben steht „Gespeichert“ oder ein Hinweis auf ungespeicherte Änderungen.</li>
+
   </ul>
   <div class="box note"><span class="t">Nach dem Start ist die Struktur gesperrt</span><p>Sobald eine Klausur gestartet wurde, steht im Baum „Struktur gesperrt (Klausur gestartet)“. Sie können dann Aufgaben nicht mehr hinzufügen, löschen oder verschieben. Texte und der Erwartungshorizont bleiben bearbeitbar, zum Beispiel um einen Tippfehler zu korrigieren (die Schüler sehen die Änderung nach dem nächsten Laden; für wichtige Hinweise nutzen Sie die Durchsage).</p></div>
   <h3>Löschen per Auswahl</h3>

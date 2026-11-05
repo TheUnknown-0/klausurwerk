@@ -41,6 +41,7 @@ bash tests/e2e/reset.sh                 # Demo-Daten einspielen
 cd handbuch
 python s10_admin.py                     # Verwaltung (Admin)
 python s20_lehrkraft.py                 # Vorbereitung, Editor und Vorschau je Antworttyp
+python s21_vereinfachung.py             # Anlegen mit Profil, Einstellungen mit Profilen und "Erweitert", Typauswahl (speichert nichts)
 python s30a_lauf.py --neu               # Warteraum, Beitritt, Start (legt states/ an, ein Browserprofil je Person)
 python s30b_schueler.py                 # Schüleransicht von Mia ausfüllen
 python s30b2_schueler.py                # Zuordnung und Reihenfolge
