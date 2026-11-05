@@ -26,7 +26,9 @@
   <div class="mono-block">git clone https://github.com/TheUnknown-0/klausurwerk.git /opt/klausurwerk
 cd /opt/klausurwerk
 sudo ./install.sh</div>
+  <p>Ohne vorherigen Klon reicht ein Befehl: <code>curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash</code>. Das Skript fragt dann nach dem Zielordner. Erlaubt sind ein absoluter Pfad, ein Pfad relativ zum aktuellen Ordner (<code>klausurwerk</code>, <code>../klausurwerk</code>), ein einzelner Punkt für <code>./klausurwerk</code> und <code>~/…</code> für das eigene Home-Verzeichnis. Ist der Ordner schon belegt, landet Klausurwerk im Unterordner <code>klausurwerk</code>.</p>
   <p>Am Ende zeigt das Skript, was am Reverse-Proxy noch einzurichten ist (siehe 2.4). Die Anwendung ist dann nur auf dem Server selbst erreichbar (<code>127.0.0.1</code>), bis der Proxy-Host steht. Ein zweiter Aufruf behält auf Wunsch die vorhandene <code>.env</code> und startet nur neu.</p>
+  <div class="box warn"><span class="t">Alte Datenbank, neue Passwörter</span><p>MariaDB übernimmt die Passwörter aus <code>.env</code> nur beim allerersten Start. Wer den Ordner löscht und neu installiert, behält die alte Datenbank (Docker-Volume), aber bekommt neue Passwörter, und die App kommt nicht mehr an die Daten. Der Assistent erkennt das und bietet zwei Wege an: die alte <code>.env</code> zurücklegen (Daten bleiben) oder die alten Daten nach Eintippen von „löschen“ verwerfen.</p></div>
   <div class="box tip"><span class="t">Warum der Admin auf der Kommandozeile entsteht</span><p>Die Einrichtung im Browser (<span class="path">/setup</span>) steht jedem offen, solange es kein Konto gibt. Der Assistent legt das erste Admin-Konto deshalb direkt an, bevor die Domain öffentlich erreichbar ist. Von Hand geht das mit <code>docker compose exec app php bin/setup.php</code>.</p></div>
 
   <h3>Von Hand</h3>

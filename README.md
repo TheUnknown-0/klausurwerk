@@ -37,8 +37,21 @@ Auf einem Linux-Server mit Docker genügt ein Befehl:
 curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash
 ```
 
-Das Skript klont Klausurwerk nach `/opt/klausurwerk` (anderer Ordner auf Nachfrage) und startet den
-Installations-Assistenten. Wer das Skript vorher lesen möchte, klont selbst und startet es im Ordner:
+Das Skript fragt nach dem Zielordner, klont Klausurwerk dorthin und startet den Installations-Assistenten.
+Der Zielordner darf so angegeben werden:
+
+| Eingabe | Ziel |
+|---|---|
+| *(leer)* | `/opt/klausurwerk` |
+| `/srv/klausurwerk` | absoluter Pfad |
+| `klausurwerk`, `./apps/klausurwerk`, `../klausurwerk` | relativ zum Ordner, in dem der Befehl läuft |
+| `.` | `./klausurwerk` im aktuellen Ordner |
+| `~/docker` | im eigenen Home-Verzeichnis, auch unter `sudo` |
+
+Ist der Ordner schon mit anderen Dingen belegt (etwa `~/docker` mit weiteren Projekten), landet
+Klausurwerk im Unterordner `klausurwerk`.
+
+Wer das Skript vorher lesen möchte, klont selbst und startet es im Ordner:
 
 ```bash
 git clone https://github.com/TheUnknown-0/klausurwerk.git /opt/klausurwerk
@@ -50,6 +63,18 @@ Der Assistent prüft Docker, fragt öffentliche Adresse, Reverse-Proxy, Port, Im
 das erste Admin-Konto ab, schreibt `.env` mit zufälligen Passwörtern, setzt `TRUSTED_PROXIES`,
 startet die Container und legt den Admin an. Damit ist die Einrichtung im Browser gesperrt, bevor
 die Domain öffentlich erreichbar ist. Zum Schluss zeigt er, was am Reverse-Proxy noch fehlt.
+
+Passen die Passwörter in `.env` nicht zu einer Datenbank aus einer früheren Installation, erkennt der
+Assistent das und bietet an, die alten Daten zu löschen (nur nach Eintippen von „löschen“).
+
+### Update
+
+```bash
+cd /opt/klausurwerk && sudo git pull && sudo docker compose pull && sudo docker compose up -d
+```
+
+Ohne fertige Images (lokal gebaut) statt der letzten beiden Befehle `sudo docker compose up -d --build`.
+Vorher die Datenbank sichern und nicht während einer Klausur aktualisieren.
 
 ## Schnellstart von Hand (Docker)
 

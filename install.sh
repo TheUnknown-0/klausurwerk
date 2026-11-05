@@ -3,7 +3,9 @@
 #
 #   Im geklonten Repo:   ./install.sh
 #   Ohne Klon:           curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | bash
-#                        (klappt nur, solange das Repo öffentlich ist; Zielordner: KLAUSURWERK_DIR, Standard /opt/klausurwerk)
+#                        Zielordner wird abgefragt: absolut (/opt/klausurwerk), relativ zum aktuellen
+#                        Ordner (klausurwerk, ./apps/klausurwerk, "." = ./klausurwerk) oder im
+#                        Home-Verzeichnis (~/docker). Vorgabe auch über KLAUSURWERK_DIR.
 #
 # Der Assistent prüft Docker, fragt die nötigen Angaben ab, schreibt .env mit zufälligen
 # Geheimnissen, startet die Container und legt das erste Admin-Konto an. Damit ist die
@@ -17,6 +19,8 @@ DEFAULT_DIR="${KLAUSURWERK_DIR:-/opt/klausurwerk}"
 GHCR_APP="ghcr.io/theunknown-0/klausurwerk-app:latest"
 GHCR_RUNNER="ghcr.io/theunknown-0/klausurwerk-runner:latest"
 PROXY_NET="proxy_network"
+# Ordner, in dem das Skript gestartet wurde: Bezug für relative Zielordner.
+START_DIR="$(pwd)"
 
 # ---------- Ausgabe und Eingabe ----------
 
@@ -152,15 +156,33 @@ locate_project() {
         return
     fi
 
-    local dir
-    ask dir "Wohin soll Klausurwerk installiert werden?" "$DEFAULT_DIR"
+    say "Zielordner: absolut (/opt/klausurwerk), relativ zum aktuellen Ordner $START_DIR"
+    say "(klausurwerk oder ./apps/klausurwerk; ein einzelner Punkt heißt ./klausurwerk) oder mit ~ im Home-Verzeichnis."
+    say "Ist der Ordner schon belegt, landet Klausurwerk im Unterordner klausurwerk."
+    local input dir
+    while :; do
+        ask input "Wohin soll Klausurwerk installiert werden?" "$DEFAULT_DIR"
+        dir="$(resolve_dir "$input")"
+        [ -n "$dir" ] && break
+        warn "Bitte einen Ordner angeben."
+    done
     if [ -f "$dir/compose.yaml" ]; then
         cd "$dir"
         ok "Vorhandenen Ordner $dir gefunden"
         return
     fi
+    # Belegter Ordner ohne Klausurwerk (z. B. ~/docker mit anderen Projekten): Unterordner nehmen.
+    if [ -d "$dir" ] && [ -n "$(ls -A "$dir" 2>/dev/null)" ]; then
+        dir="${dir%/}/klausurwerk"
+        if [ -f "$dir/compose.yaml" ]; then
+            cd "$dir"
+            ok "Vorhandenen Ordner $dir gefunden"
+            return
+        fi
+    fi
+    ask_yn "Klausurwerk nach $dir installieren?" j || die "Abgebrochen."
     command -v git >/dev/null 2>&1 || die "git fehlt (Paket git)."
-    mkdir -p "$(dirname "$dir")" 2>/dev/null || die "Kann $(dirname "$dir") nicht anlegen. Als root starten oder KLAUSURWERK_DIR setzen."
+    mkdir -p "$(dirname "$dir")" 2>/dev/null || die "Kann $(dirname "$dir") nicht anlegen. Als root starten (sudo) oder einen anderen Ordner wählen."
     say "Lade den Code von $REPO_URL ..."
     if ! GIT_TERMINAL_PROMPT=0 git clone --depth 1 "$REPO_URL" "$dir" </dev/null; then
         die "Klonen fehlgeschlagen. Ist das Repo privat, zuerst mit Zugang klonen (Deploy-Key oder Token) und dann ./install.sh im Ordner starten."
@@ -169,10 +191,79 @@ locate_project() {
     ok "Code liegt in $dir"
 }
 
+# Home-Verzeichnis der aufrufenden Person, auch unter sudo (dort wäre $HOME sonst /root).
+user_home() {
+    local h=""
+    if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != root ]; then
+        h="$(getent passwd "$SUDO_USER" 2>/dev/null | cut -d: -f6 || true)"
+    fi
+    printf '%s' "${h:-$HOME}"
+}
+
+# Macht aus der Eingabe einen absoluten Pfad: ~ = Home, "." = ./klausurwerk, sonst relativ zu START_DIR.
+resolve_dir() {
+    local p="$1"
+    # shellcheck disable=SC2088 # Die Tilde wird hier bewusst wörtlich verglichen und selbst ersetzt.
+    case "$p" in
+        "") return 0 ;;
+        "~") p="$(user_home)" ;;
+        "~/"*) p="$(user_home)/${p#\~/}" ;;
+        ".") p="$START_DIR/klausurwerk" ;;
+        /*) ;;
+        *) p="$START_DIR/${p#./}" ;;
+    esac
+    # Doppelte und abschließende Schrägstriche sowie ".." glätten (realpath -m: Ordner muss nicht existieren).
+    p="$(printf '%s' "$p" | tr -s '/')"
+    p="$(realpath -m -- "$p" 2>/dev/null || printf '%s' "$p")"
+    [ "$p" = / ] || p="${p%/}"
+    printf '%s' "$p"
+}
+
+# Compose-Projektname: wie Docker Compose ihn aus dem Ordnernamen bildet.
+project_name() {
+    basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-'
+}
+
 project_volume_exists() {
-    local project
-    project="$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-')"
-    docker volume inspect "${project}_db_data" >/dev/null 2>&1
+    docker volume inspect "$(project_name)_db_data" >/dev/null 2>&1
+}
+
+# Destruktive Schritte nur nach eingetipptem Wort, nicht mit einem schnellen "j".
+confirm_delete() { # Frage; Rückgabe 0 = bestätigt
+    local ans
+    say "$1"
+    ask ans "Zum Bestätigen das Wort löschen eintippen (leer: abbrechen)"
+    [ "$ans" = "löschen" ] || [ "$ans" = "LÖSCHEN" ] || [ "$ans" = "Löschen" ]
+}
+
+# Löscht Container und Volumes dieses Projekts: Datenbank und hochgeladene Dateien.
+reset_data() {
+    docker compose down -v --remove-orphans </dev/null >/dev/null 2>&1 || true
+    docker volume rm "$(project_name)_db_data" "$(project_name)_uploads" >/dev/null 2>&1 || true
+    if project_volume_exists; then
+        die "Das Volume $(project_name)_db_data ließ sich nicht löschen. Läuft noch ein Container darauf? (docker ps -a)"
+    fi
+    ok "Alte Daten gelöscht. Die Datenbank wird beim Start neu angelegt."
+}
+
+# Container mit den festen Namen klausurwerk-* aus einer Installation in einem anderen Ordner
+# blockieren den Start ("name already in use").
+check_name_conflicts() {
+    local c project dir own
+    own="$(project_name)"
+    for c in klausurwerk-db klausurwerk-runner klausurwerk-app; do
+        docker inspect "$c" >/dev/null 2>&1 || continue
+        project="$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$c" 2>/dev/null || true)"
+        [ "$project" = "$own" ] && continue
+        dir="$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$c" 2>/dev/null || true)"
+        warn "Der Container $c gehört zu einer anderen Installation${dir:+ (Ordner $dir)}."
+        if ask_yn "Diesen alten Container entfernen? (Seine Daten-Volumes bleiben erhalten.)" j; then
+            docker rm -f "$c" >/dev/null
+            ok "$c entfernt"
+        else
+            die "Abgebrochen. Zwei Installationen mit denselben Containernamen können nicht gleichzeitig laufen."
+        fi
+    done
 }
 
 ADMIN_READY=0
@@ -206,10 +297,22 @@ ask_admin() {
 configure_env() {
     step "Konfiguration"
     FRESH_ENV=1
+    NEED_TP=1
     if [ -f .env ]; then
         if ask_yn "Es gibt schon eine .env. Behalten und nur (neu) starten?" j; then
             FRESH_ENV=0
+            NEED_TP=0
+            PROXY_MODE=docker
             ok ".env bleibt unverändert"
+            if [ -z "$(get_env TRUSTED_PROXIES)" ]; then
+                warn "TRUSTED_PROXIES ist leer. Hinter einem Reverse-Proxy sieht die App sonst nur HTTP (Cookies, QR-Codes, SEB)."
+                NEED_TP=1
+                if ask_yn "Läuft der Reverse-Proxy als Docker-Container im Netz $PROXY_NET? (Nein: auf dem Server selbst)" j; then
+                    PROXY_MODE=docker
+                else
+                    PROXY_MODE=host
+                fi
+            fi
             return
         fi
         local backup
@@ -220,8 +323,14 @@ configure_env() {
     fi
 
     if project_volume_exists; then
-        warn "Es gibt schon eine Datenbank aus einer früheren Installation. Neue Passwörter passen nicht zu ihr, die App käme dann nicht an die Datenbank."
-        ask_yn "Trotzdem fortfahren? (Sonst die alte .env zurückholen oder das Volume bewusst löschen.)" n || die "Abgebrochen."
+        warn "Hier liegt noch eine Datenbank aus einer früheren Installation (Volume $(project_name)_db_data)."
+        say "Neue Passwörter passen nicht zu ihr: MariaDB übernimmt Passwörter nur beim allerersten Start."
+        say "Entweder die alte .env zurücklegen und den Assistenten mit \"behalten\" starten, oder die alten Daten löschen."
+        if confirm_delete "Alte Klausurwerk-Daten (Datenbank und hochgeladene Dateien) endgültig löschen?"; then
+            reset_data
+        else
+            die "Abgebrochen. Nichts verändert."
+        fi
     fi
 
     cp .env.example .env
@@ -344,23 +453,82 @@ set_trusted_proxies() {
     return 0
 }
 
+app_ready() {
+    local t=()
+    command -v timeout >/dev/null 2>&1 && t=(timeout 20)
+    # shellcheck disable=SC2016 # PHP-Code: $c gehört PHP, nicht der Shell.
+    ${t[@]+"${t[@]}"} docker compose exec -T app php -r '
+        $c = stream_context_create(["http" => ["timeout" => 5]]);
+        exit(@file_get_contents("http://127.0.0.1/readyz", false, $c) !== false ? 0 : 1);' </dev/null >/dev/null 2>&1
+}
+
 wait_ready() {
     say "Warte, bis die Anwendung bereit ist (Migrationen laufen beim ersten Start) ..."
-    for _ in $(seq 1 90); do
-        if docker compose exec -T app php -r 'exit(@file_get_contents("http://127.0.0.1/readyz") !== false ? 0 : 1);' </dev/null >/dev/null 2>&1; then
+    local start=$SECONDS note=15 cid info status restarts base
+    cid="$(docker compose ps -q app 2>/dev/null)"
+    base="$(docker inspect -f '{{.RestartCount}}' "$cid" 2>/dev/null || echo 0)"
+    while [ $((SECONDS - start)) -lt 300 ]; do
+        if app_ready; then
             ok "Anwendung bereit"
             return 0
+        fi
+        info="$(docker inspect -f '{{.State.Status}} {{.RestartCount}}' "$cid" 2>/dev/null || echo "fehlt 0")"
+        status="${info% *}"
+        restarts="${info##* }"
+        if [ "$restarts" -gt "$base" ] || [ "$status" = exited ] || [ "$status" = dead ] || [ "$status" = fehlt ]; then
+            docker compose logs --tail 30 app >&2 || true
+            die "Der App-Container ist abgebrochen (Status: $status). Die Protokolle stehen oben, mehr mit: sudo docker compose logs app"
+        fi
+        if [ $((SECONDS - start)) -ge "$note" ]; then
+            say "  ... noch nicht bereit nach $((SECONDS - start)) s (Container: $status)"
+            note=$((note + 15))
         fi
         sleep 2
     done
     docker compose logs --tail 40 app db runner >&2 || true
-    die "Die Anwendung wurde nicht bereit. Protokolle oben, mehr mit: docker compose logs app"
+    die "Die Anwendung wurde nach 5 Minuten nicht bereit. Die Protokolle stehen oben, mehr mit: sudo docker compose logs app"
+}
+
+# Prüft mit den Zugangsdaten aus .env, ob die Datenbank die App hereinlässt. Die Werte kommen
+# aus der Umgebung des db-Containers, damit kein Passwort auf einer Befehlszeile steht.
+# Rückgabe 0 = Anmeldung abgelehnt (falsches Passwort), 1 = in Ordnung oder unklar.
+db_login_rejected() {
+    local out _
+    for _ in 1 2 3 4 5; do
+        if out="$(docker compose exec -T db sh -c 'MYSQL_PWD="$MYSQL_PASSWORD" mariadb -h 127.0.0.1 -u"$MYSQL_USER" "$MYSQL_DATABASE" -e "SELECT 1"' </dev/null 2>&1)"; then
+            return 1
+        fi
+        case "$out" in
+            *"Access denied"*|*"1045"*|*"1044"*|*"Unknown database"*|*"1049"*) return 0 ;;
+        esac
+        sleep 2
+    done
+    return 1
+}
+
+check_db_login() {
+    db_login_rejected || return 0
+    warn "Die Datenbank lehnt die Anmeldung der App ab: Das Passwort in .env passt nicht zur vorhandenen Datenbank."
+    say "Die Datenbank stammt aus einer früheren Installation, MariaDB übernimmt Passwörter nur beim allerersten Start."
+    say "Lösung A: die .env der damaligen Installation zurücklegen und den Assistenten erneut starten (Daten bleiben)."
+    say "Lösung B: die alten Daten löschen; die Datenbank wird dann mit den Passwörtern aus .env neu angelegt."
+    if confirm_delete "Lösung B: alte Klausurwerk-Daten (Datenbank und hochgeladene Dateien) endgültig löschen?"; then
+        reset_data
+        docker compose up -d </dev/null
+        if db_login_rejected; then
+            die "Die Anmeldung an der Datenbank klappt weiterhin nicht. Bitte DB_USER, DB_PASS und DB_NAME in .env prüfen."
+        fi
+        ok "Datenbank neu angelegt"
+    else
+        die "Abgebrochen. Nichts gelöscht."
+    fi
 }
 
 start_containers() {
     step "Container starten"
     ensure_network
-    if [ "${FRESH_ENV:-0}" = 1 ] && [ "$PROXY_MODE" = docker ]; then
+    check_name_conflicts
+    if [ "${NEED_TP:-0}" = 1 ] && [ "$PROXY_MODE" = docker ]; then
         set_trusted_proxies || true
     fi
 
@@ -383,9 +551,10 @@ start_containers() {
         say "Baue die Images. Das erste Mal dauert das einige Minuten ..."
         docker compose up -d --build </dev/null
     fi
+    check_db_login
     wait_ready
 
-    if [ "${FRESH_ENV:-0}" = 1 ] && [ "$PROXY_MODE" = host ]; then
+    if [ "${NEED_TP:-0}" = 1 ] && [ "$PROXY_MODE" = host ]; then
         if set_trusted_proxies; then
             docker compose up -d </dev/null
             wait_ready
@@ -415,7 +584,7 @@ create_admin() {
             break
         fi
         tries=$((tries + 1))
-        [ "$tries" -ge 3 ] && die "Admin-Konto konnte nicht angelegt werden. Später von Hand: docker compose exec app php bin/setup.php"
+        [ "$tries" -ge 3 ] && die "Admin-Konto konnte nicht angelegt werden. Später von Hand: sudo docker compose exec app php bin/setup.php"
         warn "Bitte die Angaben korrigieren."
         ask_admin
     done
@@ -458,10 +627,6 @@ main() {
     check_requirements
     locate_project
     configure_env
-    if [ "${FRESH_ENV:-0}" = 0 ]; then
-        PROXY_MODE=docker
-        [ -n "$(get_env TRUSTED_PROXIES)" ] || warn "TRUSTED_PROXIES ist leer. Hinter einem Reverse-Proxy bitte in .env setzen."
-    fi
     start_containers
     create_admin
     summary
