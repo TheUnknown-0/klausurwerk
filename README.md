@@ -29,16 +29,30 @@ Lehrkräfte überwachen die Klausur live im **Pult**, Schüler:innen arbeiten im
   Wirklich gesperrt ist das nur im Safe Exam Browser.
 - **Nicht erkennbar:** Handy, zweiter Rechner, Zettel. Dafür ist die Aufsicht im Raum zuständig.
 
-## Schnellstart (Docker)
+## Installation auf dem Server
+
+```bash
+git clone https://github.com/TheUnknown-0/klausurwerk.git /opt/klausurwerk
+cd /opt/klausurwerk
+sudo ./install.sh
+```
+
+Der Assistent prüft Docker, fragt öffentliche Adresse, Reverse-Proxy, Port, Images, Mailserver und
+das erste Admin-Konto ab, schreibt `.env` mit zufälligen Passwörtern, setzt `TRUSTED_PROXIES`,
+startet die Container und legt den Admin an. Damit ist die Einrichtung im Browser gesperrt, bevor
+die Domain öffentlich erreichbar ist. Zum Schluss zeigt er, was am Reverse-Proxy noch fehlt.
+
+## Schnellstart von Hand (Docker)
 
 ```bash
 cp .env.example .env      # Passwörter und RUNNER_TOKEN setzen!
 docker network create proxy_network   # falls der Reverse-Proxy es noch nicht anlegt
 docker compose up -d --build
+docker compose exec app php bin/setup.php   # erstes Admin-Konto
 ```
 
-Anwendung: `http://localhost:9030`. Beim ersten Aufruf führt ein **Setup-Assistent** durch
-Admin-Konto und Schulname.
+Anwendung: `http://localhost:9030`. Ohne `bin/setup.php` führt beim ersten Aufruf ein
+**Setup-Assistent** im Browser durch Admin-Konto und Schulname.
 
 Fertige Images aus der GitHub Container Registry statt lokal bauen: in `.env`
 `APP_IMAGE=ghcr.io/theunknown-0/klausurwerk-app:latest` und

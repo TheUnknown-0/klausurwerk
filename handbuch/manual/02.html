@@ -21,20 +21,29 @@
   <div class="box note"><span class="t">Python und SQL laufen im Browser</span><p>Nur Java-Aufgaben belasten den Server. Python (Pyodide) und SQL (SQLite als WebAssembly) rechnen im Browser des Schülers. Die Kapazität des Runners ist deshalb nur für Java-Klausuren und die automatische Vorbewertung in der Korrektur relevant.</p></div>
 
   <h2 id="k2-2"><span class="num">2.2</span>Erster Start</h2>
+  <h3>Mit dem Installations-Assistenten (empfohlen)</h3>
+  <p>Das Skript <code>install.sh</code> erledigt die Einrichtung auf einem Linux-Server mit Docker in einem Durchgang. Es prüft Docker und die Ausstattung des Servers, fragt nach öffentlicher Adresse, Reverse-Proxy, Port, Images, Mailserver und dem ersten Admin-Konto, schreibt die <code>.env</code> mit zufällig erzeugten Passwörtern, legt bei Bedarf das Netz <code>proxy_network</code> an, trägt <code>TRUSTED_PROXIES</code> ein, startet die Container und wartet, bis die Anwendung bereit ist.</p>
+  <div class="mono-block">git clone https://github.com/TheUnknown-0/klausurwerk.git /opt/klausurwerk
+cd /opt/klausurwerk
+sudo ./install.sh</div>
+  <p>Am Ende zeigt das Skript, was am Reverse-Proxy noch einzurichten ist (siehe 2.4). Die Anwendung ist dann nur auf dem Server selbst erreichbar (<code>127.0.0.1</code>), bis der Proxy-Host steht. Ein zweiter Aufruf behält auf Wunsch die vorhandene <code>.env</code> und startet nur neu.</p>
+  <div class="box tip"><span class="t">Warum der Admin auf der Kommandozeile entsteht</span><p>Die Einrichtung im Browser (<span class="path">/setup</span>) steht jedem offen, solange es kein Konto gibt. Der Assistent legt das erste Admin-Konto deshalb direkt an, bevor die Domain öffentlich erreichbar ist. Von Hand geht das mit <code>docker compose exec app php bin/setup.php</code>.</p></div>
+
+  <h3>Von Hand</h3>
   <ol class="steps">
     <li>Projektordner auf den Server kopieren (oder aus Git klonen) und die Vorlage der Konfiguration kopieren: <code>cp .env.example .env</code>.</li>
-    <li>In <code>.env</code> die Pflichtwerte setzen: <code>DB_PASS</code>, <code>DB_ROOT_PASS</code> und <code>RUNNER_TOKEN</code> (zum Beispiel mit <code>openssl rand -hex 32</code>).</li>
+    <li>In <code>.env</code> die Pflichtwerte setzen: <code>DB_PASS</code>, <code>DB_ROOT_PASS</code> und <code>RUNNER_TOKEN</code> (zum Beispiel mit <code>openssl rand -hex 32</code>). Mit <code>APP_PORT=127.0.0.1:9030</code> ist der Port nur auf dem Server erreichbar; Docker umgeht Firewall-Regeln wie ufw.</li>
     <li>Das Netz des Reverse-Proxys anlegen, falls es noch nicht existiert: <code>docker network create proxy_network</code>.</li>
     <li>Bauen und starten: <code>docker compose up -d --build</code>. Der erste Build lädt Basis-Images und Laufzeiten und dauert einige Minuten.</li>
-    <li>Im Browser <code>http://localhost:9030</code> (oder die Adresse hinter dem Reverse-Proxy) öffnen. Beim ersten Aufruf erscheint der <b>Setup-Assistent</b>.</li>
+    <li>Das erste Admin-Konto anlegen: <code>docker compose exec app php bin/setup.php</code> oder im Browser unter <code>http://localhost:9030</code> mit dem <b>Setup-Assistenten</b>. Tun Sie das, bevor die Domain öffentlich erreichbar ist.</li>
   </ol>
   <div class="mono-block">cp .env.example .env
 # DB_PASS, DB_ROOT_PASS und RUNNER_TOKEN setzen
 docker network create proxy_network
 docker compose up -d --build
-docker compose ps</div>
-  <h3>Der Setup-Assistent</h3>
-  <p>Der Assistent erscheint nur, solange es noch kein Konto gibt. Er fragt nach <b>Vorname</b>, <b>Nachname</b>, <b>Benutzername</b>, <b>E-Mail (für Anmeldecodes)</b>, <b>Passwort</b> (mindestens 8 Zeichen), <b>Passwort wiederholen</b> und dem <b>Namen der Schule</b>. Damit wird das erste Admin-Konto angelegt. Danach ist die Seite <span class="path">/setup</span> nicht mehr nutzbar, und Sie landen auf der Anmeldeseite.</p>
+docker compose exec app php bin/setup.php</div>
+  <h3>Der Setup-Assistent im Browser</h3>
+  <p>Der Assistent erscheint nur, solange es noch kein Konto gibt. Er fragt nach <b>Vorname</b>, <b>Nachname</b>, <b>Benutzername</b>, <b>E-Mail (für Anmeldecodes)</b>, <b>Passwort</b> (mindestens 8 Zeichen), <b>Passwort wiederholen</b> und dem <b>Namen der Schule</b>. Damit wird das erste Admin-Konto angelegt. Danach ist die Seite <span class="path">/setup</span> nicht mehr nutzbar, und Sie landen auf der Anmeldeseite. Wurde das Konto mit <code>install.sh</code> oder <code>bin/setup.php</code> angelegt, erscheint der Assistent gar nicht.</p>
   <figure class="narrow">
     <img src="img/c-100-login.jpg" alt="Anmeldeseite">
     <figcaption><b>{fig}</b> Die Anmeldeseite mit dem Schulnamen unter dem Logo</figcaption>

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\HttpException;
+use App\Services\FirstSetup;
 
 /**
  * Erst-Einrichtung: Solange kein Benutzer existiert, führt /setup durch
- * das Anlegen des Admin-Kontos und des Schulnamens.
+ * das Anlegen des Admin-Kontos und des Schulnamens. Dieselbe Logik nutzt
+ * bin/setup.php auf der Kommandozeile (Services\FirstSetup).
  */
 final class SetupController extends Controller
 {
@@ -24,47 +26,26 @@ final class SetupController extends Controller
         $this->assertSetupNeeded();
         $this->requireCsrf();
 
-        $username = trim((string) ($_POST['username'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
-        $confirm = (string) ($_POST['password_confirm'] ?? '');
-        $schoolName = trim((string) ($_POST['school_name'] ?? ''));
-        $firstname = trim((string) ($_POST['firstname'] ?? ''));
-        $lastname = trim((string) ($_POST['lastname'] ?? ''));
-        $email = trim((string) ($_POST['email'] ?? ''));
-
         $back = $this->ctx->url('/setup');
         $this->ctx->session->rememberInput($_POST);
 
-        if (!preg_match('/^[a-zA-Z0-9._-]{3,50}$/', $username)) {
-            $this->flash('error', 'Der Admin-Benutzername darf 3 bis 50 Zeichen lang sein (Buchstaben, Zahlen, Punkt, Minus, Unterstrich).');
-            $this->redirect($back);
-        }
-        if (mb_strlen($password) < AuthController::MIN_PASSWORD_LENGTH || $password !== $confirm) {
-            $this->flash('error', 'Das Passwort muss mindestens 8 Zeichen lang sein und beide Eingaben müssen übereinstimmen.');
-            $this->redirect($back);
-        }
-        if ($schoolName === '') {
-            $this->flash('error', 'Bitte den Namen der Schule angeben.');
-            $this->redirect($back);
-        }
-        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            $this->flash('error', 'Bitte eine gültige E-Mail-Adresse angeben (oder das Feld leer lassen).');
+        [$data, $error] = FirstSetup::validate($_POST);
+        if ($data === null) {
+            $this->flash('error', (string) $error);
             $this->redirect($back);
         }
 
-        $this->ctx->db->transaction(function () use ($username, $password, $schoolName, $firstname, $lastname, $email): void {
-            $this->ctx->settings->set('school_name', $schoolName);
-            $this->ctx->db->run(
-                "INSERT INTO users (username, email, password, role, firstname, lastname)
-                 VALUES (?, ?, ?, 'admin', ?, ?)",
-                [$username, $email !== '' ? $email : null, password_hash($password, PASSWORD_DEFAULT),
-                 $firstname !== '' ? $firstname : 'Admin', $lastname],
-            );
-        });
+        try {
+            $userId = $this->setup()->run($data);
+        } catch (\RuntimeException) {
+            throw new HttpException(404);
+        }
+        $username = $data['username'];
+        $schoolName = $data['school_name'];
 
-        $this->ctx->audit->log('Erst-Einrichtung abgeschlossen', 'info', "Admin: {$username}, Schule: {$schoolName}");
+        $this->ctx->audit->log('Erst-Einrichtung abgeschlossen', 'info', "Admin: {$username}, Schule: {$schoolName}", $userId, $username);
 
-        $user = $this->ctx->db->fetchOne('SELECT * FROM users WHERE username = ?', [$username]);
+        $user = $this->ctx->db->fetchOne('SELECT * FROM users WHERE id = ?', [$userId]);
         $this->ctx->auth->loginAs($user);
         $this->flash('success', 'Einrichtung abgeschlossen. Willkommen! Lege als Nächstes Lehrkräfte, Kurse und Schüler:innen an.');
         $this->redirect($this->ctx->url('/dashboard'));
@@ -72,8 +53,13 @@ final class SetupController extends Controller
 
     private function assertSetupNeeded(): void
     {
-        if ($this->ctx->db->fetchValue('SELECT 1 FROM users LIMIT 1') !== null) {
+        if (!$this->setup()->isNeeded()) {
             throw new HttpException(404);
         }
+    }
+
+    private function setup(): FirstSetup
+    {
+        return new FirstSetup($this->ctx->db, $this->ctx->settings);
     }
 }
