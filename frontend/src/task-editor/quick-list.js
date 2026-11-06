@@ -9,6 +9,7 @@
 import { h, icon, toast } from '../lib/dom.js';
 import { taskEditor } from '../lib/widgets.js';
 import { typePicker } from './type-picker.js';
+import { previewButton } from './ui.js';
 
 /** Typen, deren Editor klein genug für die Karte ist. */
 const QUICK_TYPES = new Set(['choice', 'gaps', 'matching', 'ordering']);
@@ -135,9 +136,10 @@ export function previewOf(task, typesByName, childCount = 0) {
  *   getTasks: () => any[], setTasks: (list: any[]) => void,
  *   call: (path: string, body: object, errorPrefix: string) => Promise<any>,
  *   openDetail: (taskId: number|null) => void,
+ *   openPreview: (taskId: number, flush: () => Promise<boolean>) => void,
  * }} opts
  */
-export function createQuickList({ host, boot, locked, getTasks, setTasks, call, openDetail }) {
+export function createQuickList({ host, boot, locked, getTasks, setTasks, call, openDetail, openPreview }) {
     const typesByName = new Map(boot.types.map((t) => [t.name, t]));
     let activeId = null;
     let edit = null; // aktive Karte: { id, task, s, typeInstance, typeTouched, dirty, ... }
@@ -189,6 +191,11 @@ export function createQuickList({ host, boot, locked, getTasks, setTasks, call, 
     function previewCard(t) {
         const p = previewOf(t, typesByName, childrenOf(t.id).length);
         const open = () => (locked ? openDetail(t.id) : activate(t.id));
+        // Der Vorschau-Knopf steht neben der Karte (nicht darin): Die Karte ist selbst ein Knopf.
+        return h('div', { class: 'qf-card-wrap' }, cardOf(t, p, open), previewButton(() => openPreview(t.id, flush), { compact: true, number: t.number }));
+    }
+
+    function cardOf(t, p, open) {
         return h('div', {
             class: `qf-card is-preview depth-${t.depth}${t.answer_type ? '' : ' is-section'}`,
             tabindex: '0', role: 'button', dataset: { id: String(t.id) },
@@ -261,6 +268,7 @@ export function createQuickList({ host, boot, locked, getTasks, setTasks, call, 
             h('label', { class: 'qf-points-label' }, 'Punkte ', pointsInput),
             h('span', { class: 'qf-spacer' }),
             h('button', { type: 'button', class: 'btn btn-sm', onclick: () => openDetail(t.id), title: 'Musterlösung, Erwartungshorizont, Tests, Operator und alle Einstellungen des Typs' }, icon('pencil'), 'Details'),
+            previewButton(() => openPreview(t.id, flush)),
             canAddChild ? h('button', { type: 'button', class: 'btn btn-sm', onclick: () => addChild(t) }, icon('plus'), 'Teilaufgabe') : null,
             h('button', { type: 'button', class: 'btn btn-sm', onclick: () => addAfter(t), title: t.parent_id === null ? 'Neue Aufgabe direkt darunter' : 'Neue Teilaufgabe direkt darunter' }, icon('plus'), 'Frage darunter'),
             iconBtn('copy', 'Duplizieren', () => duplicate(t)),

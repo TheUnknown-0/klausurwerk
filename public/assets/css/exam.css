@@ -150,6 +150,15 @@ html.exam-root, .exam-body { height: 100%; }
 .task-page { max-width: 62rem; margin: 0 auto; }
 .task-page:has(.is-split) { max-width: none; }
 .task-block { margin-bottom: 22px; }
+/* Vorschau aus dem Aufgaben-Editor: die gewählte Aufgabe kurz markieren */
+.task-block.is-target { animation: task-target 2.4s ease-out; }
+@keyframes task-target {
+  0%, 35% { box-shadow: 0 0 0 3px var(--primary); }
+  100% { box-shadow: 0 0 0 3px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .task-block.is-target { animation: none; box-shadow: 0 0 0 3px var(--primary); }
+}
 .task-block.depth-0 {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
   padding: 38px 52px 40px; margin-bottom: 0;

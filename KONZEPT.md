@@ -567,3 +567,14 @@ Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
   (CI noch nicht fertig). Kein Zeitplan/Cron: Updates sollen nie in eine Klausur fallen.
 - **Behoben nebenbei:** `.env.bak-*` (Sicherungen des Assistenten) und `backups/` stehen jetzt in
   `.dockerignore`; vorher wären sie bei lokalem Build per `COPY . /var/www/html/` ins Image gelangt.
+
+## 24. Vorschau je Frage (6. November 2026)
+
+- **Knopf an jeder Frage:** Auge oben rechts auf jeder Karte der Fragenliste (als Geschwister der
+  Karte, nicht darin, weil die Karte selbst ein Knopf ist), „Vorschau“ in der Fußleiste der offenen
+  Karte und in der Werkzeugleiste des Detail-Editors.
+- **Ablauf:** Fenster sofort beim Klick öffnen (sonst Pop-up-Sperre), dann speichern, dann auf
+  `/klausuren/{id}/vorschau?aufgabe={tid}` lenken. Ein Tab je Klausur (`kw-vorschau-{id}`). Die
+  Vorschau springt zur Aufgabe und markiert sie kurz.
+- **Ausgang:** „Vorschau beenden“ fest in der Kopfzeile (der Hinweisstreifen lässt sich wegklicken).
+  Aus dem Editor geöffnet: Tab schließen; sonst zurück in den Editor (`?aufgabe=`) oder zur Klausurseite.

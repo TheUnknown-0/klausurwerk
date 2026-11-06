@@ -195,6 +195,10 @@ fieldset.field { border: 0; padding: 0; margin-left: 0; margin-right: 0; min-wid
 .qf-card.is-preview:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .qf-card.is-active { border-color: var(--primary); box-shadow: inset 4px 0 0 var(--primary); padding: 16px 20px 12px 24px; }
 .qf-card-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+/* Vorschau-Knopf oben rechts über der zugeklappten Karte (Geschwister der Karte, nicht darin) */
+.qf-card-wrap { position: relative; }
+.qf-card-wrap > .qf-card { padding-right: 52px; }
+.qf-card-wrap > .qf-preview-btn { position: absolute; top: 8px; right: 10px; }
 .qf-num { font-family: var(--font-mono); font-weight: 600; color: var(--primary); min-width: 2ch; }
 .qf-title { font-weight: 700; flex: 1; min-width: 12ch; }
 .qf-pts { font-family: var(--font-mono); font-size: .82rem; color: var(--ink-soft); }

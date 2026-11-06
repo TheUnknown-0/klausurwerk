@@ -2,7 +2,8 @@
  * Kleine Formular-Bausteine für den Aufgaben-Editor und die typspezifischen Editoren.
  * Alles wird mit h() gebaut (Textknoten, kein innerHTML).
  */
-import { h, icon } from '../lib/dom.js';
+import { h, icon, toast } from '../lib/dom.js';
+import { previewUrl, previewWindowName } from '../lib/preview-link.js';
 import { rowSelection } from '../widgets/delete-keys.js';
 
 export { isControlTarget, isDeleteKey, isTypingTarget, rowSelection } from '../widgets/delete-keys.js';
@@ -171,3 +172,49 @@ export function itemsEditor(opts) {
 
 /** Wandelt eine leere Liste aus PHP (statt {}) in ein Objekt. */
 export const asObject = (value) => (value && typeof value === 'object' && !Array.isArray(value) ? value : {});
+
+const isBlankWindow = (win) => {
+    try {
+        return win.location.href === 'about:blank';
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Öffnet die Schüleransicht (Vorschau) bei einer Aufgabe, in einem eigenen Tab je Klausur.
+ * Das Fenster entsteht sofort beim Klick, sonst blockiert der Browser es nach dem Speichern als
+ * Pop-up. Erst wenn flush() alles gespeichert hat, wird es auf die Aufgabe gelenkt.
+ *
+ * @param {{ examUrl: string, examId: number, taskId: number, flush: () => Promise<boolean> }} o
+ * @returns {Promise<boolean>} ob die Vorschau geöffnet wurde
+ */
+export async function openTaskPreview({ examUrl, examId, taskId, flush }) {
+    const win = window.open('', previewWindowName(examId));
+    if (win && isBlankWindow(win)) {
+        win.document.title = 'Vorschau';
+        win.document.body.textContent = 'Speichert und öffnet die Vorschau ...';
+    }
+    const ok = await flush();
+    if (!ok) {
+        if (win && isBlankWindow(win)) {
+            win.close();
+        }
+        return false;
+    }
+    if (!win) {
+        toast('Der Browser hat das Vorschaufenster blockiert. Bitte Pop-ups für diese Seite erlauben.', 'error', 8000);
+        return false;
+    }
+    win.location.href = previewUrl(examUrl, taskId);
+    win.focus();
+    return true;
+}
+
+/** Knopf "Vorschau" für eine Aufgabe. */
+export function previewButton(onClick, { compact = false, number = '' } = {}) {
+    const label = 'Vorschau: So sehen Schüler:innen diese Frage (neuer Tab, speichert vorher)';
+    return compact
+        ? h('button', { type: 'button', class: 'btn btn-sm btn-icon btn-ghost qf-preview-btn', 'aria-label': `Vorschau von Aufgabe ${number}`.trim(), title: label, onclick: onClick }, icon('eye'))
+        : h('button', { type: 'button', class: 'btn btn-sm', title: label, onclick: onClick }, icon('eye'), 'Vorschau');
+}

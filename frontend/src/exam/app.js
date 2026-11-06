@@ -4,6 +4,7 @@
  */
 import { get, post, url } from '../lib/api.js';
 import { h, replace, toast } from '../lib/dom.js';
+import { previewTarget } from '../lib/preview-link.js';
 import { createRuntime } from '../runtime/index.js';
 import { Sound } from './sound.js';
 import { createStore } from './store.js';
@@ -194,6 +195,26 @@ export class ExamApp {
         if (!ok && !this.content) {
             this.showMessage('Die Vorschau konnte nicht geladen werden', this.contentError ?? 'Unbekannter Fehler.', true);
         }
+    }
+
+    /**
+     * Vorschau aus dem Aufgaben-Editor (?aufgabe=ID): gleich zu dieser Aufgabe springen und sie
+     * kurz hervorheben. Rückgabe false = keine oder unbekannte Aufgabe.
+     */
+    showPreviewTarget() {
+        const id = this.preview ? previewTarget(location.search) : null;
+        if (id === null || !this.view.byId.has(id)) {
+            return false;
+        }
+        this.view.show(id, true);
+        const block = this.view.blocks.get(id)?.block;
+        if (block) {
+            block.classList.remove('is-target');
+            void block.offsetWidth; // Animation neu starten
+            block.classList.add('is-target');
+            setTimeout(() => block.classList.remove('is-target'), 2600);
+        }
+        return true;
     }
 
     // ---------- Beitritt ----------
@@ -757,7 +778,7 @@ export class ExamApp {
         if (this.mode === 'probe' && this.tasks.length === 0) {
             this.tech = new TechCheck({ sound: this.sound, seb: !!this.boot.seb?.detected, getLatency: () => this.avgLatency() });
             replace(this.view.main, this.tech.el);
-        } else {
+        } else if (!this.showPreviewTarget()) {
             this.view.restorePosition();
         }
         this.view.setHand(this.handRaised);

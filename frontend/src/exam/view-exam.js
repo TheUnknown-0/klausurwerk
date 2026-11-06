@@ -4,6 +4,7 @@
  */
 import { h, setTrustedHtml, replace, icon } from '../lib/dom.js';
 import { enhanceRichText } from '../lib/rich-text.js';
+import { previewExit } from '../lib/preview-link.js';
 import { answerWidget, FallbackWidget } from '../lib/widgets.js';
 import { flattenTasks, isAnswerable, summarize, taskStatus } from './answers.js';
 import { AidsPanel } from './aids.js';
@@ -116,6 +117,7 @@ export class ExamView {
         this.fontUp = btn('btn-font', 'Schrift größer', 'A+', () => this.changeFont(1));
         this.themeBtn = btn('btn-icon', 'Hell oder Dunkel umschalten', icon('sun-moon'), () => this.toggleTheme());
         this.submitBtn = btn('btn-primary submit-btn', 'Klausur abgeben', 'Abgeben', () => this.o.callbacks.onSubmit());
+        this.exitBtn = btn('btn-primary preview-exit-btn', 'Vorschau beenden', [icon('x'), 'Vorschau beenden'], () => this.exitPreview());
 
         const canAct = !this.o.preview;
         // Live-Wand: solange der Bildschirm übertragen wird, immer sichtbar (Bildschirmfreigabe)
@@ -132,8 +134,28 @@ export class ExamView {
                 this.annBtn,
                 h('span', { class: 'aids-slot' }),
                 this.fontDown, this.fontUp, this.themeBtn,
-                canAct && this.settings.allow_self_submit && this.o.mode !== 'probe' ? this.submitBtn : null));
+                canAct && this.settings.allow_self_submit && this.o.mode !== 'probe' ? this.submitBtn : null,
+                this.o.preview ? this.exitBtn : null));
         this.aidsSlot = this.header.querySelector('.aids-slot');
+    }
+
+    /** Vorschau verlassen: Tab aus dem Aufgaben-Editor schließen, sonst zurück (siehe previewExit). */
+    exitPreview() {
+        const urls = this.o.boot.exit_urls ?? {};
+        const exit = previewExit({
+            windowName: window.name,
+            hasOpener: !!window.opener,
+            search: location.search,
+            examUrl: urls.exam ?? '/',
+            editorUrl: urls.editor ?? '',
+        });
+        if (exit.close) {
+            window.close();
+            // Lässt der Browser das Schließen nicht zu, geht es per Adresse zurück.
+            setTimeout(() => { if (!window.closed) { location.href = exit.url; } }, 300);
+            return;
+        }
+        location.href = exit.url;
     }
 
     buildNav() {

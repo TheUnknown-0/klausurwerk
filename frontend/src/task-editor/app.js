@@ -17,7 +17,7 @@ import { captureFocus, restoreFocus } from '../lib/focus-keep.js';
 import { createTaskForm } from './form.js';
 import { createQuickList } from './quick-list.js';
 import { typePicker } from './type-picker.js';
-import { button, isDeleteKey } from './ui.js';
+import { button, isDeleteKey, openTaskPreview } from './ui.js';
 
 /** Wartezeit nach der letzten Eingabe bis zum automatischen Speichern. */
 export const AUTOSAVE_MS = 1200;
@@ -63,7 +63,12 @@ export function initTaskEditor() {
     const tree = h('aside', { class: 'card te-tree', 'aria-label': 'Aufgabenübersicht' }, h('h2', {}, 'Aufgaben'), treeList, total, treeActions);
     const statusEl = h('span', { class: 'te-status', role: 'status' }, '');
     const saveBtn = h('button', { type: 'button', class: 'btn', onclick: () => save({ auto: false }), title: 'Speichert sofort (Strg+S). Sonst speichert der Editor automatisch.' }, icon('save'), 'Speichern');
-    const toolbar = h('div', { class: 'te-toolbar' }, saveBtn, statusEl);
+    const openPreview = (taskId, flush) => openTaskPreview({ examUrl: boot.urls.exam, examId: boot.exam_id, taskId, flush });
+    const previewBtn = h('button', {
+        type: 'button', class: 'btn', title: 'So sehen Schüler:innen diese Aufgabe (neuer Tab, speichert vorher)',
+        onclick: () => { if (selectedId !== null && !picking) { openPreview(selectedId, flushOrConfirm); } },
+    }, icon('eye'), 'Vorschau');
+    const toolbar = h('div', { class: 'te-toolbar' }, saveBtn, previewBtn, statusEl);
     const formHost = h('div', {});
     const main = h('section', { class: 'card te-main', 'aria-label': 'Aufgabe bearbeiten' }, toolbar, formHost);
     const listHost = h('section', { class: 'qf', 'aria-label': 'Fragenliste' });
@@ -200,6 +205,7 @@ export function initTaskEditor() {
         setDirty(false);
         const task = byId(selectedId);
         saveBtn.disabled = !task;
+        previewBtn.disabled = !task;
         if (!task) {
             formHost.replaceChildren(h('div', { class: 'te-empty' },
                 h('p', {}, 'Wähle links eine Aufgabe oder lege eine neue an.'),
@@ -279,6 +285,7 @@ export function initTaskEditor() {
         picking = true;
         dirty = false;
         saveBtn.disabled = true;
+        previewBtn.disabled = true;
         showStatus('');
         const parent = parentId !== null ? byId(parentId) : null;
         const picker = typePicker({
@@ -449,6 +456,7 @@ export function initTaskEditor() {
             setTasks: (list) => { tasks = list; },
             call,
             openDetail: (id) => switchView('detail', id),
+            openPreview,
         });
         quick.setActive(activeId);
         quick.render({ focus: activeId !== null ? 'title' : null });

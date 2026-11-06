@@ -20,6 +20,11 @@ final class ExamPreviewController extends Controller
         $exam = $this->ctx->exams->require((int) $params['id'], ExamAccess::CAP_VIEW);
 
         $boot = ExamContent::boot($exam, $user, (string) $this->ctx->config['app']['base_url'], true, false, false);
+        // Ausgang aus der Vorschau: zurück zur Klausur, aus dem Aufgaben-Editor zurück in den Editor.
+        $boot['exit_urls'] = [
+            'exam' => $this->ctx->url('/klausuren/' . (int) $exam['id']),
+            'editor' => $this->ctx->url('/klausuren/' . (int) $exam['id'] . '/aufgaben'),
+        ];
 
         return $this->render('pages/student/exam', [
             'title' => 'Vorschau: ' . (string) $exam['title'],
