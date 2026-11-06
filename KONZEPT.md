@@ -550,3 +550,20 @@ Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
 - **Neue Server-Funktionen:** `after_id` beim Anlegen (Frage darunter, gleiche Ebene) und
   `POST …/aufgaben/{tid}/duplizieren` (Kopie samt Teilaufgaben, Lösung und Tests direkt hinter dem
   Original, Titel mit „(Kopie)“). Beides nur, solange die Struktur nicht gesperrt ist.
+
+## 23. Updater im Installations-Assistenten (6. November 2026)
+
+- **Aufruf:** `./install.sh --update`, Kurzform `./update.sh`, ohne Klon
+  `curl … | sudo bash -s -- --update` (findet den Ordner über das Compose-Label des App-Containers).
+  `./install.sh` ohne Option fragt in einer bestehenden Installation: aktualisieren, neu einrichten, abbrechen.
+- **Ablauf:** Code holen und Änderungen zeigen, bei GHCR-Images vorab `docker compose pull` (nichts neu:
+  Ende), Warnung bei Klausuren in `lobby`, `running` oder `paused`, Sicherung (Dump gzip, Uploads als tar,
+  Kopie der `.env`) nach `backups/<Zeit>/`, Codewechsel per Fast-Forward, dann `docker compose up -d`
+  (bzw. `--build`) und Warten auf `/readyz`.
+- **Zweiteilig:** Nach dem Codewechsel startet das alte Skript per `exec` das neue `install.sh`
+  (`KW_UPDATE_STAGE=2`), damit Änderungen am Updater selbst schon beim selben Lauf greifen.
+- **Vorsicht statt Automatik:** Von Hand geänderte Dateien nur nach Rückfrage per `git stash`; kein
+  Löschen von Daten im Update-Modus; Warnung, wenn das Revisions-Label des App-Images älter ist als der Code
+  (CI noch nicht fertig). Kein Zeitplan/Cron: Updates sollen nie in eine Klausur fallen.
+- **Behoben nebenbei:** `.env.bak-*` (Sicherungen des Assistenten) und `backups/` stehen jetzt in
+  `.dockerignore`; vorher wären sie bei lokalem Build per `COPY . /var/www/html/` ins Image gelangt.

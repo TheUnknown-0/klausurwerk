@@ -70,11 +70,27 @@ Assistent das und bietet an, die alten Daten zu löschen (nur nach Eintippen von
 ### Update
 
 ```bash
-cd /opt/klausurwerk && sudo git pull && sudo docker compose pull && sudo docker compose up -d
+cd /opt/klausurwerk && sudo ./update.sh
 ```
 
-Ohne fertige Images (lokal gebaut) statt der letzten beiden Befehle `sudo docker compose up -d --build`.
-Vorher die Datenbank sichern und nicht während einer Klausur aktualisieren.
+`update.sh` ist die Kurzform von `./install.sh --update`; auch `./install.sh` ohne Option fragt in
+einer bestehenden Installation, ob aktualisiert werden soll. Der Updater
+
+1. holt den neuen Code und zeigt, was sich geändert hat (von Hand geänderte Dateien legt er nur nach Rückfrage mit `git stash` beiseite),
+2. fragt bei fertigen Images die Registry nach neuen Images; ist nichts neu, endet er hier,
+3. warnt, wenn gerade eine Klausur läuft oder im Warteraum steht,
+4. sichert Datenbank, hochgeladene Dateien und `.env` nach `backups/<Datum-Uhrzeit>/` (nur für root lesbar),
+5. lädt die neuen Images oder baut sie neu, startet die Container und wartet, bis die App bereit ist (Migrationen laufen dabei von selbst),
+6. meldet Einstellungen aus `.env.example`, die in der eigenen `.env` noch fehlen.
+
+Bei Installationen, deren `install.sh` den Updater noch nicht kennt, beim ersten Mal das aktuelle Skript direkt laden:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash -s -- --update
+```
+
+Von Hand geht es weiterhin mit `sudo git pull && sudo docker compose pull && sudo docker compose up -d`
+(lokal gebaut: `sudo docker compose up -d --build`). Nicht während einer Klausur aktualisieren.
 
 ## Schnellstart von Hand (Docker)
 

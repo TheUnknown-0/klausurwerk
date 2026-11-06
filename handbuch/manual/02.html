@@ -27,7 +27,7 @@
 cd /opt/klausurwerk
 sudo ./install.sh</div>
   <p>Ohne vorherigen Klon reicht ein Befehl: <code>curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash</code>. Das Skript fragt dann nach dem Zielordner. Erlaubt sind ein absoluter Pfad, ein Pfad relativ zum aktuellen Ordner (<code>klausurwerk</code>, <code>../klausurwerk</code>), ein einzelner Punkt für <code>./klausurwerk</code> und <code>~/…</code> für das eigene Home-Verzeichnis. Ist der Ordner schon belegt, landet Klausurwerk im Unterordner <code>klausurwerk</code>.</p>
-  <p>Am Ende zeigt das Skript, was am Reverse-Proxy noch einzurichten ist (siehe 2.4). Die Anwendung ist dann nur auf dem Server selbst erreichbar (<code>127.0.0.1</code>), bis der Proxy-Host steht. Ein zweiter Aufruf behält auf Wunsch die vorhandene <code>.env</code> und startet nur neu.</p>
+  <p>Am Ende zeigt das Skript, was am Reverse-Proxy noch einzurichten ist (siehe 2.4). Die Anwendung ist dann nur auf dem Server selbst erreichbar (<code>127.0.0.1</code>), bis der Proxy-Host steht. Ein zweiter Aufruf erkennt die Installation und bietet an, sie zu aktualisieren (2.8) oder die Einrichtung erneut zu durchlaufen; dabei lässt sich die vorhandene <code>.env</code> behalten.</p>
   <div class="box warn"><span class="t">Alte Datenbank, neue Passwörter</span><p>MariaDB übernimmt die Passwörter aus <code>.env</code> nur beim allerersten Start. Wer den Ordner löscht und neu installiert, behält die alte Datenbank (Docker-Volume), aber bekommt neue Passwörter, und die App kommt nicht mehr an die Daten. Der Assistent erkennt das und bietet zwei Wege an: die alte <code>.env</code> zurücklegen (Daten bleiben) oder die alten Daten nach Eintippen von „löschen“ verwerfen.</p></div>
   <div class="box tip"><span class="t">Warum der Admin auf der Kommandozeile entsteht</span><p>Die Einrichtung im Browser (<span class="path">/setup</span>) steht jedem offen, solange es kein Konto gibt. Der Assistent legt das erste Admin-Konto deshalb direkt an, bevor die Domain öffentlich erreichbar ist. Von Hand geht das mit <code>docker compose exec app php bin/setup.php</code>.</p></div>
 
@@ -120,12 +120,23 @@ RUNNER_IMAGE=ghcr.io/theunknown-0/klausurwerk-runner:latest</div>
     <p>Jeder Lauf bekommt einen eigenen Benutzer (UID aus einem Pool von 64), ein eigenes Arbeits- und Temp-Verzeichnis, das für andere Läufe unlesbar ist, und einen Systemaufruf-Filter (seccomp), der Netzwerk-Sockets und gemeinsame Kanäle zwischen Läufen sperrt. Eine Thread- oder Fork-Bombe trifft nur den eigenen Lauf. Was bleibt: Testcode und Schülercode laufen bei der automatischen Vorbewertung im selben Prozess, ein gezielt präpariertes Programm kann dort ein „bestanden“ vortäuschen. Vorbewertungen sind deshalb immer nur Vorschläge, die die Lehrkraft prüft. Der Runner hat keinen Netzzugang und kann keine Daten nach außen senden.</p></div>
 
   <h2 id="k2-8"><span class="num">2.8</span>Updates</h2>
+  <p>Der Installations-Assistent hat einen Update-Modus. Im Projektordner genügt:</p>
+  <div class="mono-block">cd /opt/klausurwerk
+sudo ./update.sh</div>
+  <p><code>update.sh</code> ist die Kurzform von <code>./install.sh --update</code>. Auch <code>./install.sh</code> ohne Zusatz fragt in einer bestehenden Installation, ob aktualisiert, neu eingerichtet oder abgebrochen werden soll. Der Updater geht so vor:</p>
   <ol class="steps">
-    <li>Sichern Sie vorher die Datenbank (2.9).</li>
-    <li>Neuen Stand holen: bei lokalem Build <code>git pull</code> und <code>docker compose up -d --build</code>, bei GHCR-Images <code>docker compose pull &amp;&amp; docker compose up -d</code>.</li>
-    <li>Datenbankmigrationen laufen beim Start des App-Containers automatisch, abgesichert durch eine Datenbanksperre.</li>
-    <li>Prüfen Sie <span class="path">/readyz</span> und melden Sie sich einmal an.</li>
+    <li>Er holt den neuen Code und zeigt den installierten und den neuen Stand mit der Liste der Änderungen. Wurden Dateien im Ordner von Hand geändert, legt er sie nur nach Rückfrage mit <code>git stash</code> beiseite (zurückholen mit <code>git stash pop</code>).</li>
+    <li>Bei fertigen Images (GHCR) fragt er die Registry nach neuen Images. Ist weder Code noch Image neu, endet er mit „auf dem neuesten Stand“. Bei lokalem Build bietet er dann nur einen Neubau für Sicherheits-Updates der Basis-Images an.</li>
+    <li>Er prüft, ob gerade eine Klausur läuft, pausiert ist oder im Warteraum steht, nennt sie und fragt nach, bevor er weitermacht.</li>
+    <li>Er sichert Datenbank, hochgeladene Dateien und <code>.env</code> nach <code>backups/&lt;Datum-Uhrzeit&gt;/</code> (nur für root lesbar). Die Sicherung lässt sich überspringen, empfohlen ist sie nicht.</li>
+    <li>Er wechselt auf den neuen Code, lädt die Images oder baut sie neu, startet die Container und wartet, bis <span class="path">/readyz</span> antwortet. Datenbankmigrationen laufen beim Start des App-Containers automatisch, abgesichert durch eine Datenbanksperre.</li>
+    <li>Zum Schluss nennt er Einstellungen aus <code>.env.example</code>, die in Ihrer <code>.env</code> fehlen (bis dahin gilt der Standardwert), und bietet an, alte, unbenutzte Images zu löschen.</li>
   </ol>
+  <p>Melden Sie sich danach einmal an. Stammt das geladene App-Image von einem älteren Stand als der Code, weist der Updater darauf hin: GitHub baut die Images nach jeder Änderung neu, das dauert etwa zehn Minuten. Starten Sie das Update dann später noch einmal.</p>
+  <div class="box tip"><span class="t">Ältere Installationen</span><p>Kennt das vorhandene <code>install.sh</code> den Update-Modus noch nicht, laden Sie beim ersten Mal das aktuelle Skript direkt: <code>curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash -s -- --update</code>. Es findet den Ordner einer laufenden Installation selbst.</p></div>
+  <h3>Zurück auf den alten Stand</h3>
+  <p>Den alten Stand nennt der Updater in seiner Zusammenfassung. Code zurücksetzen mit <code>sudo git checkout &lt;alter Stand&gt;</code>, bei lokalem Build danach <code>sudo docker compose up -d --build</code>. Bei GHCR-Images in der <code>.env</code> das passende Image mit Kennung wählen, etwa <code>APP_IMAGE=ghcr.io/theunknown-0/klausurwerk-app:sha-abc1234</code> (ebenso <code>RUNNER_IMAGE</code>), dann <code>sudo docker compose up -d</code>. Hat das Update die Datenbank migriert, spielen Sie die Sicherung aus <code>backups/</code> zurück (2.9). Mit <code>git checkout main</code> und dem Updater geht es später wieder nach vorn.</p>
+  <p>Von Hand geht ein Update weiterhin so: Datenbank sichern (2.9), dann bei lokalem Build <code>git pull</code> und <code>docker compose up -d --build</code>, bei GHCR-Images <code>git pull</code>, <code>docker compose pull</code> und <code>docker compose up -d</code>.</p>
   <div class="box danger"><span class="t">Nicht mitten in einer Klausur aktualisieren</span><p>Beim Neustart des App-Containers sind die Live-Ansichten für Sekunden nicht erreichbar. Schüler schreiben dank lokaler Sicherung weiter, aber planen Sie Updates außerhalb von Klausurzeiten.</p></div>
 
   <h2 id="k2-9"><span class="num">2.9</span>Datensicherung</h2>
@@ -135,6 +146,12 @@ docker compose exec -T -e MYSQL_PWD="$DB_ROOT_PASS" db mariadb-dump -uroot klaus
 # Hochgeladene Dateien sichern
 docker run --rm -v klausurwerk_uploads:/data -v "$(pwd)":/backup alpine tar czf /backup/uploads.tar.gz -C /data .</div>
   <p>Zum Wiederherstellen stoppen Sie die App, spielen den Dump mit <code>mariadb</code> in eine leere Datenbank ein und entpacken das Archiv ins Volume. Der Name des Volumes hängt vom Projektordner ab (<code>docker volume ls</code>).</p>
+  <p>Der Updater (2.8) legt vor jedem Update eine Sicherung in <code>backups/&lt;Datum-Uhrzeit&gt;/</code> an: <code>datenbank.sql.gz</code>, <code>uploads.tar.gz</code> und eine Kopie der <code>.env</code> unter dem Namen <code>env</code>. Den Dump spielen Sie gepackt ein, das Archiv entpacken Sie über den App-Container:</p>
+  <div class="mono-block">sudo docker compose stop app
+gunzip -c backups/DATUM/datenbank.sql.gz | sudo docker compose exec -T db sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mariadb -uroot "$MYSQL_DATABASE"'
+sudo docker compose run --rm --no-deps -T --entrypoint tar app xzf - -C /var/www/html/uploads &lt; backups/DATUM/uploads.tar.gz
+sudo docker compose up -d</div>
+  <p>Die Sicherungen sammeln sich an. Alte Ordner unter <code>backups/</code> löschen Sie bei Bedarf von Hand; der Updater weist ab sechs Sicherungen darauf hin.</p>
   <p>Passen Datenbank und Dateien nach einer Wiederherstellung nicht mehr zusammen, bleiben unter <code>uploads/</code> Dateien ohne Datenbankzeile zurück. <code>docker compose exec app php bin/cleanup.php</code> listet sie, mit <code>--delete</code> werden sie gelöscht (Dateien jünger als eine Stunde bleiben unangetastet, jeder Lauf steht im Audit-Log). Beim Löschen einer Klausur oder eines Schülerkontos räumt die Anwendung Material und hochgeladene Antwortdateien selbst weg.</p>
   <div class="box warn"><span class="t">Einmal vor dem ersten Einsatz proben</span><p>Eine Sicherung, die nie zurückgespielt wurde, ist keine. Testen Sie die Wiederherstellung einmal auf einem Testsystem, bevor Sie sich in einer Klausurphase darauf verlassen.</p></div>
 

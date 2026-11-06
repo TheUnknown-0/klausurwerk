@@ -27,3 +27,7 @@ handbuch/manual/_cover.html
 # Handbuch: Aufnahmen (shots/), Beispiel-PDFs und fertige PDFs sind eingecheckt;
 # manual/img/ erzeugt build.py daraus.
 handbuch/manual/img/
+
+# Sicherungen von install.sh --update und alte .env-Stände
+backups/
+.env.bak-*

@@ -13,3 +13,7 @@ tools/phpunit.phar
 handbuch
 tests/e2e/shots
 .tmp-build
+
+# Sicherungen und alte .env-Stände (Passwörter, Datenbank-Dumps) nie ins Image
+backups
+.env.bak-*

@@ -11,6 +11,12 @@
 # Geheimnissen, startet die Container und legt das erste Admin-Konto an. Damit ist die
 # Einrichtung im Browser (/setup) gesperrt, bevor die Domain öffentlich erreichbar ist.
 # Ein zweiter Aufruf behält auf Wunsch die vorhandene .env und startet nur neu.
+#
+# Aktualisieren:         ./install.sh --update   (oder ./update.sh)
+#                        curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash -s -- --update
+#                        Holt den neuen Code, warnt bei laufenden Klausuren, sichert Datenbank und
+#                        Uploads nach backups/, lädt oder baut die Images und startet neu.
+#                        Ein Aufruf ohne --update in einer bestehenden Installation fragt nach.
 
 set -euo pipefail
 
@@ -21,6 +27,8 @@ GHCR_RUNNER="ghcr.io/theunknown-0/klausurwerk-runner:latest"
 PROXY_NET="proxy_network"
 # Ordner, in dem das Skript gestartet wurde: Bezug für relative Zielordner.
 START_DIR="$(pwd)"
+# install = einrichten, update = aktualisieren (--update)
+MODE="install"
 
 # ---------- Ausgabe und Eingabe ----------
 
@@ -156,12 +164,32 @@ locate_project() {
         return
     fi
 
+    # Läuft schon eine Installation, steht ihr Ordner im Label des App-Containers.
+    local default="$DEFAULT_DIR" found
+    found="$(installed_dir)"
+    [ -n "$found" ] && [ -z "${KLAUSURWERK_DIR:-}" ] && default="$found"
+
+    local input dir
+    if [ "$MODE" = update ]; then
+        while :; do
+            ask input "In welchem Ordner liegt Klausurwerk?" "$default"
+            dir="$(resolve_dir "$input")"
+            [ -n "$dir" ] && break
+        done
+        if [ ! -f "$dir/compose.yaml" ] && [ -f "$dir/klausurwerk/compose.yaml" ]; then
+            dir="$dir/klausurwerk"
+        fi
+        [ -f "$dir/compose.yaml" ] || die "In $dir liegt keine Klausurwerk-Installation. Zum Installieren ohne --update starten."
+        cd "$dir"
+        ok "Installation in $dir gefunden"
+        return
+    fi
+
     say "Zielordner: absolut (/opt/klausurwerk), relativ zum aktuellen Ordner $START_DIR"
     say "(klausurwerk oder ./apps/klausurwerk; ein einzelner Punkt heißt ./klausurwerk) oder mit ~ im Home-Verzeichnis."
     say "Ist der Ordner schon belegt, landet Klausurwerk im Unterordner klausurwerk."
-    local input dir
     while :; do
-        ask input "Wohin soll Klausurwerk installiert werden?" "$DEFAULT_DIR"
+        ask input "Wohin soll Klausurwerk installiert werden?" "$default"
         dir="$(resolve_dir "$input")"
         [ -n "$dir" ] && break
         warn "Bitte einen Ordner angeben."
@@ -217,6 +245,14 @@ resolve_dir() {
     p="$(realpath -m -- "$p" 2>/dev/null || printf '%s' "$p")"
     [ "$p" = / ] || p="${p%/}"
     printf '%s' "$p"
+}
+
+# Ordner einer laufenden oder gestoppten Installation (aus dem Label des App-Containers), sonst leer.
+installed_dir() {
+    local d
+    d="$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' klausurwerk-app 2>/dev/null || true)"
+    [ -n "$d" ] && [ -f "$d/compose.yaml" ] && printf '%s' "$d"
+    return 0
 }
 
 # Compose-Projektname: wie Docker Compose ihn aus dem Ordnernamen bildet.
@@ -622,10 +658,396 @@ summary() {
     say "Die Zugangsdaten der Datenbank stehen in $PWD/.env. Diese Datei gut sichern."
 }
 
+# ---------- Aktualisieren ----------
+
+# git verweigert als root die Arbeit in einem Ordner, der jemand anderem gehört ("dubious ownership").
+git_() { git --no-pager -c safe.directory="$(pwd -P)" "$@"; }
+
+describe_rev() { # Commit; Ausgabe "abc1234 vom 05.11.2026 14:03"
+    git_ log -1 --format='%h vom %cd' --date=format:'%d.%m.%Y %H:%M' "$1" 2>/dev/null || printf '%.7s' "$1"
+}
+
+uses_ghcr() { [ -n "$(get_env APP_IMAGE)" ]; }
+
+UPDATE_TARGET=""   # Commit, auf den der Code wechselt; leer = Code bleibt
+STASH_NEEDED=0     # 1 = von Hand geänderte Dateien vor dem Wechsel beiseitelegen
+BACKUP_DIR=""
+
+fetch_code() {
+    step "Neuer Stand"
+    if ! command -v git >/dev/null 2>&1 || ! git_ rev-parse --git-dir >/dev/null 2>&1; then
+        warn "$PWD ist kein Git-Klon (oder git fehlt). Der Code bleibt, wie er ist; aktualisiert werden nur die Images."
+        return 0
+    fi
+    local branch head target count dirty
+    branch="$(git_ symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+    if [ -z "$branch" ]; then
+        warn "Der Code steht auf keinem Branch, sondern fest auf $(describe_rev HEAD). Er bleibt so; aktualisiert werden nur die Images."
+        return 0
+    fi
+    say "Frage das Repo nach dem neuesten Stand von $branch ..."
+    if ! GIT_TERMINAL_PROMPT=0 git_ fetch --quiet origin "$branch" </dev/null; then
+        die "Der neue Stand ließ sich nicht holen. Netzverbindung prüfen. Es wurde nichts verändert."
+    fi
+    head="$(git_ rev-parse HEAD)"
+    target="$(git_ rev-parse FETCH_HEAD)"
+    if [ "$head" = "$target" ] || git_ merge-base --is-ancestor "$target" HEAD 2>/dev/null; then
+        ok "Der Code ist aktuell ($(describe_rev HEAD))"
+        return 0
+    fi
+    count="$(git_ rev-list --count "HEAD..$target" 2>/dev/null || echo '?')"
+    say "Installiert: $(describe_rev HEAD)"
+    say "Neu:         $(describe_rev "$target")"
+    say "Änderungen ($count):"
+    git_ log --no-decorate --format='  - %s' -n 15 "HEAD..$target" 2>/dev/null || true
+    if [ "$count" != '?' ] && [ "$count" -gt 15 ]; then
+        say "  ... und $((count - 15)) weitere"
+    fi
+
+    if ! git_ merge-base --is-ancestor HEAD "$target" 2>/dev/null; then
+        warn "Der neue Stand baut nicht auf dem installierten auf (eigene Commits im Ordner oder umgeschriebener Verlauf)."
+        ask_yn "Trotzdem auf den neuen Stand wechseln? Eigene Commits sind danach nur noch über git reflog erreichbar." n \
+            || die "Abgebrochen. Nichts verändert."
+    fi
+    dirty="$(git_ status --porcelain --untracked-files=no)"
+    if [ -n "$dirty" ]; then
+        warn "Diese Dateien wurden im Ordner von Hand geändert:"
+        printf '%s\n' "$dirty" | sed 's/^/    /' >&2
+        ask_yn "Beim Update beiseitelegen (git stash, zurückholen mit git stash pop)?" n \
+            || die "Abgebrochen. Nichts verändert."
+        STASH_NEEDED=1
+    fi
+    UPDATE_TARGET="$target"
+}
+
+# 0 = ein Container fehlt oder läuft mit einem anderen Image als dem, das lokal unter seinem Namen liegt.
+containers_outdated() {
+    local svc cid ref used cur
+    for svc in db runner app; do
+        cid="$(docker compose ps -q "$svc" 2>/dev/null || true)"
+        [ -n "$cid" ] || return 0
+        ref="$(docker inspect -f '{{.Config.Image}}' "$cid" 2>/dev/null || true)"
+        used="$(docker inspect -f '{{.Image}}' "$cid" 2>/dev/null || true)"
+        cur="$(docker image inspect -f '{{.Id}}' "$ref" 2>/dev/null || true)"
+        if [ -n "$cur" ] && [ "$cur" != "$used" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+check_running_exams() {
+    step "Laufende Klausuren"
+    if [ -z "$(docker compose ps -q db 2>/dev/null || true)" ]; then
+        ok "Die Datenbank läuft nicht, also auch keine Klausur"
+        return 0
+    fi
+    local list
+    # shellcheck disable=SC2016 # $MYSQL_* gehört der Shell im Container.
+    if ! list="$(printf '%s\n' "SELECT CONCAT('  - ', title, ' (', CASE status WHEN 'lobby' THEN 'Warteraum' WHEN 'paused' THEN 'pausiert' ELSE 'läuft' END, ')') FROM exams WHERE status IN ('lobby','running','paused') ORDER BY id;" \
+        | docker compose exec -T db sh -c 'MYSQL_PWD="$MYSQL_PASSWORD" exec mariadb -N -B -u"$MYSQL_USER" "$MYSQL_DATABASE"' 2>/dev/null)"; then
+        warn "Konnte nicht prüfen, ob gerade Klausuren laufen. Bitte selbst im Pult nachsehen."
+        return 0
+    fi
+    if [ -z "$list" ]; then
+        ok "Gerade läuft keine Klausur"
+        return 0
+    fi
+    warn "Gerade sind Klausuren geöffnet:"
+    printf '%s\n' "$list" >&2
+    say "Beim Neustart sind Pult und Schüleransicht etwa eine Minute nicht erreichbar. Die Schüler:innen"
+    say "schreiben dank lokaler Sicherung weiter, aber besser erst nach der Klausur aktualisieren."
+    ask_yn "Trotzdem jetzt aktualisieren?" n || die "Abgebrochen. Nichts verändert."
+}
+
+db_wait() {
+    local _
+    for _ in $(seq 1 30); do
+        docker compose exec -T db healthcheck.sh --connect --innodb_initialized </dev/null >/dev/null 2>&1 && return 0
+        sleep 2
+    done
+    return 1
+}
+
+backup_failed() { # Meldung, Sicherungsordner
+    warn "$1"
+    rm -rf -- "$2"
+    ask_yn "Ohne Sicherung weitermachen?" n || die "Abgebrochen. Am Code und an den Containern wurde nichts verändert."
+}
+
+backup_data() {
+    step "Datensicherung"
+    if ! ask_yn "Vorher Datenbank und hochgeladene Dateien sichern? (empfohlen)" j; then
+        warn "Weiter ohne Sicherung."
+        return 0
+    fi
+    local dir
+    dir="$PWD/backups/$(date +%Y%m%d-%H%M%S)"
+    mkdir -p "$PWD/backups"
+    chmod 700 "$PWD/backups"
+    mkdir -p "$dir"
+    chmod 700 "$dir"
+
+    # Nur starten, nicht neu anlegen: ein gerade geladenes neues DB-Image kommt erst nach der Sicherung dran.
+    if [ -z "$(docker compose ps -q db 2>/dev/null || true)" ]; then
+        docker compose start db </dev/null >/dev/null 2>&1 || docker compose up -d db </dev/null >/dev/null 2>&1 || true
+    fi
+    if ! db_wait; then
+        backup_failed "Die Datenbank antwortet nicht, die Sicherung geht nicht." "$dir"
+        return 0
+    fi
+    say "Sichere die Datenbank ..."
+    # shellcheck disable=SC2016 # $MYSQL_* gehört der Shell im Container.
+    if ! docker compose exec -T db sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mariadb-dump -uroot --single-transaction --quick --routines --triggers "$MYSQL_DATABASE"' </dev/null \
+            | gzip > "$dir/datenbank.sql.gz" \
+        || ! gzip -dc "$dir/datenbank.sql.gz" | tail -n 1 | grep -q 'Dump completed'; then
+        backup_failed "Der Datenbank-Dump ist fehlgeschlagen." "$dir"
+        return 0
+    fi
+
+    say "Sichere die hochgeladenen Dateien ..."
+    local tar_ok=0
+    if [ -n "$(docker compose ps -q app 2>/dev/null || true)" ]; then
+        docker compose exec -T app tar czf - -C /var/www/html/uploads . </dev/null > "$dir/uploads.tar.gz" && tar_ok=1
+    else
+        docker compose run --rm --no-deps -T --entrypoint tar app czf - -C /var/www/html/uploads . </dev/null > "$dir/uploads.tar.gz" && tar_ok=1
+    fi
+    if [ "$tar_ok" != 1 ]; then
+        backup_failed "Die hochgeladenen Dateien ließen sich nicht sichern." "$dir"
+        return 0
+    fi
+
+    # Die Passwörter in .env gehören zu genau dieser Datenbank.
+    cp .env "$dir/env"
+    chmod 600 "$dir/env" "$dir/datenbank.sql.gz" "$dir/uploads.tar.gz"
+    BACKUP_DIR="$dir"
+    ok "Gesichert nach $dir ($(du -sh "$dir" 2>/dev/null | cut -f1))"
+
+    local n
+    n="$(find "$PWD/backups" -mindepth 1 -maxdepth 1 -type d | wc -l)"
+    if [ "$n" -gt 5 ]; then
+        say "In $PWD/backups liegen $n Sicherungen ($(du -sh "$PWD/backups" 2>/dev/null | cut -f1)). Alte bei Bedarf von Hand löschen."
+    fi
+}
+
+# Wechselt den Code auf UPDATE_TARGET. Rückgabe 1 = nichts zu tun.
+apply_code() {
+    [ -n "$UPDATE_TARGET" ] || return 1
+    step "Code aktualisieren"
+    if [ "$STASH_NEEDED" = 1 ]; then
+        git_ stash push --quiet -m "vor install.sh --update $(date +%Y-%m-%d_%H%M)"
+        ok "Eigene Änderungen beiseitegelegt (git stash list)"
+    fi
+    if git_ merge-base --is-ancestor HEAD "$UPDATE_TARGET" 2>/dev/null; then
+        git_ merge --ff-only --quiet "$UPDATE_TARGET" </dev/null
+    else
+        git_ reset --hard --quiet "$UPDATE_TARGET"
+    fi
+    ok "Code auf $(describe_rev HEAD)"
+}
+
+# Stand im Label des App-Images mit dem Code vergleichen: GitHub baut Images erst einige
+# Minuten nach einer Änderung.
+check_image_revision() {
+    local have want
+    have="$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$(get_env APP_IMAGE)" 2>/dev/null || true)"
+    [ "$have" = "<no value>" ] && have=""
+    want="$(git_ rev-parse HEAD 2>/dev/null || true)"
+    if [ -z "$have" ] || [ -z "$want" ] || [ "$have" = "$want" ]; then
+        return 0
+    fi
+    # Code älter als das Image (fester Stand): passt.
+    if git_ merge-base --is-ancestor "$want" "$have" 2>/dev/null; then
+        return 0
+    fi
+    warn "Das App-Image stammt vom Stand ${have:0:7}, der Code ist schon auf ${want:0:7}."
+    say "GitHub baut das Image nach jeder Änderung neu, das dauert etwa zehn Minuten. Danach das Update noch einmal starten."
+}
+
+update_containers() {
+    step "Container aktualisieren"
+    ensure_network
+    check_name_conflicts
+    if uses_ghcr; then
+        say "Lade die Images ..."
+        docker compose pull </dev/null \
+            || die "Die Images ließen sich nicht laden. Die Container laufen mit der bisherigen Version weiter; später erneut versuchen."
+        docker compose up -d </dev/null
+    else
+        say "Baue die Images neu. Das dauert einige Minuten ..."
+        docker compose pull db </dev/null \
+            || warn "Das Datenbank-Image ließ sich nicht aktualisieren; es bleibt das vorhandene."
+        docker compose up -d --build </dev/null
+    fi
+    wait_ready
+    if uses_ghcr; then
+        check_image_revision
+    fi
+}
+
+# Einstellungen aus .env.example, die in .env fehlen (es gilt dann der Standardwert aus compose.yaml).
+report_new_settings() {
+    [ -f .env.example ] || return 0
+    local key missing=()
+    while IFS= read -r key; do
+        grep -Eq "^(# ?)?$key=" .env || missing+=("$key")
+    done < <(sed -nE 's/^([A-Z][A-Z0-9_]*)=.*/\1/p' .env.example)
+    if [ "${#missing[@]}" -gt 0 ]; then
+        say ""
+        say "In .env.example gibt es Einstellungen, die in deiner .env fehlen: ${missing[*]}"
+        say "Bis du sie einträgst, gilt der Standardwert. Erklärung: README, Abschnitt Umgebungsvariablen."
+    fi
+}
+
+cleanup_images() {
+    local n
+    n="$(docker images -q -f dangling=true 2>/dev/null | wc -l)"
+    [ "$n" -gt 0 ] || return 0
+    say ""
+    if ask_yn "$n alte Image-Version(en) ohne Namen liegen noch herum und werden von keinem Container benutzt. Löschen, um Platz zu sparen?" j; then
+        docker image prune -f 2>/dev/null | tail -n 1
+    fi
+}
+
+update_summary() {
+    local old="${KW_OLD_REV:-}" now
+    now="$(git_ rev-parse HEAD 2>/dev/null || true)"
+    step "Fertig"
+    if [ -n "$old" ] && [ "$old" != "$now" ]; then
+        say "Klausurwerk ist aktualisiert: $(describe_rev "$old") → $(describe_rev HEAD)"
+    else
+        say "Klausurwerk läuft mit frischen Images."
+    fi
+    if [ -n "$BACKUP_DIR" ]; then
+        say "Sicherung vom Stand davor: $BACKUP_DIR"
+    fi
+    say "Neue Datenbank-Migrationen laufen beim Start der App von selbst. Bitte einmal anmelden und kurz prüfen."
+    say "Falls etwas nicht stimmt: Protokolle mit sudo docker compose logs app, zurück auf den alten Stand"
+    say "siehe Handbuch für Admins, Kapitel 2.8."
+}
+
+# Rest des Updates nach dem Codewechsel. Läuft im neuen install.sh, damit neue Schritte gleich greifen.
+finish_update() {
+    update_containers
+    report_new_settings
+    cleanup_images
+    update_summary
+}
+
+run_update() {
+    [ -f .env ] || die "In $PWD fehlt die .env: Klausurwerk ist hier noch nicht eingerichtet. Zum Einrichten ./install.sh ohne --update starten."
+    fetch_code
+
+    local changed=0
+    if uses_ghcr; then
+        step "Images"
+        say "Frage die GitHub Container Registry nach neuen Images ..."
+        docker compose pull </dev/null \
+            || die "Die Images ließen sich nicht laden. Netzverbindung prüfen. Es wurde nichts verändert."
+    fi
+    if containers_outdated; then
+        changed=1
+        if uses_ghcr; then ok "Neue Images geladen"; fi
+    elif uses_ghcr; then
+        ok "Die Images sind aktuell"
+    fi
+
+    if [ -z "$UPDATE_TARGET" ] && [ "$changed" = 0 ]; then
+        if uses_ghcr; then
+            step "Fertig"
+            ok "Klausurwerk ist auf dem neuesten Stand. Nichts zu tun."
+            return 0
+        fi
+        say ""
+        say "Ein Neubau holt nur Sicherheits-Updates der Basis-Images (PHP, Java, Python, Node)."
+        if ! ask_yn "Trotzdem neu bauen? Das dauert einige Minuten." n; then
+            ok "Nichts zu tun."
+            return 0
+        fi
+    fi
+
+    check_running_exams
+    say ""
+    ask_yn "Jetzt aktualisieren? Die Anwendung ist dabei etwa eine Minute nicht erreichbar." j \
+        || die "Abgebrochen. Nichts verändert."
+    backup_data
+
+    local old
+    old="$(git_ rev-parse HEAD 2>/dev/null || true)"
+    if apply_code; then
+        # Den Rest erledigt das neue install.sh.
+        export KW_UPDATE_STAGE=2 KW_OLD_REV="$old" KW_BACKUP_DIR="$BACKUP_DIR"
+        exec bash "$PWD/install.sh" --update
+    fi
+    KW_OLD_REV="$old"
+    finish_update
+}
+
+# Bestehende Installation ohne --update gestartet: fragen, was passieren soll.
+choose_action() {
+    [ -f .env ] || return 0
+    step "Vorhandene Installation"
+    say "In $PWD ist Klausurwerk schon eingerichtet."
+    say "  1) Aktualisieren: neuen Stand holen, Daten und Einstellungen bleiben"
+    say "  2) Einrichtung erneut durchlaufen (.env behalten oder neu schreiben)"
+    say "  3) Abbrechen"
+    local c
+    while :; do
+        ask c "Auswahl" "1"
+        case "$c" in
+            1) MODE=update; return 0 ;;
+            2) return 0 ;;
+            3) say "Abgebrochen. Nichts verändert."; exit 0 ;;
+        esac
+    done
+}
+
+usage() {
+    cat <<'EOF'
+Klausurwerk: Installation und Update
+
+  ./install.sh            einrichten; in einer bestehenden Installation wird gefragt
+  ./install.sh --update   aktualisieren (Kurzform: ./update.sh)
+  ./install.sh --help     diese Hilfe
+
+Ohne Klon:
+  curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash
+  curl -fsSL https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/install.sh | sudo bash -s -- --update
+EOF
+}
+
 main() {
-    say "${B}Klausurwerk: Installation${N}"
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -u|--update|update) MODE=update ;;
+            -h|--help|hilfe) usage; exit 0 ;;
+            *) die "Unbekannte Option: $1 (Hilfe: ./install.sh --help)" ;;
+        esac
+        shift
+    done
+
+    # Zweiter Teil eines Updates, gestartet vom alten install.sh nach dem Codewechsel.
+    if [ "${KW_UPDATE_STAGE:-}" = 2 ]; then
+        MODE=update
+        BACKUP_DIR="${KW_BACKUP_DIR:-}"
+        finish_update
+        return 0
+    fi
+
+    if [ "$MODE" = update ]; then
+        say "${B}Klausurwerk: Update${N}"
+    else
+        say "${B}Klausurwerk: Installation${N}"
+    fi
     check_requirements
     locate_project
+    if [ "$MODE" = install ]; then
+        choose_action
+    fi
+    if [ "$MODE" = update ]; then
+        run_update
+        return 0
+    fi
     configure_env
     start_containers
     create_admin
