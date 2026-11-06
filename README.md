@@ -9,7 +9,7 @@ Lehrkräfte überwachen die Klausur live im **Pult**, Schüler:innen arbeiten im
 
 | Bereich | Funktion |
 |---|---|
-| **Klausuren** | Modi Klausur, Übung und Probe (Technik-Check); Aufgaben mit Teilaufgaben, Punkten, Operatoren (AFB I bis III), Markdown mit Formeln, Bildern und Code; Material und Hilfsmittel; Archivsuche und Kopieren früherer Aufgaben; Export/Import |
+| **Klausuren** | Modi Klausur, Übung und Probe (Technik-Check); Aufgaben mit Teilaufgaben, Punkten, Operatoren (AFB I bis III), Markdown mit Formeln, Bildern und Code; Material und Hilfsmittel; eingebauter Browser mit freigegebenen Webseiten je Aufgabe (alles andere gesperrt); Archivsuche und Kopieren früherer Aufgaben; Export/Import |
 | **Umgebung** | pro Klausur und Aufgabe: Sprache und Java-Version, Ausführen / nur Syntaxprüfung / nur Schreiben, Editor-Komfort, Hilfsmittel (Java-API, Python-Doku, SQL-Spickzettel, Operatoren, Taschenrechner), vorgegebene Dateien, numpy/matplotlib zuschaltbar |
 | **Ausführung** | Python (Pyodide, interaktives `input()`, Turtle) und SQL (SQLite) im Browser; Java 21/25 abgeschottet im Runner-Container |
 | **Überwachung** | Vollbild, Fokus, Tabwechsel, Einfügen von außen, zweiter Tab, Verbindungsabbruch; Alarm mit Ton bei Schüler:in und im Pult, Sperre bis zur Freigabe; Safe Exam Browser optional mit Config-Key-Prüfung und erzeugter `.seb`-Datei |

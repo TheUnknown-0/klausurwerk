@@ -3,6 +3,7 @@
  * typspezifischem Editor, Musterlösung, Erwartungshorizont, Material und Testen.
  */
 import { h, icon } from '../lib/dom.js';
+import { createWebSitesField } from './web-sites-field.js';
 import { taskEditor } from '../lib/widgets.js';
 import { createMarkdownField } from './md-field.js';
 import { testModelAnswer } from './run-test.js';
@@ -46,7 +47,7 @@ function fallbackEditor(container, ctx) {
  *   preset?: {type: string, config?: object}}} opts
  *   preset: Typ aus der Kachelauswahl für eine neue, noch typlose Aufgabe (wird gleich gespeichert).
  */
-export function createTaskForm({ host, task, boot, hasChildren, onChange, preset = null }) {
+export function createTaskForm({ host, task, boot, hasChildren, onChange, preset = null, inheritedSites = 0 }) {
     const locked = !!boot.exam.locked;
     const s = {
         title: task.title ?? '',
@@ -233,6 +234,8 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange, preset
     updatePointsState();
     updateTestWarning();
 
+    const webField = createWebSitesField({ sites: task.web_sites ?? [], locked, onChange: changed, inherited: inheritedSites });
+
     const root = h('div', {},
         locked ? h('div', { class: 'alert alert-info te-locked-note' },
             'Die Klausur ist gestartet oder abgeschlossen. Aufgabentext, Punkte und Konfiguration sind gesperrt. Musterlösung, Erwartungshorizont, Lösungen und Tests bleiben bearbeitbar.') : null,
@@ -251,6 +254,7 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange, preset
         ),
         h('div', { class: 'te-section' }, typeHost, errBox('type')),
         h('div', { class: 'te-section' }, modelHost, expectationField.el),
+        h('div', { class: 'te-section' }, webField.el, errBox('web_sites')),
     );
     host.replaceChildren(root);
     if (usePreset && (task.answer_type !== preset.type || preset.config)) {
@@ -275,6 +279,7 @@ export function createTaskForm({ host, task, boot, hasChildren, onChange, preset
                 expectation_md: expectationField.getValue(),
                 tests: v.tests ?? [],
                 files: v.files ?? [],
+                web_sites: webField.getValue(),
             };
         },
         /** @returns {string[]} Fehlermeldungen des Typ-Editors (leer = in Ordnung) */

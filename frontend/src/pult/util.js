@@ -33,6 +33,7 @@ export const EVENT_LABELS = {
     visibility_hidden: 'hat Fenster oder Tab gewechselt',
     window_blur: 'hat den Fokus verloren',
     paste_blocked: 'Einfügen von außen blockiert',
+    web_blocked: 'wollte eine nicht freigegebene Webseite öffnen',
     paste_external: 'Einfügen von außen',
     drop_blocked: 'Ziehen von außen blockiert',
     second_tab: 'hat die Klausur in einem zweiten Tab geöffnet',
@@ -96,6 +97,16 @@ export function describeEvent(event) {
             return d.scope === 'exam' ? 'Grundzeit der Klausur abgelaufen' : 'Zeit abgelaufen';
         case 'window_blur':
             return d.duration_ms ? `Fokus verloren (${Math.round(d.duration_ms / 100) / 10} s)` : 'Fokus verloren';
+        case 'web_blocked': {
+            let where = d.url ?? '';
+            try {
+                const u = new URL(where);
+                where = u.host + u.pathname;
+            } catch {
+                // Adresse unverändert anzeigen
+            }
+            return `Nicht freigegebene Webseite: ${where.slice(0, 120)}`;
+        }
         case 'paste_blocked':
         case 'paste_external':
             return `${EVENT_LABELS[event.type]}${d.length ? ` (${d.length} Zeichen)` : ''}`;

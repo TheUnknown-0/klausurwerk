@@ -48,6 +48,8 @@ final class RouteGuardsTest extends TestCase
             . 'authorize() und decide() rufen requireStaff() auf (siehe Klassenkommentar).',
         'McpController' => 'Anmeldung per Bearer-Schlüssel statt Sitzung (OAuthServer::authenticate), danach Auth::actAs() '
             . 'mit den Rechten der Lehrkraft; ohne Schlüssel 401 (siehe Klassenkommentar).',
+        'WebProxyController' => 'Eingebauter Browser: Das abgeschottete Fenster schickt keine Cookies; jede Adresse trägt '
+            . 'eine signierte Marke (WebToken), dazu wird die laufende Teilnahme bzw. CAP_VIEW geprüft (siehe Klassenkommentar).',
         'HomeController' => 'index() ist der rollenabhängige Einstieg und behandelt „nicht angemeldet“ selbst '
             . '(Weiterleitung zu /setup bzw. /login) statt über requireLogin() abzubrechen.',
     ];

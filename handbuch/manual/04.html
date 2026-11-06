@@ -215,6 +215,16 @@ for (int i = 0; i &lt; feld.length; i++) { ... }
     <li>Die Zuordnung zu einer Aufgabe und die Hilfsmittel-Eigenschaft lassen sich später ändern, ebenso lässt sich Material löschen.</li>
   </ul>
 
+  <h3>Webseiten im Klausur-Browser</h3>
+  <p>Grundsätzlich ist in der Klausur jede Webseite gesperrt. Im Detail-Editor geben Sie unter <span class="ui">Webseiten im Klausur-Browser</span> einzelne Seiten für eine Aufgabe frei, zum Beispiel die Python-Bibliotheksdoku. Schüler:innen öffnen sie mit einem Knopf an der Aufgabe in einem eingebauten Browser rechts neben der Aufgabe, ohne den Klausur-Tab zu verlassen.</p>
+  <ul>
+    <li><b>Adresse als Anfang</b>: <code>docs.python.org/3/library/</code> gibt die ganze Bibliotheksdoku frei, aber nicht den Rest der Seite. Mit <span class="ui">nur diese Seite</span> gilt genau eine Seite.</li>
+    <li><b>Teilaufgaben erben</b> die Freigaben ihrer Überschrift.</li>
+    <li>Klausurwerk holt die Seiten selbst und prüft jeden Link. Gesperrte Links zeigen „Seite nicht freigegeben“ und erscheinen im Pult als Hinweis (kein Verstoß, keine Sperre).</li>
+    <li>Die Seiten laufen <b>ohne JavaScript</b>. Dokumentationen und Nachschlagewerke funktionieren, Web-Anwendungen, Anmeldungen und Suchen, die Skripte brauchen, nicht. Probieren Sie jede Freigabe in der Vorschau aus.</li>
+  </ul>
+  <div class="box tip"><span class="t">Gut geeignet</span><p>Die Python-Bibliotheksdoku, die Java-API (<code>docs.oracle.com/en/java/javase/21/docs/api/</code>), ein einzelner Wikipedia-Artikel (mit „nur diese Seite“) oder die SQLite-Dokumentation. Seiten mit Anmeldung, Videos oder Chatfunktionen sind ungeeignet.</p></div>
+
   <h2 id="k4-8"><span class="num">4.8</span>Vorschau</h2>
   <p>Mit <span class="ui">Vorschau</span> (auf der Klausurseite und im Pult) sehen Sie die Klausur genau so, wie Schüler sie sehen: gleiche Seite, gleiche Antworttypen, gleiche Hilfsmittel. Ein Streifen oben weist darauf hin: „Vorschau: Es wird nichts gespeichert und nichts an die Lehrkraft gemeldet.“ Probieren Sie hier jede Aufgabe aus, auch das Ausführen von Code. Aufgaben mit Fehlern in Gerüst oder Beispieltests finden Sie so vor der Klausur. Oben rechts beendet <span class="ui">Vorschau beenden</span> die Vorschau: Kam sie aus dem Aufgaben-Editor, schließt sich ihr Tab, sonst geht es zurück zur Klausurseite.</p>
   <figure>

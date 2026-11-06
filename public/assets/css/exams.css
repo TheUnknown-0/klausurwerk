@@ -289,3 +289,13 @@ fieldset.field { border: 0; padding: 0; margin-left: 0; margin-right: 0; min-wid
 .te-selectable.is-selected { border-color: var(--primary); border-left-color: var(--primary); background: var(--primary-soft); box-shadow: inset 3px 0 0 var(--primary); }
 .te-list-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
 .te-list-bar:first-child { margin-top: 0; }
+
+/* Detail-Editor: Freigaben für den Klausur-Browser */
+.te-web > summary { cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.te-web-count { font-weight: 400; color: var(--ink-soft); }
+.te-web[open] > summary { margin-bottom: 6px; }
+.te-web-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.te-web-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.te-web-row .input:first-child { font-family: var(--font-mono); font-size: .9rem; }
+.te-web-exact { white-space: nowrap; font-size: .88rem; }
+@media (max-width: 760px) { .te-web-row { grid-template-columns: 1fr auto; } }

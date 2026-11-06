@@ -86,6 +86,12 @@ Teilaufgaben haben `parent_id`. Nummerierung wird angezeigt, nicht gespeichert
 `tasks.body_md`: Markdown. Bilder: `![Beschriftung](material:<exam_materials.id>)`.
 Formeln: `$…$`, `$$…$$`. Code: ```` ```java ```` usw.
 
+`tasks.web_sites` (JSON, NULL = keine): Freigaben für den eingebauten Browser, Default deny.
+`[ { "url": "https://docs.python.org/3/library/", "label": "Python-Bibliothek", "exact": false } ]`.
+Freigegeben ist alles, was mit `url` beginnt (an Pfadgrenzen; http/https und `www.` gleich), mit `exact` nur
+genau diese Seite. Teilaufgaben erben die Freigaben ihrer Überschrift. Höchstens 20 je Aufgabe
+(`Services\Web\WebSites`).
+
 ### Antworttypen (Übersicht)
 
 | answer_type | Stufe | Gruppe | Auto-Bewertung |
@@ -282,6 +288,7 @@ bei 1, überlebt Neuladen über IndexedDB).
 | `screen_share_stopped` | alarm | Freigabe beendet; keine Sperre |
 | `screen_share_denied` | alarm | Freigabe verweigert (`details.reason`); keine Sperre |
 | `screen_share_wrong_surface` | alarm | nur Fenster oder Tab statt des ganzen Bildschirms (`details.surface`); keine Sperre |
+| `web_blocked` | warning | eingebauter Browser: nicht freigegebene Adresse aufgerufen (`details.url`, `details.task_id`); vom Server geschrieben, höchstens einmal je Minute und Adresse; kein Verstoß |
 
 Alarm-Ereignisse lösen im Pult Ton und Meldung aus. Die vier `screen_share_*`-Ereignisse kommen
 über `POST /api/klausur/{id}/ereignis` wie `window_blur`, sind aber nie ein Verstoß (`EventLog::VIOLATIONS`):

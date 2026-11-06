@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Core\HttpException;
 use App\Services\TaskTypes\CodeType;
 use App\Services\TaskTypes\TaskTypeRegistry;
+use App\Services\Web\WebSites;
 
 /**
  * Aufgaben einer Klausur: Anlegen, Speichern (mit Typprüfung), Baum, Verschieben,
@@ -120,6 +121,7 @@ final class TaskService
             'expectation_md' => (string) ($row['expectation_md'] ?? ''),
             'tests' => $decode($row['tests_json'] ?? '[]', []),
             'files' => $files,
+            'web_sites' => WebSites::decode($row['web_sites'] ?? null),
         ];
     }
 
@@ -226,6 +228,7 @@ final class TaskService
         $answerType = $current['answer_type'];
         $config = $current['config'];
         $files = $current['files'];
+        $webSites = $current['web_sites'];
 
         if (!$locked) {
             $title = trim(mb_substr((string) ($input['title'] ?? ''), 0, 200));
@@ -238,6 +241,14 @@ final class TaskService
             // Die Korrektur vergibt nur 0,5-Schritte (GradingService::normalizePoints), sonst wäre das Maximum nie erreichbar.
             if (abs($points * 2 - round($points * 2)) > 1e-6) {
                 throw new TaskValidationException('Die Punktzahl muss ein Vielfaches von 0,5 sein.', 'points');
+            }
+
+            if (array_key_exists('web_sites', $input)) {
+                try {
+                    $webSites = WebSites::normalize($input['web_sites']);
+                } catch (\InvalidArgumentException $e) {
+                    throw new TaskValidationException($e->getMessage(), 'web_sites');
+                }
             }
 
             $operatorId = ($input['operator_id'] ?? null) === null || $input['operator_id'] === '' ? null : (int) $input['operator_id'];
@@ -342,12 +353,12 @@ final class TaskService
 
         $this->db->transaction(function () use (
             $taskId, $locked, $title, $bodyMd, $points, $operatorId, $afb, $answerType, $config, $files,
-            $solution, $modelAnswer, $expectation, $tests, $examId
+            $solution, $modelAnswer, $expectation, $tests, $examId, $webSites
         ): void {
             if (!$locked) {
                 $this->db->run(
-                    'UPDATE tasks SET title = ?, body_md = ?, points = ?, operator_id = ?, afb = ?, answer_type = ?, config = ? WHERE id = ?',
-                    [$title, $bodyMd, $points, $operatorId, $afb, $answerType, self::json($config), $taskId],
+                    'UPDATE tasks SET title = ?, body_md = ?, points = ?, operator_id = ?, afb = ?, answer_type = ?, config = ?, web_sites = ? WHERE id = ?',
+                    [$title, $bodyMd, $points, $operatorId, $afb, $answerType, self::json($config), $webSites === [] ? null : self::jsonList($webSites), $taskId],
                 );
                 $this->db->run('DELETE FROM task_files WHERE task_id = ?', [$taskId]);
                 foreach ($files as $i => $file) {
@@ -643,9 +654,9 @@ final class TaskService
             [$targetExamId, $parentId],
         );
         $this->db->run(
-            'INSERT INTO tasks (exam_id, parent_id, position, title, body_md, points, operator_id, afb, answer_type, config)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [$targetExamId, $parentId, $position, $source['title'], $body, $source['points'], $source['operator_id'], $source['afb'], $source['answer_type'], $source['config']],
+            'INSERT INTO tasks (exam_id, parent_id, position, title, body_md, points, operator_id, afb, answer_type, config, web_sites)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [$targetExamId, $parentId, $position, $source['title'], $body, $source['points'], $source['operator_id'], $source['afb'], $source['answer_type'], $source['config'], $source['web_sites'] ?? null],
         );
         $newId = $this->db->lastInsertId();
         $taskMap[(int) $source['id']] = $newId;

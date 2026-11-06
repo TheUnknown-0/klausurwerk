@@ -214,6 +214,7 @@ export function initTaskEditor() {
         }
         form = createTaskForm({
             host: formHost, task, boot, hasChildren: childrenOf(task.id).length > 0, preset,
+            inheritedSites: task.parent_id !== null ? (byId(task.parent_id)?.web_sites ?? []).length : 0,
             onChange: () => {
                 setDirty(true);
                 if (saving) {

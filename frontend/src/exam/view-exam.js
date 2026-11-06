@@ -8,6 +8,7 @@ import { previewExit } from '../lib/preview-link.js';
 import { answerWidget, FallbackWidget } from '../lib/widgets.js';
 import { flattenTasks, isAnswerable, summarize, taskStatus } from './answers.js';
 import { AidsPanel } from './aids.js';
+import { WebPanel } from './web-panel.js';
 import { saveStatusText } from './clock.js';
 
 const lsGet = (k) => {
@@ -66,8 +67,25 @@ export class ExamView {
             onToggle: (open) => {
                 this.aidsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
                 this.layout.classList.toggle('aids-open', open);
+                if (open && this.web?.open) {
+                    this.web.close();
+                }
             },
         });
+        // Eingebauter Browser: freigegebene Webseiten einer Aufgabe (rechte Spalte wie die Hilfsmittel).
+        this.web = new WebPanel({
+            api: o.boot.api_base ?? '',
+            onToggle: (open) => {
+                this.layout.classList.toggle('web-open', open);
+                if (open && this.aids.open) {
+                    this.aids.toggle(false);
+                }
+                for (const [tid, b] of this.webBtns) {
+                    b.setAttribute('aria-expanded', open && this.web.taskId === tid ? 'true' : 'false');
+                }
+            },
+        });
+        this.webBtns = new Map();
         this.buildNav();
         this.main = h('main', { class: 'exam-main', id: 'exam-main', tabindex: '-1' });
         for (const t of this.tasks) {
@@ -81,7 +99,7 @@ export class ExamView {
             this.main.append(h('div', { class: 'empty-state' }, h('div', { class: 'empty-icon', 'aria-hidden': 'true' }, icon('file-text')), h('p', {}, 'Zu dieser Klausur gibt es keine Aufgaben.')));
         }
         this.bannerHost = h('div', { class: 'exam-banners', 'aria-live': 'polite' });
-        this.layout = h('div', { class: 'exam-layout' }, this.nav, this.main, this.aids.el);
+        this.layout = h('div', { class: 'exam-layout' }, this.nav, this.main, this.aids.el, this.web.el);
         this.el = h('div', { class: 'exam-view', dataset: { mode: o.mode } }, this.header, this.bannerHost, this.layout);
         this.finalize();
         this.applyFontSize();
@@ -192,7 +210,7 @@ export class ExamView {
             h('p', { class: 'nav-hint' }, 'Alt + Pfeil: nächste oder vorige Aufgabe'));
     }
 
-    buildBlock(task, depth) {
+    buildBlock(task, depth, parent = null) {
         const answerable = isAnswerable(task);
         const num = task.number ? String(task.number) : '';
         const heading = h(depth === 0 ? 'h2' : 'h3', { class: 'task-title', tabindex: '-1' },
@@ -204,6 +222,15 @@ export class ExamView {
             head.append(h('span', { class: 'task-points' },
                 h('span', { class: 'task-points-value' }, fmtPoints(task.points)),
                 h('span', { class: 'task-points-label' }, Number(task.points) === 1 ? 'Punkt' : 'Punkte')));
+        }
+        // Webseiten-Knopf, wo Freigaben beginnen (Teilaufgaben erben die der Überschrift).
+        const sites = task.web_sites ?? [];
+        if (sites.length > 0 && sites.length !== (parent?.web_sites ?? []).length) {
+            const web = h('button', { type: 'button', class: 'btn btn-sm web-btn', 'aria-expanded': 'false', title: sites.map((s) => s.label).join(', ') },
+                icon('link'), sites.length === 1 ? (sites[0].label || 'Webseite') : `Webseiten (${sites.length})`);
+            web.addEventListener('click', () => this.web.toggleFor(task));
+            this.webBtns.set(task.id, web);
+            head.append(web);
         }
         if (answerable && !this.o.preview) {
             const flag = h('button', { type: 'button', class: 'btn btn-sm btn-ghost flag-btn', 'aria-pressed': 'false' }, icon('flag'), 'Später ansehen');
@@ -227,7 +254,7 @@ export class ExamView {
         const block = h('section', { class: `task-block depth-${depth}`, id: `task-${task.id}`, dataset: { task: task.id } }, textPart, divider, host);
         if ((task.children ?? []).length > 0) {
             for (const c of task.children) {
-                children.append(this.buildBlock(c, depth + 1));
+                children.append(this.buildBlock(c, depth + 1, task));
             }
             block.append(children);
         }
@@ -340,6 +367,7 @@ export class ExamView {
             return;
         }
         this.currentTaskId = id;
+        this.web?.taskChanged(this.byId.get(id)?.task);
         for (const [tid, n] of this.navItems) {
             if (tid === id) {
                 n.item.setAttribute('aria-current', 'true');

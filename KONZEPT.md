@@ -594,3 +594,20 @@ Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
   Ausschalten beendet alle Verbindungen. Ein Konto, das nicht mehr aktiv ist, verliert den Zugang.
 - **Bekannte Grenze:** Betrieb unter einem Unterpfad (BASE_URL) wird für die OAuth-Metadaten nicht
   unterstützt; Klausurwerk muss dafür an der Wurzel einer Domain laufen.
+
+## 26. Eingebauter Browser mit Freigaben (6. November 2026)
+
+- **Entscheidungen des Nutzers:** Default deny, Freigaben je Aufgabe als Adressanfang (Häkchen
+  „nur diese Seite“), Laden über Klausurwerk (Proxy) statt direkt, gesperrte Klicks als Hinweis
+  im Pult (kein Verstoß).
+- **Aufbau:** `tasks.web_sites` (Migration 190), Teilaufgaben erben. `POST /api/klausur/{id}/webseiten`
+  gibt eine signierte Marke (`WebToken`, 6 h, an Teilnahme bzw. Lehrkraft und Aufgabe gebunden);
+  `GET /web/{token}?u=…` prüft Freigabe, holt die Seite (`WebFetcher`), schreibt sie um (`WebRewriter`).
+- **Sicherheit:** Das Fenster ist `sandbox="allow-forms"` (kein Skript, undurchsichtiger Ursprung,
+  keine Cookies), dazu CSP `sandbox` auf jeder Antwort und entfernte Skripte. Fremde Bilder und
+  Stylesheets nur mit Signatur des Umschreibers. SSRF-Schutz: nur Port 80/443, nur öffentliche
+  IP-Adressen (`FILTER_FLAG_GLOBAL_RANGE`), Verbindung an die geprüfte Adresse gebunden
+  (`CURLOPT_RESOLVE`), jede Weiterleitung einzeln geprüft, Größen- und Zeitgrenzen.
+  Zwischenspeicher 15 Minuten im Temp-Verzeichnis (eine Klasse auf derselben Seite = ein Abruf).
+- **Bewusste Grenze:** Seiten laufen ohne JavaScript. Dokumentationen gehen, Web-Anwendungen nicht.
+  Kopieren aus dem Browser in den Editor gilt als Einfügen von außen (Einstellung `paste_policy`).

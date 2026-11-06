@@ -16,6 +16,8 @@ use App\Services\LiveServices;
 use App\Services\LiveStore;
 use App\Services\SebGuard;
 use App\Services\Uploads;
+use App\Services\Web\WebSites;
+use App\Services\Web\WebToken;
 
 /**
  * Schüleransicht: Klausurliste, Klausurseite und alle Schüler-APIs (docs/API.md Abschnitt 1).
@@ -293,6 +295,46 @@ final class StudentExamController extends Controller
         }
 
         return $this->svc()->content()->forStudent($exam, $p);
+    }
+
+    /**
+     * POST /api/klausur/{id}/webseiten: Zugang zum eingebauten Browser für eine Aufgabe.
+     * Liefert die Basisadresse mit Zugangsmarke und die freigegebenen Seiten (eigene und geerbte).
+     * Schüler:innen nur während der Bearbeitung, Lehrkräfte mit Lesezugriff (Vorschau).
+     */
+    public function webAccess(array $params): array
+    {
+        $user = $this->requireLogin();
+        $this->requireCsrf();
+        $examId = (int) $params['id'];
+        $taskId = (int) ($this->jsonInput()['task_id'] ?? 0);
+
+        if ($this->ctx->auth->isStaff()) {
+            $this->ctx->exams->require($examId, ExamAccess::CAP_VIEW);
+            $kind = 'u';
+            $subject = (int) $user['id'];
+        } elseif ($this->ctx->auth->isStudent()) {
+            [$exam, $p] = $this->participantContext($params, $user, true);
+            if ((string) $exam['status'] !== 'running' || !in_array((string) $p['state'], ['active', 'submit_requested'], true)) {
+                return $this->jsonError('Der Klausur-Browser ist nur während der Bearbeitung geöffnet.', 409);
+            }
+            $kind = 'p';
+            $subject = (int) $p['id'];
+        } else {
+            throw new HttpException(403);
+        }
+        $this->ctx->session->release();
+        $sites = WebSites::effective($this->ctx->db, $examId, $taskId);
+        if ($sites === []) {
+            return $this->jsonError('Für diese Aufgabe sind keine Webseiten freigegeben.', 404);
+        }
+        $token = WebToken::fromSettings($this->ctx->settings)->issue($examId, $taskId, $kind, $subject);
+
+        return [
+            'success' => true,
+            'base' => $this->ctx->url('/web/' . $token),
+            'sites' => array_map(static fn (array $s): array => ['url' => $s['url'], 'label' => $s['label']], $sites),
+        ];
     }
 
     /** POST /api/klausur/{id}/puls */

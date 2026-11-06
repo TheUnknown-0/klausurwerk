@@ -7,6 +7,7 @@ use App\Controllers\MaterialController;
 use App\Controllers\RunController;
 use App\Controllers\SebEndController;
 use App\Controllers\StudentExamController;
+use App\Controllers\WebProxyController;
 use App\Core\Router;
 
 /** Schüleransicht, Vorschau, Material, Java-Ausführung. */
@@ -32,6 +33,9 @@ return static function (Router $r): void {
     // Live-Wand (nur Arbeitsspeicher, siehe Services\LiveStore)
     $r->post('/api/klausur/{id}/live', [StudentExamController::class, 'live']);
     $r->post('/api/klausur/{id}/bildschirm', [StudentExamController::class, 'screen']);
+    $r->post('/api/klausur/{id}/webseiten', [StudentExamController::class, 'webAccess']);
+    // Eingebauter Browser: Zugang über die signierte Marke im Pfad (siehe WebProxyController).
+    $r->get('/web/{token}', [WebProxyController::class, 'show']);
 
     // Java-Ausführung (Runner)
     $r->post('/api/ausfuehren', [RunController::class, 'start']);

@@ -67,7 +67,7 @@ try {
     // sonst meldet der Container-Healthcheck eine Weiterleitung statt Zustand.
     // KI-Programme rufen MCP, Token und Metadaten von ihrem Server aus auf (ohne Sitzung); geschützt
     // sind diese Endpunkte durch ihre Schlüssel. Die Zustimmung (/oauth/authorize) bleibt dahinter.
-    $exemptPrefixes = ['/zugang', '/assets/', '/favicon', '/healthz', '/readyz', '/mcp', '/oauth/token', '/oauth/register', '/oauth/revoke', '/.well-known/'];
+    $exemptPrefixes = ['/zugang', '/assets/', '/favicon', '/healthz', '/readyz', '/mcp', '/oauth/token', '/oauth/register', '/oauth/revoke', '/.well-known/', '/web/'];
     $exempt = false;
     foreach ($exemptPrefixes as $prefix) {
         if (str_starts_with($path, $prefix)) {

@@ -60,6 +60,11 @@ final class McpTools
                 'is_readonly' => ['type' => 'boolean', 'description' => 'true = Schüler:innen können sie nicht ändern'],
             ], ['filename', 'content'])],
             'operator_id' => ['type' => ['integer', 'null'], 'description' => 'Operator (siehe get_reference_data), z. B. "Erläutern"'],
+            'web_sites' => ['type' => 'array', 'description' => 'Webseiten, die Schüler:innen bei dieser Aufgabe im eingebauten Browser öffnen dürfen (sonst ist alles gesperrt). Freigegeben ist alles unter der Adresse; exact = nur genau diese Seite. Seiten laufen ohne JavaScript.', 'items' => $obj([
+                'url' => $str('Adresse, z. B. https://docs.python.org/3/library/'),
+                'label' => $str('Bezeichnung für den Knopf'),
+                'exact' => ['type' => 'boolean', 'description' => 'nur genau diese Seite'],
+            ], ['url'])],
             'afb' => ['type' => ['string', 'null'], 'enum' => [...TaskService::AFB_VALUES, null], 'description' => 'Anforderungsbereich'],
         ];
         $examMeta = [
@@ -510,6 +515,9 @@ final class McpTools
         foreach (['title', 'body_md', 'points', 'operator_id', 'afb', 'answer_type', 'config', 'files'] as $k) {
             $in[$k] = array_key_exists($k, $args) ? $args[$k] : ($current[$k] ?? null);
         }
+        if (array_key_exists('web_sites', $args)) {
+            $in['web_sites'] = $args['web_sites'];
+        }
         // Lösungsseite nur mitschicken, wenn genannt (sonst bleibt sie, wie sie ist).
         foreach (['solution', 'model_answer', 'expectation_md', 'tests'] as $k) {
             if (array_key_exists($k, $args)) {
@@ -569,7 +577,7 @@ final class McpTools
         $exam = $this->exam($examId, ExamAccess::CAP_EDIT);
         $current = $this->taskOf($examId, $taskId) ?? throw new ToolError('Aufgabe ' . $taskId . ' gibt es in dieser Klausur nicht.');
         if (TaskService::isLocked($exam)) {
-            $structural = array_intersect(array_keys($args), ['title', 'body_md', 'points', 'operator_id', 'afb', 'answer_type', 'config', 'files']);
+            $structural = array_intersect(array_keys($args), ['title', 'body_md', 'points', 'operator_id', 'afb', 'answer_type', 'config', 'files', 'web_sites']);
             if ($structural !== []) {
                 throw new ToolError('Die Klausur ist gestartet: nur noch solution, model_answer, expectation_md und tests sind änderbar (nicht: ' . implode(', ', $structural) . ').');
             }

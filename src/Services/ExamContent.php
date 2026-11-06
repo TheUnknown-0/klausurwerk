@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Services\TaskTypes\TaskTypeRegistry;
+use App\Services\Web\WebSites;
 
 /**
  * Aufgabenbaum und Zusatzdaten für Schüleransicht, Vorschau und Pult (docs/API.md 1.3, 3.3).
@@ -103,7 +104,7 @@ final class ExamContent
     {
         $examId = (int) $exam['id'];
         $rows = $this->db->fetchAll(
-            'SELECT t.id, t.parent_id, t.position, t.title, t.body_md, t.points, t.afb, t.answer_type, t.config, o.name AS operator_name
+            'SELECT t.id, t.parent_id, t.position, t.title, t.body_md, t.points, t.afb, t.answer_type, t.config, t.web_sites, o.name AS operator_name
              FROM tasks t LEFT JOIN operators o ON o.id = t.operator_id
              WHERE t.exam_id = ?',
             [$examId],
@@ -128,10 +129,15 @@ final class ExamContent
         }
 
         $markdown = new Markdown($this->baseUrl, $examId);
-        $build = function (array $nodes) use (&$build, $markdown, $filesByTask, $shuffleSeed, $shuffle): array {
+        $build = function (array $nodes, array $inherited = []) use (&$build, $markdown, $filesByTask, $shuffleSeed, $shuffle): array {
             $out = [];
             foreach ($nodes as $node) {
                 $id = (int) $node['id'];
+                // Eingebauter Browser: eigene Freigaben plus die der Überschrift (nur Adresse und Bezeichnung).
+                $sites = $inherited;
+                foreach (WebSites::decode($node['web_sites'] ?? null) as $site) {
+                    $sites[] = ['url' => $site['url'], 'label' => $site['label']];
+                }
                 $out[] = [
                     'id' => $id,
                     'parent_id' => $node['parent_id'] !== null ? (int) $node['parent_id'] : null,
@@ -144,7 +150,8 @@ final class ExamContent
                     'answer_type' => $node['answer_type'] !== null ? (string) $node['answer_type'] : null,
                     'config' => $this->studentConfig($node, $shuffleSeed, $shuffle),
                     'files' => $filesByTask[$id] ?? [],
-                    'children' => $build($node['children']),
+                    'web_sites' => $sites,
+                    'children' => $build($node['children'], $sites),
                 ];
             }
 

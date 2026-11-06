@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Services\TaskTypes\CodeType;
 use App\Services\TaskTypes\TaskTypeRegistry;
+use App\Services\Web\WebSites;
 
 /**
  * Export und Import einer Klausur als ZIP:
@@ -61,6 +62,7 @@ final class ExamExport
                 'answer_type' => $task['answer_type'],
                 'config' => (object) $task['config'],
                 'files' => $task['files'],
+                'web_sites' => $task['web_sites'],
                 'solution' => [
                     'solution' => (object) $task['solution'],
                     'model_answer' => $task['model_answer'],
@@ -331,6 +333,11 @@ final class ExamExport
                     throw new \InvalidArgumentException("{$where}: " . $e->getMessage());
                 }
             }
+            try {
+                $webSites = WebSites::normalize($node['web_sites'] ?? []);
+            } catch (\InvalidArgumentException $e) {
+                throw new \InvalidArgumentException("{$where}: " . $e->getMessage());
+            }
             $afb = $node['afb'] ?? null;
             $operator = $node['operator'] ?? null;
             $out[] = [
@@ -343,6 +350,7 @@ final class ExamExport
                 'answer_type' => $answerType,
                 'config' => $config,
                 'files' => $files,
+                'web_sites' => $webSites,
                 'solution' => $solution,
                 'model_answer' => mb_substr((string) ($sol['model_answer'] ?? ''), 0, 100000),
                 'expectation_md' => mb_substr((string) ($sol['expectation_md'] ?? ''), 0, 100000),
@@ -399,11 +407,12 @@ final class ExamExport
         );
         foreach ($nodes as $position => $n) {
             $this->db->run(
-                'INSERT INTO tasks (exam_id, parent_id, position, title, body_md, points, operator_id, afb, answer_type, config)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                'INSERT INTO tasks (exam_id, parent_id, position, title, body_md, points, operator_id, afb, answer_type, config, web_sites)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     $examId, $parentId, $position, $n['title'], $rewrite($n['body_md']), $n['points'], $n['operator_id'], $n['afb'],
                     $n['answer_type'], $n['config'] === [] ? '{}' : json_encode($n['config'], JSON_UNESCAPED_UNICODE),
+                    ($n['web_sites'] ?? []) === [] ? null : json_encode($n['web_sites'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 ],
             );
             $id = $this->db->lastInsertId();
