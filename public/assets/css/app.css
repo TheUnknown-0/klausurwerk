@@ -253,6 +253,29 @@ code, .mono { font-family: var(--font-mono); font-size: .9em; }
 .nav-link.active .nav-icon, .nav-link:hover .nav-icon { color: currentColor; }
 .sidebar-footer { padding: 14px 22px; border-top: 1px solid var(--border); font-size: .78rem; color: var(--ink-faint); font-family: var(--font-mono); letter-spacing: .04em; }
 
+/* Versionsnummer (alle) und Versionsdialog (Admins), templates/partials/version-*.php */
+.version-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 0; padding: 2px 4px; margin: -2px -4px;
+  font: inherit; letter-spacing: inherit; color: inherit; cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.version-link:hover { color: var(--primary); background: var(--primary-soft); }
+.version-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); flex-shrink: 0; }
+.version-dot[hidden] { display: none; }
+.update-pill { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 45%, transparent); background: var(--warning-soft); }
+.update-pill[hidden] { display: none; }
+.version-toolbar { display: flex; justify-content: flex-start; }
+.version-state { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.version-meta { margin: 6px 0 0; }
+.version-heading { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.version-entry h4, .version-entry h5 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 0 0 4px; }
+.version-entry ul { margin: 0 0 14px; padding-left: 1.2em; }
+.version-entry li { margin-bottom: 3px; }
+.version-entry-new { margin-top: 12px; padding: 10px 14px 2px; border-left: 3px solid var(--warning); background: var(--warning-soft); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.version-howto { margin-top: 12px; }
+.version-howto pre { margin: 6px 0; padding: 6px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+
 /* Kopfleiste */
 .topbar {
   display: flex; align-items: center; gap: 12px;

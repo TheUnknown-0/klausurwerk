@@ -44,6 +44,11 @@ return [
         'dir' => dirname(__DIR__) . '/uploads',
         'max_logo_bytes' => 2 * 1024 * 1024,
     ],
+    // Update-Prüfung (Services\UpdateCheck): CHANGELOG.md des Repos, oberste Version = neueste.
+    // UPDATE_CHECK_URL=off schaltet die Prüfung ganz ab (Admins können sie auch in den Einstellungen abschalten).
+    'updates' => [
+        'url' => $env('UPDATE_CHECK_URL', 'https://raw.githubusercontent.com/TheUnknown-0/klausurwerk/main/CHANGELOG.md'),
+    ],
     // Java-Runner (eigener Container, nur im internen Netz erreichbar).
     'runner' => [
         'url' => rtrim($env('RUNNER_URL', 'http://runner:8080'), '/'),

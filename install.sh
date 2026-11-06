@@ -663,8 +663,20 @@ summary() {
 # git verweigert als root die Arbeit in einem Ordner, der jemand anderem gehört ("dubious ownership").
 git_() { git --no-pager -c safe.directory="$(pwd -P)" "$@"; }
 
-describe_rev() { # Commit; Ausgabe "abc1234 vom 05.11.2026 14:03"
-    git_ log -1 --format='%h vom %cd' --date=format:'%d.%m.%Y %H:%M' "$1" 2>/dev/null || printf '%.7s' "$1"
+version_at() { # Versionsnummer aus CHANGELOG.md eines Commits (oberste "## X.Y.Z"), leer wenn unbekannt
+    { git_ show "$1:CHANGELOG.md" 2>/dev/null || true; } \
+        | sed -nE '/^## v?[0-9]+\.[0-9]+\.[0-9]+/{s/^## v?([0-9]+\.[0-9]+\.[0-9]+).*/\1/p;q;}' || true
+}
+
+describe_rev() { # Commit; Ausgabe "Version 1.3.0 (abc1234 vom 05.11.2026 14:03)" bzw. ohne Version
+    local rev version
+    rev="$(git_ log -1 --format='%h vom %cd' --date=format:'%d.%m.%Y %H:%M' "$1" 2>/dev/null || printf '%.7s' "$1")"
+    version="$(version_at "$1")"
+    if [ -n "$version" ]; then
+        printf 'Version %s (%s)' "$version" "$rev"
+    else
+        printf '%s' "$rev"
+    fi
 }
 
 uses_ghcr() { [ -n "$(get_env APP_IMAGE)" ]; }

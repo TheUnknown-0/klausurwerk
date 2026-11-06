@@ -120,6 +120,10 @@ RUNNER_IMAGE=ghcr.io/theunknown-0/klausurwerk-runner:latest</div>
     <p>Jeder Lauf bekommt einen eigenen Benutzer (UID aus einem Pool von 64), ein eigenes Arbeits- und Temp-Verzeichnis, das für andere Läufe unlesbar ist, und einen Systemaufruf-Filter (seccomp), der Netzwerk-Sockets und gemeinsame Kanäle zwischen Läufen sperrt. Eine Thread- oder Fork-Bombe trifft nur den eigenen Lauf. Was bleibt: Testcode und Schülercode laufen bei der automatischen Vorbewertung im selben Prozess, ein gezielt präpariertes Programm kann dort ein „bestanden“ vortäuschen. Vorbewertungen sind deshalb immer nur Vorschläge, die die Lehrkraft prüft. Der Runner hat keinen Netzzugang und kann keine Daten nach außen senden.</p></div>
 
   <h2 id="k2-8"><span class="num">2.8</span>Updates</h2>
+  <h3>Versionsnummer und Update-Hinweis</h3>
+  <p>Unten in der Seitenleiste steht für alle Angemeldeten die installierte Version, etwa „Klausurwerk 1.3.0“. Admins öffnen mit einem Klick darauf den Änderungsverlauf. Ganz oben im Fenster sucht <em>Nach neuen Versionen suchen</em> sofort nach einem Update.</p>
+  <p>Von selbst prüft Klausurwerk bei jeder Anmeldung eines Admins und einmal täglich, sobald ein Admin eine Seite öffnet. Gibt es eine neue Version, erscheint eine Meldung, oben rechts der Knopf <em>Update auf …</em> und ein Punkt an der Versionsnummer. Das Fenster zeigt dann, was neu ist. Gefragt wird nur die Datei <code>CHANGELOG.md</code> auf GitHub, und zwar höchstens einmal pro Minute für die ganze Installation. Bremst GitHub, wartet Klausurwerk mindestens eine Stunde. Abschalten lässt sich die automatische Prüfung unter <em>Einstellungen › Updates</em>, ganz abschalten mit <code>UPDATE_CHECK_URL=off</code> in der <code>.env</code>. Eingespielt wird ein Update nie von allein, sondern wie unten beschrieben.</p>
+  <h3>Update einspielen</h3>
   <p>Der Installations-Assistent hat einen Update-Modus. Im Projektordner genügt:</p>
   <div class="mono-block">cd /opt/klausurwerk
 sudo ./update.sh</div>

@@ -10,6 +10,15 @@
  */
 $baseUrl = $ctx->config['app']['base_url'];
 $appName = $ctx->settings->get('app_name') ?: 'Klausurwerk';
+// Versionsdialog und Update-Hinweis nur für Admins (Services\UpdateCheck).
+$update = null;
+$updateDue = false;
+if ($auth->isAdmin()) {
+    $updateCheck = \App\Services\UpdateCheck::fromContext($ctx);
+    $update = $updateCheck->state();
+    $updateDue = $updateCheck->enabled()
+        && ((bool) $ctx->session->get(\App\Services\UpdateCheck::SESSION_DUE, false) || $updateCheck->isDue(false));
+}
 ?><!DOCTYPE html>
 <html lang="de" class="no-js">
 <head>
@@ -27,18 +36,24 @@ $appName = $ctx->settings->get('app_name') ?: 'Klausurwerk';
 </head>
 <body>
 <div class="app-shell">
-    <?= $view->renderPartial('partials/sidebar') ?>
+    <?= $view->renderPartial('partials/sidebar', ['update' => $update]) ?>
     <div class="sidebar-backdrop" hidden></div>
     <div class="app-main">
-        <?= $view->renderPartial('partials/topbar', ['title' => $title ?? null]) ?>
+        <?= $view->renderPartial('partials/topbar', ['title' => $title ?? null, 'update' => $update]) ?>
         <main class="app-content<?= !empty($wideContent) ? ' app-content-wide' : '' ?>">
             <?= $view->renderPartial('partials/flash') ?>
             <?= $content ?>
         </main>
     </div>
 </div>
+<?php if ($update !== null): ?>
+    <?= $view->renderPartial('partials/version-dialog', ['update' => $update, 'updateDue' => $updateDue]) ?>
+<?php endif; ?>
 <script src="<?= e(asset('js/app.js', $baseUrl)) ?>"></script>
 <script src="<?= e(asset('js/live-search.js', $baseUrl)) ?>"></script>
+<?php if ($update !== null): ?>
+    <script src="<?= e(asset('js/version.js', $baseUrl)) ?>"></script>
+<?php endif; ?>
 <?php foreach ($pageScripts ?? [] as $script): ?>
     <script src="<?= e(asset('js/' . $script, $baseUrl)) ?>"></script>
 <?php endforeach; ?>

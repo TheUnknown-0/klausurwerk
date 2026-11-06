@@ -611,3 +611,17 @@ Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
   Zwischenspeicher 15 Minuten im Temp-Verzeichnis (eine Klasse auf derselben Seite = ein Abruf).
 - **Bewusste Grenze:** Seiten laufen ohne JavaScript. Dokumentationen gehen, Web-Anwendungen nicht.
   Kopieren aus dem Browser in den Editor gilt als Einfügen von außen (Einstellung `paste_policy`).
+
+## 27. Versionsnummern und Update-Hinweis (6. November 2026)
+
+- **Wunsch des Nutzers:** Versionsnummer für alle sichtbar, Admins lesen per Klick einen kleinen
+  Änderungsverlauf; bei jeder Anmeldung eines Admins und einmal täglich prüfen, ob es ein Update
+  gibt, und Admins Bescheid sagen. Im Dialog oben ein Knopf „Nach neuen Versionen suchen“.
+  GitHub-Grenzen schonen: höchstens eine Anfrage pro Minute.
+- **Umsetzung:** `CHANGELOG.md` als einzige Quelle (Startstand 1.3.0, rückwirkend 1.0.0 bis 1.2.0
+  aus dem Verlauf). Hinweis für Admins: Meldung nach der Prüfung, Knopf „Update auf …“ in der
+  Kopfzeile, Punkt an der Versionsnummer. Details in ARCHITECTURE.md, Abschnitt Versionen.
+- **Abwägungen:** Kein Hintergrunddienst (die Prüfung läuft angestoßen von der Seite eines Admins,
+  die Anmeldung wartet nie auf GitHub). `raw.githubusercontent.com` statt REST-API (60 Anfragen
+  je Stunde ohne Anmeldung). Keine Versionsnummer auf der Anmeldeseite (verrät Unbekannten nichts).
+  Kein Update-Knopf in der Weboberfläche: Einspielen bleibt `./update.sh` auf dem Server (Abschnitt 23).

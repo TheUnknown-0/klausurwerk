@@ -208,6 +208,25 @@ Guards/Helfer aus `Controller`: `requireLogin()`, `requirePermission($p)`, `requ
 | Diagramme | `50` bis `59` | TaskTypes (Stufe 3) | `frontend/src/widgets/diagram-*` |
 | Mikrowelt, GUI, Replay | `60` bis `69` | TaskTypes `robo` | `frontend/src/widgets/robo*`, `replay.js` |
 
+## Versionen und Update-Prüfung
+
+- **Eine Quelle:** `CHANGELOG.md`. Die oberste Zeile `## X.Y.Z (JJJJ-MM-TT)` ist die installierte
+  Version (`Services\Changelog::currentVersion()`), darunter je Version kurze Punkte für Admins.
+  `tests/Unit/ChangelogTest.php` prüft Format und absteigende Reihenfolge.
+- **Neue Version:** Wer eine Änderung veröffentlicht, die Admins betrifft, setzt oben einen neuen
+  Abschnitt (Fehlerbehebung: Z erhöhen, neue Funktion: Y, Bruch mit Bestehendem: X). Ohne neuen
+  Abschnitt sehen Installationen kein Update, auch wenn sich Code geändert hat.
+- **Anzeige:** Versionsnummer unten in der Seitenleiste für alle Angemeldeten (nicht auf der
+  Anmeldeseite). Admins öffnen per Klick den Dialog (`partials/version-dialog.php`) mit
+  Update-Stand, Knopf „Nach neuen Versionen suchen“ und Änderungsverlauf.
+- **Prüfung:** `Services\UpdateCheck` lädt `CHANGELOG.md` von `raw.githubusercontent.com`
+  (`UPDATE_CHECK_URL`, `off` = aus), Anstoß per `POST /api/version/pruefen` aus
+  `public/assets/js/version.js`: nach jeder Anmeldung eines Admins (Sitzungsmarke in
+  `Auth::loginAs`), sonst täglich, und über den Knopf. Höchstens eine Anfrage je Minute für die
+  ganze Installation, bedingt per ETag (304), nach 429/403 mindestens eine Stunde Pause.
+  Ergebnis in `settings` (`update_*`), Schalter `update_check_enabled` unter Einstellungen.
+- **Einspielen** nur auf dem Server mit `./update.sh`; der Updater nennt alte und neue Version.
+
 ## Tests
 
 - `tests/Unit/` ohne Datenbank (Rechtekatalog, Routen-Guards, Lösungsleck, Uhr, Antworttypen).

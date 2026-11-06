@@ -77,6 +77,10 @@ final class Auth
     {
         $this->session->regenerate();
         $this->session->set('user_id', (int) $user['id']);
+        if (($user['role'] ?? '') === 'admin') {
+            // Die nächste Seite fragt nach einer neuen Version (Services\UpdateCheck).
+            $this->session->set(\App\Services\UpdateCheck::SESSION_DUE, true);
+        }
         $this->user = false;
         $this->permissions = null;
     }

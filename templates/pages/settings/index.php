@@ -3,7 +3,8 @@
  * Einstellungen der Anwendung.
  * Erwartet: $schoolName, $appName, $logo, $publicBaseUrl, $baseIsGuessed, $guessedBase,
  * $staffTwoFactor, $mailConfigured, $heartbeatMs, $pultPollMs, $intervalMin, $intervalMax,
- * $sitePasswordEnabled, $sitePasswordSet, $testMailDefault, $canEdit, $isAdmin, $minPasswordLength
+ * $sitePasswordEnabled, $sitePasswordSet, $updateCheckEnabled, $updateCheckConfigured,
+ * $testMailDefault, $canEdit, $isAdmin, $minPasswordLength
  */
 
 $disabled = $canEdit ? '' : ' disabled';
@@ -151,6 +152,26 @@ $disabled = $canEdit ? '' : ' disabled';
                 <input type="checkbox" name="site_password_enabled" value="1"<?= $sitePasswordEnabled ? ' checked' : '' ?>>
                 <span>Seitenpasswort aktivieren</span>
             </label>
+        </div>
+
+        <div class="card card-pad mb-2 max-w-lg">
+            <h3 class="mt-0">Updates</h3>
+            <p class="text-sm text-soft">
+                Klausurwerk prüft bei jeder Anmeldung eines Admins und einmal täglich, ob es eine neue Version gibt,
+                und meldet sie nur Admins. Dazu ruft der Server die Datei CHANGELOG.md auf GitHub ab; übertragen
+                wird dabei nichts außer der Anfrage selbst. Eingespielt wird ein Update nie von allein, sondern
+                auf dem Server mit <code>sudo ./update.sh</code>.
+            </p>
+            <?php if ($updateCheckConfigured): ?>
+                <label class="checkbox-row">
+                    <input type="checkbox" name="update_check_enabled" value="1"<?= $updateCheckEnabled ? ' checked' : '' ?>>
+                    <span>Automatisch nach Updates suchen</span>
+                </label>
+                <div class="hint">Von Hand geht es immer: Klick auf die Versionsnummer unten links, dann „Nach neuen Versionen suchen“.</div>
+            <?php else: ?>
+                <input type="hidden" name="update_check_enabled" value="<?= $updateCheckEnabled ? '1' : '0' ?>">
+                <div class="alert alert-info mb-0">Auf diesem Server ist die Update-Prüfung abgeschaltet (<code>UPDATE_CHECK_URL=off</code> in der .env).</div>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 

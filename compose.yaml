@@ -101,6 +101,8 @@ services:
       MAIL_PASS: ${MAIL_PASS:-}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Klausurwerk}
+      # Update-Prüfung für Admins: CHANGELOG.md des Repos. Leer = Standard, off = abgeschaltet.
+      UPDATE_CHECK_URL: ${UPDATE_CHECK_URL:-}
     volumes:
       - uploads:/var/www/html/uploads
     # Live-Wand: Live-Zustand und Bildschirm-Standbilder nur im Arbeitsspeicher, nie auf der

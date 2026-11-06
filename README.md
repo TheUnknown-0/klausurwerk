@@ -128,6 +128,7 @@ Fertige Images aus der GitHub Container Registry statt lokal bauen: in `.env`
 | `RUNNER_TIMEOUT` | `20` | Wartezeit der App auf Runner-Antworten in Sekunden |
 | `DB_WAIT_TIMEOUT` | `120` | Wartezeit auf die Datenbank beim Start in Sekunden |
 | `MAIL_*` | *(leer)* | SMTP für Anmeldecodes; leer = Codes abgeschaltet |
+| `UPDATE_CHECK_URL` | `CHANGELOG.md` auf GitHub | Quelle der Update-Prüfung für Admins; `off` schaltet sie ab (auch in den Einstellungen abschaltbar) |
 
 **Mindestanforderungen:** 2 CPU-Kerne und 4 GB RAM für einen Raum mit etwa 35 Schüler:innen.
 Für mehrere Räume gleichzeitig `RUNNER_CPUS`, `RUNNER_MEM_LIMIT` und `RUNNER_MAX_PARALLEL` erhöhen;

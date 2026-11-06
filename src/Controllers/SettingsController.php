@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Core\Permissions as P;
 use App\Services\EmailService;
 use App\Services\Mailer;
+use App\Services\UpdateCheck;
 use App\Services\Uploads;
 
 /**
@@ -45,6 +46,8 @@ final class SettingsController extends Controller
             'intervalMax' => self::INTERVAL_MAX,
             'sitePasswordEnabled' => $settings->getBool('site_password_enabled'),
             'sitePasswordSet' => $settings->get('site_password') !== null,
+            'updateCheckEnabled' => $settings->getBool(UpdateCheck::SETTING_ENABLED, true),
+            'updateCheckConfigured' => UpdateCheck::fromContext($this->ctx)->configured(),
             'testMailDefault' => (string) ($user['email'] ?? ''),
             'canEdit' => $this->ctx->auth->can(P::EINSTELLUNGEN_BEARBEITEN),
             'isAdmin' => $this->ctx->auth->isAdmin(),
@@ -141,6 +144,12 @@ final class SettingsController extends Controller
                 $critical = true;
             }
             $settings->set('site_password_enabled', $enabled ? '1' : '0');
+
+            $updateCheck = ($_POST['update_check_enabled'] ?? '') === '1';
+            if ($updateCheck !== $settings->getBool(UpdateCheck::SETTING_ENABLED, true)) {
+                $changes[] = 'Update-Prüfung: ' . ($updateCheck ? 'an' : 'aus');
+            }
+            $settings->set(UpdateCheck::SETTING_ENABLED, $updateCheck ? '1' : '0');
         }
 
         $this->ctx->audit->log(

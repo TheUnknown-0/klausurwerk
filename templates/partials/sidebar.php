@@ -83,6 +83,14 @@ $u = static fn (string $path): string => $ctx->url($path);
     </nav>
 
     <div class="sidebar-footer">
-        <?= e($appName) ?>
+        <?php $version = \App\Services\Changelog::currentVersion(); ?>
+        <?php if (!empty($update)): ?>
+            <button class="version-link" type="button" data-open-modal="version-dialog" title="Änderungen und Updates">
+                Klausurwerk <?= e($version) ?>
+                <span class="version-dot" data-update-dot<?= $update['available'] ? '' : ' hidden' ?>><span class="sr-only">(Update verfügbar)</span></span>
+            </button>
+        <?php else: ?>
+            <span class="version-label">Klausurwerk <?= e($version) ?></span>
+        <?php endif; ?>
     </div>
 </aside>
