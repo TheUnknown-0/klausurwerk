@@ -81,6 +81,18 @@ final class Auth
         $this->permissions = null;
     }
 
+    /**
+     * Anfrage im Namen eines Benutzers ohne Sitzung (KI-Zugang mit Bearer-Schlüssel, siehe
+     * McpController). Die Sitzung bleibt unberührt; Rechte gelten wie bei einer Anmeldung.
+     *
+     * @param array<string, mixed> $user Zeile aus users (aktiv)
+     */
+    public function actAs(array $user): void
+    {
+        $this->user = $user;
+        $this->permissions = null;
+    }
+
     public function logout(): void
     {
         $this->session->destroy();

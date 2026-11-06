@@ -43,7 +43,17 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method === 'HEAD') {
     $method = 'GET';
 }
-$isApi = str_contains($path, '/api/')
+// KI-Zugang: Programme im Browser (etwa MCP-Inspektoren) fragen vorab per OPTIONS (CORS).
+$machinePath = $path === '/mcp' || str_starts_with($path, '/oauth/') || str_starts_with($path, '/.well-known/');
+if ($method === 'OPTIONS' && $machinePath && $path !== '/oauth/authorize') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Authorization, Content-Type, Accept, Mcp-Session-Id, MCP-Protocol-Version, Last-Event-ID');
+    header('Access-Control-Max-Age: 86400');
+    http_response_code(204);
+    exit;
+}
+$isApi = str_contains($path, '/api/') || $path === '/mcp'
     || str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');
 
 // ---------- Dispatch ----------
@@ -55,7 +65,9 @@ try {
     // ---------- Globales Seitenpasswort (optional) ----------
     // /healthz und /readyz müssen auch bei aktivem Seitenpasswort antworten , 
     // sonst meldet der Container-Healthcheck eine Weiterleitung statt Zustand.
-    $exemptPrefixes = ['/zugang', '/assets/', '/favicon', '/healthz', '/readyz'];
+    // KI-Programme rufen MCP, Token und Metadaten von ihrem Server aus auf (ohne Sitzung); geschützt
+    // sind diese Endpunkte durch ihre Schlüssel. Die Zustimmung (/oauth/authorize) bleibt dahinter.
+    $exemptPrefixes = ['/zugang', '/assets/', '/favicon', '/healthz', '/readyz', '/mcp', '/oauth/token', '/oauth/register', '/oauth/revoke', '/.well-known/'];
     $exempt = false;
     foreach ($exemptPrefixes as $prefix) {
         if (str_starts_with($path, $prefix)) {

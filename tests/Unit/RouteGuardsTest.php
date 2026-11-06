@@ -43,6 +43,11 @@ final class RouteGuardsTest extends TestCase
         'HealthController' => 'Bewusst ohne Anmeldung für Container-Healthcheck/Monitoring (siehe Klassenkommentar).',
         'FileController' => 'Liefert öffentliche Medien (Logo/Branding) aus, die bereits auf der Login-Seite '
             . 'erscheinen; Dateinamen sind 128-Bit-Zufallswerte (siehe Klassenkommentar).',
+        'OAuthController' => 'OAuth-Endpunkte für KI-Programme (Metadaten, Registrierung, Token, Widerruf) werden '
+            . 'serverseitig ohne Sitzung aufgerufen und geben nur Schlüssel gegen gültigen Code bzw. Erneuerungsschlüssel aus; '
+            . 'authorize() und decide() rufen requireStaff() auf (siehe Klassenkommentar).',
+        'McpController' => 'Anmeldung per Bearer-Schlüssel statt Sitzung (OAuthServer::authenticate), danach Auth::actAs() '
+            . 'mit den Rechten der Lehrkraft; ohne Schlüssel 401 (siehe Klassenkommentar).',
         'HomeController' => 'index() ist der rollenabhängige Einstieg und behandelt „nicht angemeldet“ selbst '
             . '(Weiterleitung zu /setup bzw. /login) statt über requireLogin() abzubrechen.',
     ];
@@ -61,7 +66,14 @@ final class RouteGuardsTest extends TestCase
      *
      * @var list<string>
      */
-    private const CSRF_EXEMPT_ROUTES = [];
+    private const CSRF_EXEMPT_ROUTES = [
+        // KI-Zugang: Aufrufe von Programmen ohne Sitzung (kein Cookie, also kein CSRF-Risiko).
+        // Geschützt durch Bearer-Schlüssel (MCP) bzw. Code mit PKCE oder Erneuerungsschlüssel (Token).
+        'POST /mcp',
+        'POST /oauth/register',
+        'POST /oauth/token',
+        'POST /oauth/revoke',
+    ];
 
     /**
      * @return list<array{method: string, pattern: string, class: string, action: string, file: string}>

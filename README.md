@@ -138,6 +138,21 @@ setzen (bei Docker z. B. das Subnetz von `proxy_network`). Ohne diesen Eintrag s
 HTTP: Cookies gehen ohne Secure-Flag raus, und QR-Codes sowie SEB-Dateien bekommen falsche Adressen,
 solange in den Einstellungen keine öffentliche Adresse hinterlegt ist.
 
+## KI-Assistent (MCP)
+
+Lehrkräfte können Claude, ChatGPT oder ein anderes MCP-Programm mit Klausurwerk verbinden und sich
+beim Erstellen von Klausuren und Aufgaben helfen lassen. Klausurwerk ist dafür ein MCP-Server
+(Streamable HTTP) unter `https://<adresse>/mcp` mit eigenem OAuth-2.1-Server (Dynamic Client
+Registration, PKCE S256, rotierende Erneuerungsschlüssel, Widerruf).
+
+- **Standardmäßig aus.** Admins schalten ihn unter *KI-Assistent* ein; dort steht auch die
+  Schritt-für-Schritt-Anleitung je Programm und die Liste der Verbindungen mit Widerruf.
+- **Voraussetzung:** öffentliche Adresse mit HTTPS (Einstellungen), weil die KI-Dienste Klausurwerk aus dem Internet aufrufen.
+- **Werkzeuge:** Klausuren lesen, anlegen, ändern und prüfen; Aufgaben anlegen, ändern, verschieben,
+  duplizieren, löschen; Material hochladen und löschen; Archiv durchsuchen und übernehmen.
+- **Grenzen:** Rechte der Lehrkraft, gestartete Klausuren gesperrt, kein Werkzeug für Schülerdaten,
+  jede Änderung im Audit-Log (`ki.*`).
+
 ## Betrieb
 
 | Endpunkt | Bedeutung |

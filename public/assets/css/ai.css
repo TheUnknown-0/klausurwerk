@@ -1,0 +1,25 @@
+/* KI-Assistent: Einrichtung Schritt für Schritt */
+.ai-steps { max-width: 880px; }
+.ai-step h2 { display: flex; align-items: center; gap: 12px; font-size: 1.2rem; }
+.ai-step-num {
+  display: inline-grid; place-items: center; width: 30px; height: 30px; flex: none;
+  border-radius: 50%; background: var(--primary); color: var(--surface);
+  font-family: var(--font-mono); font-size: .95rem; font-weight: 600;
+}
+.ai-step.is-done .ai-step-num { background: var(--success); }
+.ai-url { max-width: 680px; display: flex; gap: 8px; align-items: stretch; }
+.ai-url .input { flex: 1; min-width: 0; }
+.ai-url .btn { flex: none; }
+.ai-url .input { font-family: var(--font-mono); }
+.ai-app { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-top: 10px; background: var(--bg-sunken); }
+.ai-app > summary { cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.ai-app[open] > summary { margin-bottom: 8px; }
+.ai-list { margin: 0 0 8px; padding-left: 1.4em; }
+.ai-list li { margin: 4px 0; }
+.ai-cmd {
+  font-family: var(--font-mono); font-size: .85rem; white-space: pre-wrap; word-break: break-all;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px;
+}
+.ai-prompts { padding-left: 1.2em; }
+.ai-prompts li { margin: 6px 0; font-style: italic; }
+[data-copy-target].is-copied { border-color: var(--success); }

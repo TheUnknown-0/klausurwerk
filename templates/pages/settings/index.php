@@ -99,6 +99,19 @@ $disabled = $canEdit ? '' : ' disabled';
     </div>
 
     <div class="card card-pad mb-2 max-w-lg">
+        <h3 class="mt-0">KI-Assistent</h3>
+        <p class="text-sm mb-0">
+            <?php if ($ctx->settings->getBool(\App\Services\Ai\AiAccess::SETTING)): ?>
+                <span class="badge badge-success">Eingeschaltet</span>
+            <?php else: ?>
+                <span class="badge">Ausgeschaltet</span>
+            <?php endif; ?>
+            Lehrkräfte verbinden Claude, ChatGPT und andere KI-Programme mit Klausurwerk (MCP).
+            Ein- und ausschalten sowie die Anleitung: <a href="<?= e($ctx->url('/ki')) ?>">KI-Assistent</a>.
+        </p>
+    </div>
+
+    <div class="card card-pad mb-2 max-w-lg">
         <h3 class="mt-0">Takt der Live-Ansichten</h3>
         <div class="form-grid">
             <div class="field">

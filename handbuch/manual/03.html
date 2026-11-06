@@ -193,4 +193,15 @@ Lena;Fischer;10a;;</div>
     <figcaption><b>{fig}</b> Das Audit-Log mit Filtern</figcaption>
   </figure>
   <p>Filtern können Sie nach <b>Aktion / Prefix</b>, <b>Schweregrad</b>, <b>Benutzer</b>, Zeitraum (<b>Von</b>, <b>Bis</b>) und per <b>Volltextsuche</b>. <span class="ui">CSV-Export</span> lädt die gefilterte Liste herunter.</p>
+
+  <h2 id="k3-13"><span class="num">3.13</span>KI-Zugang freischalten</h2>
+  <p>Lehrkräfte können Claude, ChatGPT oder ein anderes KI-Programm mit Klausurwerk verbinden und sich beim Erstellen von Klausuren und Aufgaben helfen lassen (4.14). Technisch ist Klausurwerk dafür ein <b>MCP-Server</b> (Model Context Protocol) unter <code>https://ihre-adresse/mcp</code> mit Anmeldung per OAuth. Der Zugang ist zunächst <b>ausgeschaltet</b>.</p>
+  <ol class="steps">
+    <li>Unter <span class="ui">KI-Assistent</span> in der Navigation (Admins sehen den Eintrag immer) bei Schritt 1 auf <span class="ui">KI-Zugang einschalten</span> klicken. Danach erscheint der Eintrag auch bei den Lehrkräften.</li>
+    <li>Die <b>öffentliche Adresse</b> unter Einstellungen muss mit <code>https://</code> beginnen und aus dem Internet erreichbar sein: Die Server von Claude und ChatGPT rufen Klausurwerk von außen auf. Die Seite KI-Assistent warnt, wenn das nicht passt.</li>
+    <li>Am Reverse-Proxy nichts Besonderes: <span class="path">/mcp</span>, <span class="path">/oauth/…</span> und <span class="path">/.well-known/…</span> laufen wie alle anderen Pfade an die App. Ein aktives Seitenpasswort gilt für diese Programmaufrufe nicht, dort schützen die Schlüssel.</li>
+  </ol>
+  <p>Unten auf der Seite sehen Admins <b>alle Verbindungen</b> der Schule und können jede einzeln beenden. <span class="ui">KI-Zugang ausschalten</span> beendet alle Verbindungen sofort. Jede Verbindung und jede Änderung durch eine KI steht im Audit-Log (Aktionen mit <code>ki.</code> am Anfang, mit dem Namen des Programms).</p>
+  <div class="box warn"><span class="t">Datenschutz</span><p>Das KI-Programm bekommt die Klausurinhalte der verbundenen Lehrkraft, auch Musterlösungen und Erwartungshorizonte, und verarbeitet sie beim jeweiligen Anbieter. Schülerdaten (Namen, Zugangskarten, Antworten, Korrektur, Noten) erreicht kein Werkzeug. Klären Sie vor dem Einschalten, welche KI-Dienste an Ihrer Schule erlaubt sind.</p></div>
+  <div class="box tip"><span class="t">Schlüssel und Widerruf</span><p>Ein Zugriffsschlüssel gilt eine Stunde und wird im Hintergrund erneuert, die Erneuerung höchstens 30 Tage ohne Nutzung. In der Datenbank liegen nur Hashes. Wird ein Konto deaktiviert oder ist es keine Lehrkraft mehr, endet seine Verbindung beim nächsten Aufruf.</p></div>
 </section>

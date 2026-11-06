@@ -3,6 +3,10 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # KI-Zugang (MCP): Bearer-Schlüssel an PHP durchreichen (Apache gibt Authorization sonst nicht immer weiter).
+    RewriteCond %{HTTP:Authorization} .+
+    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
     # Statische Dateien direkt ausliefern (Verzeichnisse nicht: kein Listing)
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]

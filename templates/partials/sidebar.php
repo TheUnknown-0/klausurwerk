@@ -52,6 +52,8 @@ $u = static fn (string $path): string => $ctx->url($path);
                     [$u('/dashboard'), 'house', 'Übersicht', true],
                     [$u('/klausuren'), 'file-pen-line', 'Klausuren', $can(P::KLAUSUREN_ERSTELLEN) || $ctx->exams->visibleExamIds() !== []],
                     [$u('/archiv'), 'archive', 'Archiv', $can(P::ARCHIV_DURCHSUCHEN)],
+                    // KI-Assistent: sichtbar, sobald die Schule ihn freigeschaltet hat (Admins immer, zum Einschalten).
+                    [$u('/ki'), 'bot', 'KI-Assistent', $role === 'admin' || $ctx->settings->getBool(\App\Services\Ai\AiAccess::SETTING)],
                     [$u('/admin/kurse'), 'graduation-cap', 'Kurse', $can(P::KURSE_SEHEN)],
                     [$u('/admin/raeume'), 'armchair', 'Räume', $can(P::RAEUME_VERWALTEN)],
                 ]];

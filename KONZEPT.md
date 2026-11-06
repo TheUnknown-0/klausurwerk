@@ -578,3 +578,19 @@ Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
   Vorschau springt zur Aufgabe und markiert sie kurz.
 - **Ausgang:** „Vorschau beenden“ fest in der Kopfzeile (der Hinweisstreifen lässt sich wegklicken).
   Aus dem Editor geöffnet: Tab schließen; sonst zurück in den Editor (`?aufgabe=`) oder zur Klausurseite.
+
+## 25. KI-Assistent über MCP (6. November 2026)
+
+- **Entscheidungen des Nutzers:** MCP mit OAuth-Anmeldung (Connector in claude.ai, Claude Desktop,
+  ChatGPT und Co., ohne Konfigurationsdatei), Umfang Klausuren, Aufgaben, Material und Archiv,
+  Freischaltung durch Admins (Standard aus), Einrichtungsassistent auf der Website.
+- **Aufbau:** `Services\Ai\OAuthServer` (DCR, PKCE S256, Codes 10 min einmalig, Zugriff 1 h,
+  Erneuerung 30 Tage rotierend, nur Hashes, zielgebunden an `/mcp`), `McpServer` (JSON-RPC,
+  zustandslos, Antworten als JSON), `McpTools` (17 Werkzeuge über die vorhandenen Dienste),
+  `Auth::actAs()` für Anfragen mit Bearer-Schlüssel. Tabellen in `migrations/180_ki_zugang.sql`.
+- **Sicherheit:** Rechte und Sperren wie im Editor (ExamAccess, TaskService), kein Werkzeug für
+  Teilnahmen, Antworten oder Ergebnisse, Audit `ki.*` mit Programmnamen. Redirects nur https,
+  http://localhost oder App-Schemata; die Zustimmungsseite nennt Programm und Rücksprungziel.
+  Ausschalten beendet alle Verbindungen. Ein Konto, das nicht mehr aktiv ist, verliert den Zugang.
+- **Bekannte Grenze:** Betrieb unter einem Unterpfad (BASE_URL) wird für die OAuth-Metadaten nicht
+  unterstützt; Klausurwerk muss dafür an der Wurzel einer Domain laufen.
