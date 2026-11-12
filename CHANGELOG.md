@@ -5,6 +5,10 @@ Klausurwerk liest diese Datei für die Versionsnummer, den Änderungsverlauf im 
 die Update-Prüfung (siehe ARCHITECTURE.md, Abschnitt Versionen). Einträge kurz und für Admins
 verständlich halten.
 
+## 1.4.1 (2026-11-12)
+
+- Fehler behoben: In der laufenden Klausur sprang der Cursor alle paar Sekunden aus dem Eingabefeld, Schüler:innen mussten zum Weiterschreiben erneut hineinklicken.
+
 ## 1.4.0 (2026-11-10)
 
 - Klausuren für weitere Fächer: Jede Klausur hat ein Fach (aus dem Kurs). Danach richten sich Operatorenliste, Antworttypen, Hilfsmittel und Zeichenleiste.

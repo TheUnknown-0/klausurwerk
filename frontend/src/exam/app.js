@@ -842,7 +842,8 @@ export class ExamApp {
         }
         const want = this.desiredOverlay();
         const key = want?.key ?? null;
-        if (key !== this.currentOverlay?.key) {
+        // Ohne Overlay ist beides null: sonst gälte jeder Aufruf (jeder Puls) als Wechsel und zöge den Fokus aus dem Eingabefeld.
+        if (key !== (this.currentOverlay?.key ?? null)) {
             this.currentOverlay?.el.remove();
             this.currentOverlay = null;
             if (want) {
