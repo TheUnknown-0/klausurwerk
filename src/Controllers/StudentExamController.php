@@ -14,6 +14,7 @@ use App\Services\ExamContent;
 use App\Services\ExamSettings;
 use App\Services\LiveServices;
 use App\Services\LiveStore;
+use App\Services\MediaPlays;
 use App\Services\SebGuard;
 use App\Services\Uploads;
 use App\Services\Web\WebSites;
@@ -533,6 +534,61 @@ final class StudentExamController extends Controller
             'state' => (string) ($fresh['state'] ?? $p['state']),
             'lock_reason' => $fresh['lock_reason'] ?? null,
             'throttled' => $throttled,
+        ];
+    }
+
+    /**
+     * POST /api/klausur/{id}/medien/{mid}/abspielen: Start einer Audio-/Videoaufnahme.
+     * Lehrkräfte (Vorschau) bekommen immer die Adresse. Schüler:innen nur während der Bearbeitung
+     * und nach Abspielregel; bei Limit zählt der Start, die Adresse enthält einen Einmal-Schlüssel.
+     * Jeder Start erscheint im Protokoll des Pults (media_play).
+     */
+    public function playMedia(array $params): array
+    {
+        $user = $this->requireLogin();
+        $this->requireCsrf();
+        $examId = (int) $params['id'];
+        $materialId = (int) $params['mid'];
+        $url = $this->ctx->url('/klausur/' . $examId . '/material/' . $materialId);
+
+        if ($this->ctx->auth->isStaff()) {
+            $this->ctx->exams->require($examId, ExamAccess::CAP_VIEW);
+            $row = $this->ctx->db->fetchOne('SELECT id, mime FROM exam_materials WHERE id = ? AND exam_id = ?', [$materialId, $examId]);
+            if ($row === null || !MediaPlays::isMedia((string) $row['mime'])) {
+                return $this->jsonError('Aufnahme nicht gefunden.', 404);
+            }
+
+            return ['success' => true, 'url' => $url, 'plays' => 0, 'limit' => null];
+        }
+        if (!$this->ctx->auth->isStudent()) {
+            throw new HttpException(403);
+        }
+        [$exam, $p] = $this->participantContext($params, $user, true);
+        if ((string) $exam['status'] !== 'running' || !in_array((string) $p['state'], ['active', 'submit_requested'], true)) {
+            return $this->jsonError('Aufnahmen lassen sich nur während der Bearbeitung abspielen.', 409);
+        }
+        $this->ctx->session->release();
+        $row = $this->ctx->db->fetchOne('SELECT * FROM exam_materials WHERE id = ? AND exam_id = ?', [$materialId, $examId]);
+        if ($row === null || !MediaPlays::isMedia((string) $row['mime'])) {
+            return $this->jsonError('Aufnahme nicht gefunden.', 404);
+        }
+        try {
+            $result = (new MediaPlays($this->ctx->db))->start((int) $p['id'], $row);
+        } catch (\DomainException $e) {
+            return $this->jsonError($e->getMessage(), 409);
+        }
+        $this->svc()->events()->log($examId, (int) $p['id'], 'media_play', 'info', [
+            'material_id' => $materialId,
+            'name' => mb_substr((string) $row['original_name'], 0, 120),
+            'plays' => $result['plays'],
+            'limit' => $result['limit'],
+        ]);
+
+        return [
+            'success' => true,
+            'url' => $result['token'] !== null ? $url . '?t=' . $result['token'] : $url,
+            'plays' => $result['plays'],
+            'limit' => $result['limit'],
         ];
     }
 

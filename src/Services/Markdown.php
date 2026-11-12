@@ -40,9 +40,41 @@ final class Markdown
         $parser->setBreaksEnabled(true);
         $html = (string) $parser->text($protected);
 
+        $html = $this->numberedLines($html);
         $html = $this->restoreMath($html, $maths);
 
         return $this->postProcess($html);
+    }
+
+    /**
+     * Ausgangstexte mit Zeilennummern: ```zeilen (Start bei 1) oder ```zeilen-12 (Start bei 12).
+     * Jede Zeile wird ein eigenes Element mit data-n; Leerzeilen (Strophen, Absätze) bekommen keine
+     * Nummer. Der Inhalt ist bereits von Parsedown escaped.
+     */
+    private function numberedLines(string $html): string
+    {
+        if (!str_contains($html, 'language-zeilen')) {
+            return $html;
+        }
+
+        return preg_replace_callback(
+            '#<pre><code class="language-zeilen(?:-(\d{1,5}))?">(.*?)</code></pre>#s',
+            static function (array $m): string {
+                $n = isset($m[1]) && $m[1] !== '' ? max(1, (int) $m[1]) : 1;
+                $out = '';
+                foreach (explode("\n", rtrim($m[2], "\n")) as $line) {
+                    if (trim($line) === '') {
+                        $out .= '<span class="md-line is-blank"></span>';
+                        continue;
+                    }
+                    $out .= '<span class="md-line' . ($n % 5 === 0 ? ' is-marked' : '') . '" data-n="' . $n . '">' . $line . '</span>';
+                    $n++;
+                }
+
+                return '<div class="md-lines">' . $out . '</div>';
+            },
+            $html,
+        ) ?? $html;
     }
 
     /** Kurzform für eine Zeile (ohne umschließendes <p>). */
@@ -93,6 +125,12 @@ final class Markdown
             // Inline-Formeln $…$ (nicht \$, kein Leerzeichen direkt innen)
             $chunk = preg_replace_callback('/(?<![\\\\$])\$(?!\s)([^\n$]+?)(?<!\s)\$(?!\d)/', static function (array $m) use (&$maths): string {
                 $maths[] = ['block' => false, 'tex' => $m[1]];
+
+                return 'KWMATH' . (count($maths) - 1) . 'X';
+            }, $chunk) ?? $chunk;
+            // Chemie ohne Dollarzeichen: \ce{…} und \pu{…} (eine Klammerebene innen) als Inline-Formel.
+            $chunk = preg_replace_callback('/\\\\(ce|pu)\{((?:[^{}\n]|\{[^{}\n]*\})*)\}/', static function (array $m) use (&$maths): string {
+                $maths[] = ['block' => false, 'tex' => '\\' . $m[1] . '{' . $m[2] . '}'];
 
                 return 'KWMATH' . (count($maths) - 1) . 'X';
             }, $chunk) ?? $chunk;

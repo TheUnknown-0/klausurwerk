@@ -157,9 +157,49 @@ final class ResultPdf extends \FPDF
             $this->Ln(2);
         }
 
+        $this->showQuotient = !empty($summary['marks_show_quotient']);
+        if ($this->showQuotient && is_array($summary['marks'] ?? null) && $summary['marks']['quotient'] !== null) {
+            $this->SetFont('Helvetica', 'B', 10);
+            $this->Cell($inner, 5.5, $this->t('Fehlerquotient aller Textaufgaben: ' . self::quotientText($summary['marks'])), 0, 1);
+            $this->Ln(2);
+        }
+
         foreach ($report['tasks'] as $task) {
             $this->task($task);
         }
+    }
+
+    private bool $showQuotient = false;
+
+    /** "4,2 (7 gewichtete Fehler auf 166 Wörter)" @param array<string, mixed> $marks */
+    public static function quotientText(array $marks): string
+    {
+        $weighted = (float) $marks['weighted'];
+
+        return str_replace('.', ',', (string) $marks['quotient']) . ' (' . format_points($weighted) . ' gewichtete Fehler auf '
+            . (int) $marks['words'] . ' Wörter)';
+    }
+
+    /** Legende der Korrekturzeichen einer Aufgabe, bei Freigabe durch die Lehrkraft mit Fehlerquotient. @param array<string, mixed> $task */
+    private function marks(array $task): void
+    {
+        $marks = $task['marks'] ?? null;
+        if (!is_array($marks) || ($marks['legend'] ?? []) === []) {
+            return;
+        }
+        $inner = $this->w - 2 * self::MARGIN;
+        $parts = [];
+        foreach ($marks['legend'] as $code => $name) {
+            $parts[] = $code . ' = ' . $name . ' (' . (int) $marks['counts'][$code] . 'x)';
+        }
+        $this->Ln(1);
+        $this->SetFont('Helvetica', 'I', 8.5);
+        $this->SetTextColor(61, 65, 99);
+        $this->MultiCell($inner, 4.3, $this->t('Korrekturzeichen: ' . implode(', ', $parts)));
+        if ($this->showQuotient && $marks['quotient'] !== null) {
+            $this->MultiCell($inner, 4.3, $this->t('Fehlerquotient: ' . self::quotientText($marks)));
+        }
+        $this->SetTextColor(0, 0, 0);
     }
 
     /** @param array<string, mixed> $task */
@@ -201,6 +241,7 @@ final class ResultPdf extends \FPDF
         $this->Ln(1);
 
         $this->answer($task);
+        $this->marks($task);
         $this->comments($task);
         $this->Ln(2);
     }
@@ -341,7 +382,8 @@ final class ResultPdf extends \FPDF
                 ? 'Zeile ' . (int) $anchor['from_line']
                 : 'Zeilen ' . (int) $anchor['from_line'] . ' bis ' . (int) $anchor['to_line'])
                 . ' (' . (string) $anchor['file'] . '):',
-            'text' => 'Zu "' . mb_substr((string) ($anchor['quote'] ?? ''), 0, 60) . '":',
+            'text' => (isset($anchor['mark']) && $anchor['mark'] !== '' ? '[' . (string) $anchor['mark'] . '] ' : '')
+                . 'Zu "' . mb_substr((string) ($anchor['quote'] ?? ''), 0, 60) . '":',
             default => 'Allgemein:',
         };
     }

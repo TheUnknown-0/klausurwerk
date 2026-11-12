@@ -416,3 +416,71 @@ html.exam-root, .exam-body { height: 100%; }
 .wait-share-state[data-state="active"], .wait-share-state[data-state="skipped"] { border-left-color: var(--success); }
 .wait-share-state[data-state="wrong"], .wait-share-state[data-state="denied"], .wait-share-state[data-state="stopped"], .wait-share-state[data-state="unsupported"] { border-left-color: var(--warning); }
 .wait-share-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ---------- Zeichenleiste (Sprachen, Chemie, Mathematik) ---------- */
+.char-bar { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0 0 8px; }
+.char-bar[hidden] { display: none; }
+.char-group { display: inline-flex; flex-wrap: wrap; gap: 2px; }
+.char-btn {
+    min-width: 2em; height: 2em; padding: 0 6px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--ink); font: inherit; font-size: .95rem; line-height: 1; cursor: pointer;
+}
+.char-btn:hover { border-color: var(--primary); background: var(--primary-soft); }
+.char-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.char-mode[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--on-primary, #fff); }
+.char-bar.is-script + .w-text-area, .char-bar.is-script ~ .w-gaps-body .w-gap-input:focus { box-shadow: 0 0 0 2px var(--primary-soft); }
+
+/* ---------- Textmarker im Aufgabentext ---------- */
+::highlight(kw-mark-1) { background-color: rgba(250, 204, 21, .45); color: inherit; }
+::highlight(kw-mark-2) { background-color: rgba(74, 222, 128, .4); color: inherit; }
+.hl-menu {
+    position: fixed; z-index: 60; display: flex; gap: 4px; padding: 4px; border-radius: var(--radius-sm);
+    background: var(--surface); border: 1px solid var(--border-strong); box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+}
+.hl-menu[hidden], .hl-btn[hidden] { display: none; }
+.hl-btn { border: 1px solid var(--border); background: var(--surface); color: var(--ink); border-radius: var(--radius-sm); padding: 3px 9px; font: inherit; font-size: .82rem; cursor: pointer; }
+.hl-btn.hl-c1 { background: rgba(250, 204, 21, .45); }
+.hl-btn.hl-c2 { background: rgba(74, 222, 128, .4); }
+.hl-btn:hover { border-color: var(--primary); }
+
+/* ---------- Periodensystem (Hilfsmittel) ---------- */
+.exam-layout.aids-open:has(.aids-panel.is-wide) { grid-template-columns: 280px minmax(0, 1fr) minmax(360px, 46%); }
+.pt { container-type: inline-size; display: grid; gap: 14px; }
+.pt-grid { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); grid-template-rows: repeat(7, auto) 10px repeat(2, auto); gap: 2px; }
+.pt-cell {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; aspect-ratio: 1 / 1.08;
+    padding: 1px; border: 1px solid rgba(0, 0, 0, .08); border-radius: 3px; background: var(--surface-2); color: #1d1b16;
+    font: inherit; line-height: 1.05; cursor: pointer; overflow: hidden;
+}
+.pt-cell:hover, .pt-cell:focus-visible { outline: 2px solid var(--primary); outline-offset: 0; z-index: 1; }
+.pt-cell[aria-pressed="true"] { outline: 2px solid var(--primary); outline-offset: 1px; }
+.pt-z { font-size: .55rem; opacity: .75; }
+.pt-s { font-weight: 700; font-size: .95rem; }
+.pt-m { font-size: .5rem; opacity: .8; }
+@container (max-width: 560px) { .pt-m { display: none; } .pt-s { font-size: .78rem; } }
+.pt-nonmetal { background: #c8e6c9; } .pt-noble { background: #d1c4e9; } .pt-alkali { background: #ffcdd2; }
+.pt-earth { background: #ffe0b2; } .pt-metalloid { background: #dcedc8; } .pt-halogen { background: #b2ebf2; }
+.pt-metal { background: #cfd8dc; } .pt-transition { background: #ffecb3; } .pt-lanthanoid { background: #f8bbd0; }
+.pt-actinoid { background: #e1bee7; }
+.pt-detail { display: flex; gap: 14px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.pt-detail-sym { font-size: 2rem; font-weight: 700; min-width: 2.2em; text-align: center; color: var(--primary); }
+.pt-detail-list { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: .85rem; }
+.pt-detail-list dt { color: var(--ink-faint); }
+.pt-detail-list dd { margin: 0; }
+.pt-calc h4 { margin: 0 0 6px; }
+.pt-input { width: 100%; font-family: var(--font-mono); }
+.pt-result-total { font-size: 1.15rem; font-weight: 700; margin: 8px 0 4px; }
+.pt-result-table { font-size: .85rem; border-collapse: collapse; }
+.pt-result-table td { padding: 2px 10px 2px 0; }
+
+/* ---------- Audio und Video im Aufgabentext ---------- */
+.task-media:empty { display: none; }
+.media-box { margin: 10px 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); display: grid; gap: 8px; max-width: 720px; }
+.media-title { display: flex; align-items: center; gap: 8px; }
+.media-title .icon { color: var(--primary); }
+.media-el { width: 100%; max-height: 420px; border-radius: var(--radius-sm); background: #000; }
+audio.media-el { background: none; }
+.media-progress { flex: 1; min-width: 140px; height: 8px; }
+.media-time { font-family: var(--font-mono); color: var(--ink-soft); }
+.media-status { margin: 0; }
+.media-box.is-teacher { background: var(--primary-soft); }

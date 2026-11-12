@@ -5,6 +5,15 @@ Klausurwerk liest diese Datei für die Versionsnummer, den Änderungsverlauf im 
 die Update-Prüfung (siehe ARCHITECTURE.md, Abschnitt Versionen). Einträge kurz und für Admins
 verständlich halten.
 
+## 1.4.0 (2026-11-10)
+
+- Klausuren für weitere Fächer: Jede Klausur hat ein Fach (aus dem Kurs). Danach richten sich Operatorenliste, Antworttypen, Hilfsmittel und Zeichenleiste.
+- Operatorenlisten je Fach mit Startbestand für Deutsch, Englisch, Französisch, Spanisch, Latein, Chemie, Physik, Biologie, Mathematik und „Allgemein“ (Entwurf, bitte unter Verwaltung › Operatoren prüfen).
+- Sprachen: Zeichenleiste mit Sonderzeichen, Ausgangstexte mit Zeilennummern, Textmarker im Aufgabentext, Audio und Video als Material (Hörverstehen) mit Abspielregel: nur im Pult, frei oder begrenzt.
+- Chemie: Reaktionsgleichungen im Aufgabentext, Hoch-/Tiefstellen beim Schreiben, neuer Antworttyp Strukturformel, Periodensystem mit Molmassen-Rechner als Hilfsmittel.
+- Korrektur: Korrekturzeichen am Rand (Deutsch, Fremdsprache, Latein) mit Zählung und Fehlerquotient.
+- Datenbank-Migrationen 200 und 205 laufen beim Update automatisch.
+
 ## 1.3.0 (2026-11-06)
 
 - Versionsnummer unten in der Seitenleiste, für alle sichtbar. Admins öffnen per Klick diesen Änderungsverlauf.

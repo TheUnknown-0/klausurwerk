@@ -82,6 +82,7 @@ final class ResultReport
 
         $tasks = [];
         $this->walk($tree, 0, $tasks, $entries, $answers, $comments, $ownerId, $forStudent, $configs);
+        $markTotal = $this->applyMarks($exam, $tasks, $withPreview);
 
         $totals = $this->grading->computeTotals($exam, [$pid])[$pid];
         $saved = $this->db->fetchOne('SELECT general_comment, finalized_at FROM participation_results WHERE participation_id = ?', [$pid]) ?? [];
@@ -107,9 +108,64 @@ final class ResultReport
                 'scale_type' => $scale['type'] ?? null,
                 'general_comment' => (string) ($saved['general_comment'] ?? ''),
                 'finalized_at' => $saved['finalized_at'] ?? null,
+                'marks' => $markTotal,
+                'marks_show_quotient' => !empty($settings['correction_marks_show_quotient']),
             ],
             'tasks' => $tasks,
         ];
+    }
+
+    /**
+     * Korrekturzeichen der Freitext-Aufgaben: Zählung je Aufgabe (`marks`), die Antwort für das PDF mit
+     * Kürzeln hinter den markierten Stellen (`answer_text`) und die Gesamtzählung. Zeichen außerhalb des
+     * aktiven Satzes werden ignoriert.
+     *
+     * @param array<string, mixed> $exam
+     * @param list<array<string, mixed>> $tasks
+     * @return array<string, mixed>|null Gesamtzählung oder null, wenn keine Zeichen gesetzt sind
+     */
+    private function applyMarks(array $exam, array &$tasks, bool $annotate): ?array
+    {
+        $defs = CorrectionMarks::definitions(CorrectionMarks::activeSet($exam));
+        if ($defs === []) {
+            return null;
+        }
+        $known = array_column($defs, 'code');
+        $parts = [];
+        foreach ($tasks as &$t) {
+            $t['marks'] = null;
+            if ($t['answer_type'] !== 'text' || !is_array($t['answer'])) {
+                continue;
+            }
+            $text = is_string($t['answer']['text'] ?? null) ? $t['answer']['text'] : '';
+            $codes = CorrectionMarks::codesOf($t['comments']);
+            $summary = CorrectionMarks::summarize($codes, CorrectionMarks::countWords($text), $defs);
+            if ($summary['counts'] === []) {
+                continue;
+            }
+            $parts[] = $summary;
+            $summary['legend'] = [];
+            foreach ($defs as $d) {
+                if (isset($summary['counts'][$d['code']])) {
+                    $summary['legend'][$d['code']] = $d['name'];
+                }
+            }
+            $t['marks'] = $summary;
+            if ($annotate) {
+                $at = [];
+                foreach ($t['comments'] as $c) {
+                    $a = $c['anchor'];
+                    if (($a['kind'] ?? '') === 'text' && in_array($a['mark'] ?? null, $known, true)) {
+                        $at[] = ['to' => (int) $a['to'], 'code' => (string) $a['mark']];
+                    }
+                }
+                usort($at, static fn (array $x, array $y): int => $x['to'] <=> $y['to']);
+                $t['answer_text'] = CorrectionMarks::annotate($text, $at);
+            }
+        }
+        unset($t);
+
+        return $parts === [] ? null : CorrectionMarks::combine($parts);
     }
 
     /**

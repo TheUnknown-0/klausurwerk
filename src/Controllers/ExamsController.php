@@ -96,7 +96,7 @@ final class ExamsController extends Controller
                 }
                 $this->ctx->audit->log('klausur_angelegt', 'info', 'Klausur #' . $id . ' angelegt, Vorlage #' . $source['id'] . ($copyTasks ? ' mit Aufgaben.' : '.'));
             } elseif (preg_match('/^profil:([a-z]+)$/', $template, $m) === 1 && isset(ExamSettings::PROFILES[$m[1]])) {
-                $id = $svc->create($in, $ownerId, ExamSettings::profile($m[1], $meta['mode']));
+                $id = $svc->create($in, $ownerId, ExamSettings::profile($m[1], $meta['mode'], $meta['subject']));
                 $note = ' Einstellungen: Profil "' . ExamSettings::PROFILES[$m[1]]['label'] . '".';
                 $this->ctx->audit->log('klausur_angelegt', 'info', 'Klausur #' . $id . ' angelegt, Profil ' . $m[1] . '.');
             } else {
@@ -216,6 +216,7 @@ final class ExamsController extends Controller
             'profiles' => ExamSettings::PROFILES,
             'templates' => $exam === null ? $this->templateOptions() : [],
             'pageStyles' => ['exams.css'],
+            'pageScripts' => ['exam-subject.js'],
         ];
     }
 
@@ -272,7 +273,7 @@ final class ExamsController extends Controller
         );
         $data['editable'] = ExamService::isEditable($exam);
         $mode = (string) ($old['mode'] ?? $exam['mode']);
-        $data['activeProfile'] = ExamSettings::matchingProfile($data['settings'], $mode);
+        $data['activeProfile'] = ExamSettings::matchingProfile($data['settings'], $mode, (string) ($exam['subject'] ?? 'Informatik'));
         $data['advancedOpen'] = ExamSettings::advancedChanged($data['settings'], $mode);
 
         return $data;

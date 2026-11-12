@@ -2,6 +2,7 @@
 import { h } from '../../lib/dom.js';
 import { registerTaskEditor } from '../../lib/widgets.js';
 import { asObject, button, checkbox, labeled, newId, numberInput, select, textInput, textarea } from '../../task-editor/ui.js';
+import { CHARSET_OPTIONS, LANGUAGE_OPTIONS } from '../../lib/char-bar.js';
 
 const GAP_RE = /\{\{([A-Za-z0-9_-]{1,40})\}\}/g;
 const idsIn = (template) => [...new Set([...template.matchAll(GAP_RE)].map((m) => m[1]))];
@@ -12,7 +13,7 @@ registerTaskEditor('gaps', {
         const locked = !!ctx.locked;
         const cfg = ctx.config ?? {};
         const sol = asObject(ctx.solution?.gaps);
-        const state = { mode: cfg.mode ?? 'text', language: cfg.language ?? 'java', template: cfg.template ?? '' };
+        const state = { mode: cfg.mode ?? 'text', language: cfg.language ?? 'java', template: cfg.template ?? '', lang: cfg.lang ?? '', chars: cfg.chars ?? '' };
         /** id -> Eingabewerte je Lücke */
         const gaps = {};
         for (const g of cfg.gaps ?? []) {
@@ -79,15 +80,23 @@ registerTaskEditor('gaps', {
         }, { disabled: locked });
 
         const language = labeled('Sprache (Hervorhebung)', select([['java', 'Java'], ['python', 'Python'], ['sql', 'SQL']], state.language, (v) => { state.language = v; changed(); }, { disabled: locked }));
+        const textOpts = h('div', { class: 'te-grid' },
+            labeled('Sprache der Antworten', select(LANGUAGE_OPTIONS, state.lang, (v) => { state.lang = v; changed(); })),
+            labeled('Zeichenleiste', select(CHARSET_OPTIONS, state.chars, (v) => { state.chars = v; changed(); }),
+                'Sonderzeichen über den Lücken. Chemische Schreibweisen gelten als gleich: H2O = H₂O, -> = →.'),
+        );
         const modeSel = labeled('Art', select([['text', 'Lückentext'], ['code', 'Lückencode']], state.mode, (v) => {
             state.mode = v;
             language.hidden = v !== 'code';
+            textOpts.hidden = v === 'code';
             changed();
         }, { disabled: locked }));
         language.hidden = state.mode !== 'code';
+        textOpts.hidden = state.mode === 'code';
 
         const root = h('div', { class: 'te-type-box' },
             h('div', { class: 'te-grid' }, modeSel, language),
+            textOpts,
             labeled('Text mit Lücken', tpl, 'Beispiel: for (int i = 0; i {{g1}} 10; i++) { ... }'),
             h('div', { class: 'cluster' }, insertBtn),
             h('h4', {}, 'Lücken und richtige Antworten'),
@@ -108,7 +117,10 @@ registerTaskEditor('gaps', {
                     gapSol[id] = { accepted: lines(g.accepted), case_sensitive: g.case_sensitive, trim: g.trim, regex: g.regex.trim() === '' ? null : g.regex.trim() };
                 }
                 return {
-                    config: { mode: state.mode, language: state.mode === 'code' ? state.language : null, template: state.template, gaps: gapCfg },
+                    config: {
+                        mode: state.mode, language: state.mode === 'code' ? state.language : null, template: state.template, gaps: gapCfg,
+                        lang: state.mode === 'text' ? state.lang : '', chars: state.mode === 'text' ? state.chars : '',
+                    },
                     solution: { gaps: gapSol },
                 };
             },

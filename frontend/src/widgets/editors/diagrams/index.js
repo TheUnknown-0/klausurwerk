@@ -5,6 +5,7 @@
 import '../../diagrams/index.js';
 import './drawing.js';
 import './solution-only.js';
+import './structure.js';
 import './logic.js';
 import './truth-table.js';
 import './automaton.js';

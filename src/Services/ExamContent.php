@@ -53,7 +53,8 @@ final class ExamContent
             'tasks' => $this->tasks($exam, $seed, $shuffle),
             'answers' => $this->answers((int) $participation['id']),
             'materials' => $this->materials($exam),
-            'operators' => $this->operators($settings),
+            'media_plays' => (object) (new MediaPlays($this->db))->countsFor((int) $participation['id']),
+            'operators' => $this->operators($settings, (string) ($exam['subject'] ?? 'Informatik')),
             'last_seq' => (int) $participation['last_seq'],
         ];
     }
@@ -74,7 +75,7 @@ final class ExamContent
             'tasks' => $this->tasks($exam, 0, false),
             'answers' => (object) [],
             'materials' => $this->materials($exam),
-            'operators' => $this->operators($settings),
+            'operators' => $this->operators($settings, (string) ($exam['subject'] ?? 'Informatik')),
             'last_seq' => 0,
         ];
     }
@@ -229,17 +230,29 @@ final class ExamContent
     {
         $examId = (int) $exam['id'];
         $rows = $this->db->fetchAll(
-            'SELECT id, original_name, mime, is_aid FROM exam_materials WHERE exam_id = ? ORDER BY id',
+            'SELECT id, task_id, original_name, mime, is_aid, play_policy, play_limit FROM exam_materials WHERE exam_id = ? ORDER BY id',
             [$examId],
         );
 
-        return array_map(fn (array $row): array => [
-            'id' => (int) $row['id'],
-            'name' => (string) $row['original_name'],
-            'url' => $this->baseUrl . '/klausur/' . $examId . '/material/' . (int) $row['id'],
-            'is_aid' => (int) $row['is_aid'] === 1,
-            'mime' => (string) $row['mime'],
-        ], $rows);
+        return array_map(function (array $row) use ($examId): array {
+            $out = [
+                'id' => (int) $row['id'],
+                'name' => (string) $row['original_name'],
+                'url' => $this->baseUrl . '/klausur/' . $examId . '/material/' . (int) $row['id'],
+                'is_aid' => (int) $row['is_aid'] === 1,
+                'mime' => (string) $row['mime'],
+                'task_id' => $row['task_id'] !== null ? (int) $row['task_id'] : null,
+            ];
+            if (MediaPlays::isMedia((string) $row['mime'])) {
+                $out['media'] = [
+                    'policy' => MediaPlays::cleanPolicy($row['play_policy']),
+                    'limit' => MediaPlays::cleanPolicy($row['play_policy']) === 'limited' ? MediaPlays::cleanLimit($row['play_limit']) : null,
+                    'play_url' => $this->baseUrl . '/api/klausur/' . $examId . '/medien/' . (int) $row['id'] . '/abspielen',
+                ];
+            }
+
+            return $out;
+        }, $rows);
     }
 
     /**
@@ -248,12 +261,12 @@ final class ExamContent
      * @param array<string, mixed> $settings
      * @return list<array<string, string>>
      */
-    public function operators(array $settings): array
+    public function operators(array $settings, string $subject = 'Informatik'): array
     {
         if (empty($settings['aids']['operators'])) {
             return [];
         }
-        $rows = $this->db->fetchAll('SELECT name, afb, description FROM operators ORDER BY sort_order, name');
+        $rows = Operators::forSubject($this->db, $subject);
 
         return array_map(static fn (array $r): array => [
             'name' => (string) $r['name'],
@@ -279,6 +292,12 @@ final class ExamContent
             'mode' => (string) $exam['mode'],
             'preview' => $preview,
             'title' => (string) $exam['title'],
+            'subject' => [
+                'name' => (string) ($exam['subject'] ?? 'Informatik'),
+                'group' => Subjects::group((string) ($exam['subject'] ?? 'Informatik')),
+                'language' => Subjects::language((string) ($exam['subject'] ?? 'Informatik')),
+                'charset' => Subjects::charset((string) ($exam['subject'] ?? 'Informatik')),
+            ],
             // Die id trennt lokale Sicherungen (IndexedDB) verschiedener Personen am selben Gerät.
             'user' => ['id' => (int) $user['id'], 'name' => display_name($user)],
             'api_base' => $baseUrl . '/api/klausur/' . (int) $exam['id'],

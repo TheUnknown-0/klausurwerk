@@ -1,7 +1,7 @@
 <?php
 /**
- * Operatorenliste.
- * Erwartet: $operators, $afbLevels, $values
+ * Operatorenliste eines Fachs mit Reitern je Fach.
+ * Erwartet: $operators, $afbLevels, $values, $subject, $subjects, $knownSubjects
  */
 
 $base = $ctx->url('/admin/operatoren');
@@ -11,14 +11,24 @@ $count = count($operators);
     <div class="page-title-group">
         <div class="page-eyebrow">Verwaltung</div>
         <h1 class="page-title">Operatoren</h1>
-        <p class="page-sub">Handlungsaufforderungen für Aufgaben (Berlin) mit Anforderungsbereich (AFB). Die Reihenfolge gilt in der Auswahl und in der Hilfsmittelliste.</p>
+        <p class="page-sub">Handlungsaufforderungen je Fach mit Anforderungsbereich (AFB). Eine Klausur nutzt die Liste ihres Fachs („Englisch LK“ die von „Englisch“), sonst „Allgemein“. Die Reihenfolge gilt in der Auswahl und in der Hilfsmittelliste.</p>
     </div>
 </div>
+
+<nav class="tabs mb-2" aria-label="Fächer">
+    <?php foreach ($subjects as $s): ?>
+        <a class="tab<?= $s === $subject ? ' active' : '' ?>" href="<?= e($base . '?fach=' . rawurlencode($s)) ?>"<?= $s === $subject ? ' aria-current="page"' : '' ?>><?= e($s) ?></a>
+    <?php endforeach; ?>
+</nav>
+
+<?php if (!in_array($subject, ['Informatik'], true) && $operators !== []): ?>
+    <p class="text-soft text-sm">Startbestand nach den KMK-Operatorenlisten (Entwurf). Bitte mit den Vorgaben der Schule abgleichen.</p>
+<?php endif; ?>
 
 <?php if ($operators === []): ?>
     <div class="empty-state">
         <div class="empty-icon"><?= icon('type') ?></div>
-        <p>Es gibt noch keine Operatoren.</p>
+        <p>Für <?= e($subject) ?> gibt es noch keine Operatoren.</p>
     </div>
 <?php else: ?>
     <div class="table-wrap mb-2">
@@ -71,6 +81,15 @@ $count = count($operators);
     <?= $csrf->field() ?>
     <h3 class="mt-0">Neuer Operator</h3>
     <div class="form-grid">
+        <div class="field">
+            <label for="subject">Fach</label>
+            <input class="input" type="text" id="subject" name="subject" maxlength="60" required list="operator-subjects" value="<?= e($values['subject']) ?>">
+            <datalist id="operator-subjects">
+                <?php foreach ($knownSubjects as $s): ?>
+                    <option value="<?= e($s) ?>"></option>
+                <?php endforeach; ?>
+            </datalist>
+        </div>
         <div class="field">
             <label for="name">Name</label>
             <input class="input" type="text" id="name" name="name" maxlength="60" required value="<?= e($values['name']) ?>">

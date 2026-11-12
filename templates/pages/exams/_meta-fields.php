@@ -43,12 +43,24 @@ $optionalFilled = $mv('room_id') !== '' || $scheduledValue !== '' || $mv('descri
         <select id="course_id" name="course_id"<?= $disabled ?>>
             <option value="">(noch kein Kurs)</option>
             <?php foreach ($courses as $c): ?>
-                <option value="<?= e($c['id']) ?>" <?= $mv('course_id') === (string) $c['id'] ? 'selected' : '' ?>>
+                <option value="<?= e($c['id']) ?>" data-subject="<?= e((string) ($c['subject'] ?? '')) ?>" <?= $mv('course_id') === (string) $c['id'] ? 'selected' : '' ?>>
                     <?= e($c['name'] . ' (' . $c['school_year'] . ')') ?>
                 </option>
             <?php endforeach; ?>
         </select>
         <div class="hint">Nur Mitglieder des Kurses können teilnehmen.</div>
+    </div>
+    <?php $subjectValue = $mv('subject'); ?>
+    <div class="field">
+        <label for="subject">Fach</label>
+        <input class="input" type="text" id="subject" name="subject" maxlength="60" list="subject-list"<?= $disabled ?>
+               value="<?= e($subjectValue) ?>" placeholder="wie im Kurs" data-subject-auto="<?= $subjectValue === '' ? '1' : '0' ?>">
+        <datalist id="subject-list">
+            <?php foreach (\App\Services\Subjects::names() as $name): ?>
+                <option value="<?= e($name) ?>"></option>
+            <?php endforeach; ?>
+        </datalist>
+        <div class="hint">Bestimmt Operatoren, Hilfsmittel, Antworttypen und Zeichenleiste. Leer: Fach des Kurses.</div>
     </div>
     <div class="field">
         <label for="duration_minutes">Dauer in Minuten</label>

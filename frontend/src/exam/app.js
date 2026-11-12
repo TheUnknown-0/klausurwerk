@@ -695,6 +695,7 @@ export class ExamApp {
         this.settings = mergeSettings(data.exam?.settings ?? {}, this.mode);
         this.tasks = data.tasks ?? [];
         this.materials = data.materials ?? [];
+        this.mediaPlays = data.media_plays ?? {};
         this.operators = data.operators ?? [];
         this.autosave = new Autosave({
             apiBase: this.api,
@@ -723,7 +724,7 @@ export class ExamApp {
             console.warn('Laufzeit nicht verfügbar', err);
             runtime = { canRun: () => false, run() { throw new Error('Ausführung ist nicht verfügbar.'); } };
         }
-        this.env = { examId: this.boot.exam_id, examMode: this.boot.mode, settings: this.settings, runtime };
+        this.env = { examId: this.boot.exam_id, examMode: this.boot.mode, settings: this.settings, runtime, subject: this.boot.subject ?? null };
 
         this.monitor = new Monitor({
             examId: this.boot.exam_id,
@@ -746,6 +747,7 @@ export class ExamApp {
             settings: this.settings,
             answers: this.answers,
             materials: this.materials,
+            mediaPlays: this.mediaPlays,
             operators: this.operators,
             env: this.env,
             mode: this.mode,

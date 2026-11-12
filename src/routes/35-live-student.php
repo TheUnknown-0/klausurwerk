@@ -34,6 +34,7 @@ return static function (Router $r): void {
     $r->post('/api/klausur/{id}/live', [StudentExamController::class, 'live']);
     $r->post('/api/klausur/{id}/bildschirm', [StudentExamController::class, 'screen']);
     $r->post('/api/klausur/{id}/webseiten', [StudentExamController::class, 'webAccess']);
+    $r->post('/api/klausur/{id}/medien/{mid}/abspielen', [StudentExamController::class, 'playMedia']);
     // Eingebauter Browser: Zugang über die signierte Marke im Pfad (siehe WebProxyController).
     $r->get('/web/{token}', [WebProxyController::class, 'show']);
 

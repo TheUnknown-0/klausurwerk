@@ -14,7 +14,10 @@ import { mountReplay } from '../replay/player.js';
 import { mountAnswer } from './answer-view.js';
 import { mountComments } from './comments.js';
 import { solutionView } from './solution-view.js';
-import { formatPoints, nextOpen, parsePoints, stepAxis, stepOutcome, traversal } from './logic.js';
+import {
+    combineMarks, countWords, formatCounts, formatPoints, formatQuotient, markCodes, nextOpen, parsePoints,
+    stepAxis, stepOutcome, summarizeMarks, traversal,
+} from './logic.js';
 
 const SAVE_DELAY_MS = 700;
 
@@ -40,7 +43,10 @@ export function mountGrading(root, boot) {
         answerView: null,
         commentsPanel: null,
         renderedTask: null,
+        marksOthers: null, // Zählung der übrigen Textaufgaben dieser Person (Server)
+        marksBox: null,
     };
+    const markDefs = () => boot.correction_marks?.marks ?? [];
 
     // ---------- Gerüst ----------
     const personSelect = h('select', { class: 'input g-select', 'aria-label': 'Person wählen', onchange: (e) => go({ pid: Number(e.target.value), tid: state.tid }) });
@@ -227,6 +233,7 @@ export function mountGrading(root, boot) {
         }
         state.cell = res.data;
         state.comments = res.data.comments;
+        state.marksOthers = res.data.marks_others ?? null;
         renderTask();
         renderRight();
         renderNav();
@@ -302,7 +309,11 @@ export function mountGrading(root, boot) {
             cell.pastes > 0 ? h('span', { class: 'badge badge-warning', title: 'Aus der Klausur heraus eingefügte Texte werden hier nicht gezählt, nur Einfügungen innerhalb der Klausur.' }, icon('clipboard-list'), ` ${cell.pastes} ${cell.pastes === 1 ? 'Einfügung' : 'Einfügungen'}`) : null,
             boot.can.replay && cell.answer ? h('button', { type: 'button', class: 'btn btn-sm', onclick: () => openReplay() }, icon('play'), ' Replay') : null));
 
-        rightPane.append(buildGradePanel(cell, task));
+        const gradePanel = buildGradePanel(cell, task);
+        if (task.answer_type === 'text') {
+            gradePanel.append(buildMarksBox());
+        }
+        rightPane.append(gradePanel);
 
         const answerHost = h('div', { class: 'g-answer card' });
         rightPane.append(answerHost);
@@ -315,6 +326,7 @@ export function mountGrading(root, boot) {
             canWrite: !readOnly,
             canDeleteAny: boot.is_owner,
             showAuthor: boot.sees_others,
+            marks: markDefs(),
             onSave: saveComment,
             onDelete: deleteComment,
             onFocus: (c) => state.answerView?.focusComment(c),
@@ -326,6 +338,8 @@ export function mountGrading(root, boot) {
             examId: boot.exam_id,
             comments: state.comments,
             canComment: !readOnly,
+            marks: markDefs(),
+            onSetMark: async ({ anchor, body }) => (await saveComment({ id: null, anchor, body })) !== null,
             onComment: (anchor) => {
                 state.commentsPanel.compose(anchor);
                 commentHost.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -340,6 +354,69 @@ export function mountGrading(root, boot) {
         state.answerView = null;
         state.commentsPanel = null;
         state.pointsInput = null;
+        state.marksBox = null;
+    }
+
+    // ---------- Korrekturzeichen (nur Hinweis, setzt keine Punkte) ----------
+    function buildMarksBox() {
+        const cfg = boot.correction_marks ?? { choice: 'auto', choices: {}, show_quotient: false };
+        const select = h('select', {
+            class: 'input g-select', 'aria-label': 'Satz von Korrekturzeichen', disabled: readOnly,
+            onchange: () => saveMarkSettings(select.value, quotientBox.checked),
+        }, Object.entries(cfg.choices ?? {}).map(([value, label]) => h('option', { value, selected: value === cfg.choice }, label)));
+        const quotientBox = h('input', {
+            type: 'checkbox', id: 'g-marks-quotient', disabled: readOnly, checked: cfg.show_quotient === true,
+            onchange: () => saveMarkSettings(select.value, quotientBox.checked),
+        });
+        const summary = h('div', { class: 'g-marks-summary', role: 'status', 'aria-live': 'polite' });
+        state.marksBox = summary;
+        const box = h('div', { class: 'g-marks-box' },
+            h('div', { class: 'g-marks-row' },
+                h('span', { class: 'g-grade-label' }, 'Korrekturzeichen'), select,
+                h('label', { class: 'g-marks-quotient text-sm', for: 'g-marks-quotient' }, quotientBox,
+                    ' Fehlerquotient in Rückgabe und PDF zeigen')),
+            summary);
+        updateMarksBox();
+        return box;
+    }
+
+    /** Zählung dieser Aufgabe und aller Textaufgaben der Person neben den Punkten. */
+    function updateMarksBox() {
+        const el = state.marksBox;
+        if (!el) {
+            return;
+        }
+        const defs = markDefs();
+        el.replaceChildren();
+        if (defs.length === 0) {
+            el.append(h('span', { class: 'text-faint text-sm' }, 'Für dieses Fach sind keine Korrekturzeichen eingestellt. Wähle oben einen Satz, um Fehler am Rand zu markieren.'));
+            return;
+        }
+        const text = typeof state.cell?.answer?.content?.text === 'string' ? state.cell.answer.content.text : '';
+        const here = summarizeMarks(markCodes(state.comments), countWords(text), defs);
+        const line = (label, s) => h('div', { class: 'g-marks-line text-sm' },
+            h('strong', {}, `${label}: `),
+            s.errors > 0 || Object.keys(s.counts).length > 0 ? formatCounts(s.counts, defs) : 'keine Zeichen',
+            ` · ${formatPoints(s.weighted)} gewichtete Fehler · ${s.words} ${s.words === 1 ? 'Wort' : 'Wörter'}`,
+            s.quotient !== null ? [' · ', h('strong', { title: 'Gewichtete Fehler je 100 Wörter' }, `Fehlerquotient ${formatQuotient(s.quotient)}`)] : null);
+        el.append(line('Diese Aufgabe', here));
+        const others = state.marksOthers;
+        if (others && others.words > 0) {
+            el.append(line('Alle Textaufgaben der Person', combineMarks([others, here])));
+        }
+        el.append(h('div', { class: 'text-faint text-sm' }, 'Nur ein Hinweis, die Punkte bleiben deine Entscheidung.'));
+    }
+
+    async function saveMarkSettings(choice, showQuotient) {
+        const res = await post(`${boot.api_base}/korrekturzeichen`, { choice, show_quotient: showQuotient });
+        if (!res.ok) {
+            toast(res.error, 'error');
+            renderRight();
+            return;
+        }
+        boot.correction_marks = { ...boot.correction_marks, ...res.data.marks };
+        // Zählung der übrigen Aufgaben gilt für den neuen Satz erst nach dem Neuladen der Zelle.
+        await load();
     }
 
     function highlightComments(host, ids) {
@@ -605,6 +682,7 @@ export function mountGrading(root, boot) {
     function refreshComments() {
         state.commentsPanel?.setComments(state.comments);
         state.answerView?.setComments(state.comments);
+        updateMarksBox();
     }
 
     // ---------- Replay ----------

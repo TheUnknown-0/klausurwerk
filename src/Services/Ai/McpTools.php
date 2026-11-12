@@ -72,6 +72,7 @@ final class McpTools
             'mode' => ['type' => 'string', 'enum' => array_keys(ExamService::MODES), 'description' => 'exam = Klausur, practice = Übung, probe = Technik-Check ohne Aufgaben'],
             'duration_minutes' => ['type' => ['integer', 'null'], 'description' => 'Dauer in Minuten (1 bis 600); nur bei Übungen darf sie fehlen'],
             'course_id' => ['type' => ['integer', 'null'], 'description' => 'Kurs (siehe get_reference_data)'],
+            'subject' => ['type' => 'string', 'description' => 'Fach, z. B. Informatik, Deutsch, Englisch, Französisch, Spanisch, Latein, Chemie (leer = Fach des Kurses)'],
             'room_id' => ['type' => ['integer', 'null'], 'description' => 'Raum (siehe get_reference_data)'],
             'description' => $str('Beschreibung für die Lehrkraft'),
             'scheduled_at' => $str('Termin, Format JJJJ-MM-TT HH:MM'),
@@ -290,10 +291,11 @@ final class McpTools
                 'id' => (int) $c['id'], 'name' => $c['name'], 'school_year' => $c['school_year'], 'grade_level' => (int) $c['grade_level'],
             ], $svc->courseOptions($this->userId(), $allCourses)),
             'rooms' => array_map(static fn (array $r): array => ['id' => (int) $r['id'], 'name' => $r['name']], $svc->roomOptions()),
-            'operators' => array_map(static fn (array $o): array => ['id' => (int) $o['id'], 'name' => $o['name'], 'afb' => $o['afb']],
-                $this->ctx->db->fetchAll('SELECT id, name, afb FROM operators ORDER BY sort_order, name')),
+            'operators' => array_map(static fn (array $o): array => ['id' => (int) $o['id'], 'subject' => $o['subject'], 'name' => $o['name'], 'afb' => $o['afb']],
+                $this->ctx->db->fetchAll("SELECT id, subject, name, afb FROM operators ORDER BY subject = 'Informatik' DESC, subject, sort_order, name")),
+            'subjects' => \App\Services\Subjects::names(),
             'afb_values' => TaskService::AFB_VALUES,
-            'markdown' => 'Aufgabentexte in Markdown: **fett**, Listen, Tabellen, Code in ```java```, Formeln $a^2$ und $$…$$, Bilder ![Text](material:ID).',
+            'markdown' => 'Aufgabentexte in Markdown: **fett**, Listen, Tabellen, Code in ```java```, Formeln $a^2$ und $$…$$, Chemie $\\ce{2 H2 + O2 -> 2 H2O}$, Ausgangstexte mit Zeilennummern in ```zeilen```, Bilder ![Text](material:ID).',
         ];
     }
 
@@ -395,7 +397,8 @@ final class McpTools
                 'course' => $course,
                 'room_id' => $exam['room_id'] !== null ? (int) $exam['room_id'] : null,
                 'scheduled_at' => $exam['scheduled_at'],
-                'profile' => ExamSettings::matchingProfile($settings, (string) $exam['mode']),
+                'subject' => $exam['subject'] ?? 'Informatik',
+                'profile' => ExamSettings::matchingProfile($settings, (string) $exam['mode'], (string) ($exam['subject'] ?? 'Informatik')),
                 'settings' => $settings,
             ],
             'tasks' => array_map(static fn (array $t): array => self::taskOut($t, $withSolutions), $tasks),
@@ -430,7 +433,7 @@ final class McpTools
     private static function metaInput(array $args, array $current = []): array
     {
         $in = $current;
-        foreach (['title', 'mode', 'description', 'scheduled_at'] as $k) {
+        foreach (['title', 'mode', 'description', 'scheduled_at', 'subject'] as $k) {
             if (array_key_exists($k, $args)) {
                 $in[$k] = $args[$k] === null ? '' : (string) $args[$k];
             }
@@ -457,7 +460,7 @@ final class McpTools
         if ($profile !== '' && !isset(ExamSettings::PROFILES[$profile])) {
             throw new ToolError('Unbekanntes Profil: ' . mb_substr($profile, 0, 40));
         }
-        $id = $svc->create($in, $this->userId(), $profile !== '' ? ExamSettings::profile($profile, $meta['mode']) : null);
+        $id = $svc->create($in, $this->userId(), $profile !== '' ? ExamSettings::profile($profile, $meta['mode'], $meta['subject']) : null);
         $this->ctx->exams->forget($id);
         $this->log('klausur_angelegt', 'Klausur #' . $id . ' "' . $meta['title'] . '" angelegt' . ($profile !== '' ? ', Profil ' . $profile : '') . '.');
 
@@ -477,6 +480,7 @@ final class McpTools
             'course_id' => $exam['course_id'] !== null ? (string) $exam['course_id'] : '',
             'room_id' => $exam['room_id'] !== null ? (string) $exam['room_id'] : '',
             'scheduled_at' => $exam['scheduled_at'] !== null ? (string) $exam['scheduled_at'] : '',
+            'subject' => (string) ($exam['subject'] ?? 'Informatik'),
         ];
         $in = self::metaInput($args, $current);
         if (($in['course_id'] ?? '') !== $current['course_id']) {

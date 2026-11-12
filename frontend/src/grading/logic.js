@@ -229,3 +229,100 @@ export function cellStatusFor(own, finalPoints, suggested, autoError) {
     }
     return autoError ? 'error' : 'open';
 }
+
+// ---------- Korrekturzeichen (Freitext) ----------
+// Gegenstück zu src/Services/CorrectionMarks.php: dieselben Regeln, dieselben Zahlen.
+
+/** Wörter: durch Leerraum getrennte Stücke. */
+export function countWords(text) {
+    const t = String(text ?? '').trim();
+    return t === '' ? 0 : t.split(/\s+/).length;
+}
+
+/** Gewichtete Fehler je 100 Wörter, eine Nachkommastelle; null ohne Wörter. */
+export function errorQuotient(weighted, words) {
+    return words > 0 ? Math.round((weighted / words) * 1000) / 10 : null;
+}
+
+/** 4.2 -> "4,2", 5 -> "5,0", null -> "". */
+export function formatQuotient(value) {
+    return value === null || value === undefined ? '' : Number(value).toFixed(1).replace('.', ',');
+}
+
+/** Kürzel der Zeichen an Textstellen (in Reihenfolge der Kommentare). */
+export function markCodes(comments) {
+    return (comments ?? [])
+        .filter((c) => c.anchor?.kind === 'text' && typeof c.anchor.mark === 'string' && c.anchor.mark !== '')
+        .map((c) => c.anchor.mark);
+}
+
+/**
+ * Zählung einer Aufgabe. Kürzel außerhalb des Satzes (defs) zählen nicht.
+ * @param {string[]} codes
+ * @param {number} words
+ * @param {{code: string, counts: boolean, weight: number}[]} defs
+ * @returns {{counts: Object<string, number>, errors: number, weighted: number, words: number, quotient: number|null}}
+ */
+export function summarizeMarks(codes, words, defs) {
+    const byCode = new Map((defs ?? []).map((d) => [d.code, d]));
+    const counts = {};
+    let errors = 0;
+    let weighted = 0;
+    for (const code of codes) {
+        const def = byCode.get(code);
+        if (!def) {
+            continue;
+        }
+        counts[code] = (counts[code] ?? 0) + 1;
+        if (def.counts) {
+            errors += 1;
+            weighted += Number(def.weight);
+        }
+    }
+    return { counts, errors, weighted, words, quotient: errorQuotient(weighted, words) };
+}
+
+/** Mehrere Zählungen zusammenfassen (Quotient aus den Summen, nicht Mittel der Quotienten). */
+export function combineMarks(parts) {
+    const counts = {};
+    let errors = 0;
+    let weighted = 0;
+    let words = 0;
+    for (const p of parts) {
+        for (const [code, n] of Object.entries(p?.counts ?? {})) {
+            counts[code] = (counts[code] ?? 0) + n;
+        }
+        errors += p?.errors ?? 0;
+        weighted += p?.weighted ?? 0;
+        words += p?.words ?? 0;
+    }
+    return { counts, errors, weighted, words, quotient: errorQuotient(weighted, words) };
+}
+
+/** Anzeige der Zählung: "Gr 3, R 2" in der Reihenfolge des Satzes. */
+export function formatCounts(counts, defs) {
+    return (defs ?? []).filter((d) => counts?.[d.code]).map((d) => `${d.code} ${counts[d.code]}`).join(', ');
+}
+
+/**
+ * Zeilen eines Textes (getrennt an "\n") mit den Zeichen am Rand: Jedes Zeichen steht in der Zeile,
+ * in der seine Textstelle beginnt, nach Position sortiert.
+ * @returns {{from: number, to: number, marks: {id: number, code: string, from: number}[]}[]}
+ */
+export function marginLines(text, comments) {
+    const lines = [];
+    let from = 0;
+    for (const part of text.split('\n')) {
+        lines.push({ from, to: from + part.length, marks: [] });
+        from += part.length + 1;
+    }
+    const marked = (comments ?? [])
+        .filter((c) => c.anchor?.kind === 'text' && typeof c.anchor.mark === 'string' && c.anchor.mark !== '')
+        .map((c) => ({ id: c.id, code: c.anchor.mark, from: Number(c.anchor.from) }))
+        .sort((a, b) => a.from - b.from || a.id - b.id);
+    for (const m of marked) {
+        const line = lines.find((l) => m.from <= l.to) ?? lines[lines.length - 1];
+        line.marks.push(m);
+    }
+    return lines;
+}

@@ -1,11 +1,12 @@
 /**
  * Hilfsmittel-Seitenleiste: Java-API, Python-Doku, SQL-Spickzettel (statische
- * HTML-Fragmente aus /assets/aids/), Operatorenliste, Materialien mit is_aid
- * und der Taschenrechner.
+ * HTML-Fragmente aus /assets/aids/), Operatorenliste, Materialien mit is_aid,
+ * Periodensystem mit Molmassen-Rechner und der Taschenrechner.
  */
 import { h, setTrustedHtml, icon } from '../lib/dom.js';
 import { url } from '../lib/api.js';
 import { createCalculator } from './calculator-ui.js';
+import { createPeriodicTable } from './periodic-table.js';
 
 const STATIC = [
     { key: 'java_api', label: 'Java-API', file: 'java-api.html' },
@@ -25,9 +26,12 @@ export function availableAids(settings, materials, operators) {
         list.push({ id: 'operators', label: 'Operatoren', kind: 'operators' });
     }
     for (const m of materials ?? []) {
-        if (m.is_aid) {
+        if (m.is_aid && !m.media) {
             list.push({ id: `material-${m.id}`, label: m.name, kind: 'material', material: m });
         }
+    }
+    if (aids.periodic_table) {
+        list.push({ id: 'periodic_table', label: 'Periodensystem', kind: 'periodic' });
     }
     if (aids.calculator) {
         list.push({ id: 'calculator', label: 'Taschenrechner', kind: 'calculator' });
@@ -44,6 +48,7 @@ export class AidsPanel {
         this.tabs = new Map();
         this.current = null;
         this.calculator = null;
+        this.periodic = null;
         this.open = false;
         this.body = h('div', { class: 'aids-body' });
         this.tablist = h('div', { class: 'aids-tabs', role: 'tablist', 'aria-label': 'Hilfsmittel' });
@@ -109,6 +114,7 @@ export class AidsPanel {
             tab.tabIndex = key === id ? 0 : -1;
         }
         this.body.replaceChildren();
+        this.el.classList.remove('is-wide');
         this.body.setAttribute('role', 'tabpanel');
         this.body.setAttribute('aria-labelledby', `aid-tab-${id}`);
         switch (item.kind) {
@@ -116,6 +122,7 @@ export class AidsPanel {
             case 'operators': this.showOperators(); break;
             case 'material': this.showMaterial(item.material); break;
             case 'calculator': this.showCalculator(); break;
+            case 'periodic': this.showPeriodic(); break;
             default: break;
         }
     }
@@ -167,6 +174,15 @@ export class AidsPanel {
         } else {
             this.body.append(h('iframe', { class: 'aid-frame', src, title: m.name }));
         }
+    }
+
+    showPeriodic() {
+        if (!this.periodic) {
+            const base = this.o.assets?.aids ?? '/assets/aids/';
+            this.periodic = createPeriodicTable({ dataUrl: url(base + 'elements.json') });
+        }
+        this.el.classList.add('is-wide');
+        this.body.append(this.periodic.el);
     }
 
     showCalculator() {

@@ -12,6 +12,7 @@
 import { registerAnswerWidget } from '../lib/widgets.js';
 import { h, setTrustedHtml, icon } from '../lib/dom.js';
 import { enhanceRichText } from '../lib/rich-text.js';
+import { createCharBar, resolveCharset, resolveLanguage } from '../lib/char-bar.js';
 
 let uid = 0;
 const nextId = (prefix) => `${prefix}-${++uid}`;
@@ -37,11 +38,22 @@ function fillItem(el, item) {
 
 const itemPlain = (item) => (typeof item.text_html === 'string' && item.text_html !== '' ? plainText(item.text_html) : String(item.text_md ?? item.text ?? ''));
 
+/** Zeichenleiste nur dort, wo geschrieben wird (Klausur, Vorschau), nicht in Pult und Korrektur. */
+function charBarFor(ctx) {
+    const mode = ctx.mode ?? 'exam';
+    if (mode !== 'exam' && mode !== 'preview') {
+        return null;
+    }
+    const set = resolveCharset(ctx.task, ctx.env);
+    return set ? createCharBar({ set }) : null;
+}
+
 /** Gemeinsame Hülle: readOnly-Verwaltung, destroy. */
 function shell(container, ctx, className) {
     const root = h('div', { class: `w-basic ${className}`, dataset: { mode: ctx.mode ?? 'exam' } });
     container.append(root);
     const state = { readOnly: !!ctx.readOnly, controls: [] };
+    root.lang = resolveLanguage(ctx.task, ctx.env);
     const emit = (content) => {
         if (!state.readOnly && typeof ctx.onChange === 'function') {
             ctx.onChange(content, { kind: 'value' });
@@ -95,6 +107,12 @@ const TextWidget = {
         });
         area.readOnly = state.readOnly;
         update();
+        const bar = charBarFor(ctx);
+        if (bar) {
+            bar.attach(area);
+            bar.setDisabled(state.readOnly);
+            root.append(bar.el);
+        }
         root.append(area, counter);
 
         return {
@@ -110,10 +128,14 @@ const TextWidget = {
             setReadOnly(flag) {
                 state.readOnly = !!flag;
                 area.readOnly = state.readOnly;
+                bar?.setDisabled(state.readOnly);
                 root.classList.toggle('is-readonly', state.readOnly);
             },
             focus: () => area.focus(),
-            destroy: () => root.remove(),
+            destroy: () => {
+                bar?.destroy();
+                root.remove();
+            },
         };
     },
 };
@@ -500,6 +522,7 @@ const GapsWidget = {
 
         const body = h('div', { class: 'w-gaps-body' });
         const controls = new Map();
+        const bar = codeMode ? null : charBarFor(ctx);
         const parts = splitTemplate(cfg.template);
         let n = 0;
         for (const part of parts) {
@@ -540,10 +563,15 @@ const GapsWidget = {
                     values[id] = control.value;
                     emit({ values: { ...values } });
                 });
+                bar?.attach(control);
             }
             control.disabled = state.readOnly;
             controls.set(id, control);
             body.append(control);
+        }
+        if (bar) {
+            bar.setDisabled(state.readOnly);
+            root.append(bar.el);
         }
         root.append(body);
 
@@ -561,10 +589,14 @@ const GapsWidget = {
                 for (const el of controls.values()) {
                     el.disabled = state.readOnly;
                 }
+                bar?.setDisabled(state.readOnly);
                 root.classList.toggle('is-readonly', state.readOnly);
             },
             focus: () => controls.values().next().value?.focus(),
-            destroy: () => root.remove(),
+            destroy: () => {
+                bar?.destroy();
+                root.remove();
+            },
         };
     },
 };

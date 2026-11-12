@@ -4,6 +4,8 @@
  */
 import { h, setTrustedHtml, replace, icon } from '../lib/dom.js';
 import { enhanceRichText } from '../lib/rich-text.js';
+import { TextHighlighter } from './highlighter.js';
+import { createMediaPlayer } from './media-player.js';
 import { previewExit } from '../lib/preview-link.js';
 import { answerWidget, FallbackWidget } from '../lib/widgets.js';
 import { flattenTasks, isAnswerable, summarize, taskStatus } from './answers.js';
@@ -58,6 +60,11 @@ export class ExamView {
         this.currentTaskId = null;
         this.banners = new Map();
         this.announcements = [];
+        this.mediaPlayers = [];
+        const boot = o.boot ?? {};
+        this.highlighter = new TextHighlighter({
+            storageKey: `kw-marks:${boot.exam_id ?? 0}:${boot.user?.id ?? 0}${o.preview ? ':vorschau' : ''}`,
+        });
         this.key = `kw-exam-${o.boot.exam_id}`;
         this.onKey = (e) => this.handleKey(e);
 
@@ -246,8 +253,9 @@ export class ExamView {
             } catch {
                 // Formeln/Code bleiben dann unformatiert
             }
+            this.highlighter.register(task.id, body);
         }
-        const textPart = h('div', { class: 'task-text' }, head, body);
+        const textPart = h('div', { class: 'task-text' }, head, body, this.buildMedia(task, body));
         const divider = this.buildDivider();
         const host = h('div', { class: 'task-widget' });
         const children = h('div', { class: 'task-children' });
@@ -261,6 +269,35 @@ export class ExamView {
         block.addEventListener('focusin', () => this.setCurrentTask(task.id, false));
         this.blocks.set(task.id, { block, host, divider, task, mounted: false });
         return block;
+    }
+
+    /**
+     * Audio/Video der Aufgabe: im Text eingebundene (![Hörtext](material:ID)) ersetzen das Bild an
+     * Ort und Stelle, der Aufgabe zugeordnete ohne Verweis kommen unter den Text.
+     */
+    buildMedia(task, body) {
+        const host = h('div', { class: 'task-media' });
+        const media = (this.o.materials ?? []).filter((m) => m.media);
+        const make = (m) => {
+            const p = createMediaPlayer({ material: m, plays: this.o.mediaPlays?.[m.id] ?? 0, preview: !!this.o.preview });
+            p.setDisabled(this.readOnly);
+            this.mediaPlayers.push(p);
+            return p.el;
+        };
+        const placed = new Set();
+        for (const img of body.querySelectorAll('img')) {
+            const m = media.find((x) => (img.getAttribute('src') ?? '').endsWith(`/material/${x.id}`));
+            if (m) {
+                img.replaceWith(make(m));
+                placed.add(m.id);
+            }
+        }
+        for (const m of media) {
+            if (m.task_id === task.id && !placed.has(m.id)) {
+                host.append(make(m));
+            }
+        }
+        return host;
     }
 
     buildDivider() {
@@ -512,6 +549,9 @@ export class ExamView {
 
     setReadOnly(flag) {
         this.readOnly = !!flag;
+        for (const p of this.mediaPlayers) {
+            p.setDisabled(this.readOnly);
+        }
         this.el.classList.toggle('is-locked', this.readOnly);
         for (const { inst } of this.widgets.values()) {
             try {

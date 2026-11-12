@@ -4,6 +4,7 @@
  *   - Formeln: $…$ (inline) und $$…$$ (Block) werden mit KaTeX gesetzt.
  *     Der Server liefert sie als <span class="math-inline">…</span> bzw.
  *     <div class="math-block">…</div> mit dem Roh-TeX als Text.
+ *     Chemie über mhchem: \ce{…} (Reaktionsgleichungen) und \pu{…} (Einheiten).
  *   - Code-Blöcke werden eingefärbt.
  *
  *   enhanceRichText(element)
@@ -12,6 +13,8 @@
  * bei Bedarf einmalig nachgeladen.
  */
 import katex from 'katex';
+// Chemie: \ce{2 H2 + O2 -> 2 H2O} und Einheiten \pu{12 mol/L} (registriert sich bei KaTeX).
+import 'katex/contrib/mhchem';
 import { highlightCodeBlocks } from './code-editor.js';
 import { url } from './api.js';
 

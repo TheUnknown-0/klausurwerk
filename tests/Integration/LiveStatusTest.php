@@ -297,7 +297,7 @@ final class LiveStatusTest extends DatabaseTestCase
 
         $materials = (new ExamContent($this->db))->materials($exam);
 
-        self::assertSame([['id' => $id, 'name' => 'Blatt.pdf', 'url' => '/klausur/' . $exam['id'] . '/material/' . $id, 'is_aid' => true, 'mime' => 'application/pdf']], $materials);
+        self::assertSame([['id' => $id, 'name' => 'Blatt.pdf', 'url' => '/klausur/' . $exam['id'] . '/material/' . $id, 'is_aid' => true, 'mime' => 'application/pdf', 'task_id' => null]], $materials);
     }
 
     public function testStandCarriesBaseClockOfTheExam(): void

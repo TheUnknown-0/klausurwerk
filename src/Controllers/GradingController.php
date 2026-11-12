@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\HttpException;
 use App\Services\AutoGrader;
+use App\Services\CorrectionMarks;
 use App\Services\ExamAccess;
 use App\Services\ExamContent;
 use App\Services\ExamService;
@@ -173,6 +174,7 @@ final class GradingController extends Controller
                 'cells' => array_map(static fn (array $c): array => ['status' => $c['status'], 'points' => $c['points']], $r['cells']),
             ], $overview['rows']),
             'tasks' => $tasks,
+            'correction_marks' => CorrectionMarks::forExam($exam) + ['choices' => CorrectionMarks::LABELS],
         ];
 
         return $this->render('pages/grading/show', [
@@ -266,8 +268,41 @@ final class GradingController extends Controller
                 'is_final' => $final['grader_id'] === (int) $e['grader_id'],
             ], array_filter($entries, static fn (array $e): bool => (int) $e['grader_id'] !== $viewerId))) : [],
             'comments' => $this->svc()->comments($pid, $tid, $viewerId, $seeOthers),
+            'marks_others' => $this->otherMarks($exam, $pid, $tid, $viewerId, $seeOthers),
             'max_points' => (float) $task['points'],
         ];
+    }
+
+    /**
+     * Zählung der Korrekturzeichen aller anderen Freitext-Aufgaben der Person (für die Gesamtzahl neben den Punkten).
+     *
+     * @param array<string, mixed> $exam
+     * @return array<string, mixed>
+     */
+    private function otherMarks(array $exam, int $pid, int $tid, int $viewerId, bool $seeOthers): array
+    {
+        $parts = [];
+        foreach ($this->svc()->markSummaries($exam, $pid, $viewerId, $seeOthers) as $taskId => $summary) {
+            if ($taskId !== $tid) {
+                $parts[] = $summary;
+            }
+        }
+
+        return CorrectionMarks::combine($parts);
+    }
+
+    /** POST /api/korrektur/{id}/korrekturzeichen  {choice, show_quotient} */
+    public function saveMarkSettings(array $params): array
+    {
+        $this->requireStaff();
+        $this->requireCsrf();
+        $exam = $this->ctx->exams->require((int) $params['id'], ExamAccess::CAP_GRADE);
+        $this->ctx->session->release();
+        $in = $this->jsonInput();
+        $marks = $this->svc()->saveMarkSettings($exam, $in['choice'] ?? null, $in['show_quotient'] ?? false);
+        $this->ctx->exams->forget((int) $exam['id']);
+
+        return ['success' => true, 'marks' => $marks];
     }
 
     // ---------- JSON: Bewertung ----------

@@ -3,6 +3,10 @@
  *
  * Statt eines leeren Formulars mit Auswahlliste sieht die Lehrkraft sofort, was es gibt, und
  * startet mit passenden Voreinstellungen (zum Beispiel Programmcode gleich in Python).
+ *
+ * Das Fach der Klausur (Fachgruppe aus Services\Subjects) bestimmt die Reihenfolge: In Informatik
+ * bleibt alles wie gehabt, in anderen Fächern stehen Text und Auswahl vorne und die
+ * Informatik-Typen eingeklappt am Ende.
  */
 import { h, icon } from '../lib/dom.js';
 
@@ -16,6 +20,7 @@ const INFO = {
     truth_table: ['Ausgänge einer Wahrheitstabelle ausfüllen.', 'grid-3x3'],
     uml: ['Klassen, Attribute, Methoden und Beziehungen zeichnen.', 'layout-grid'],
     er: ['Entitäten, Attribute und Beziehungen nach Chen.', 'database'],
+    structure: ['Lewis- und Strukturformeln zeichnen, mit Summenformel.', 'atom'],
     relational: ['Tabellen mit Schlüsseln und Fremdschlüsseln.', 'database'],
     structogram: ['Algorithmus als Nassi-Shneiderman-Diagramm.', 'layout-grid'],
     flowchart: ['Algorithmus als Programmablaufplan.', 'git-branch'],
@@ -28,6 +33,20 @@ const INFO = {
 /** Reihenfolge der Gruppen in der Auswahl. */
 const GROUP_ORDER = ['Programmieren', 'Text & Auswahl', 'Diagramme', 'Mikrowelt', 'Gliederung'];
 
+/** Typen, die nur in Informatik vorne stehen. */
+export const COMPUTING_TYPES = new Set(['code', 'robo', 'uml', 'er', 'relational', 'structogram', 'flowchart', 'logic', 'automaton', 'truth_table']);
+
+/** Gruppe, in der anderen Fächern die Informatik-Typen eingeklappt erscheinen. */
+export const COMPUTING_GROUP = 'Informatik';
+
+/** Bessere Beschreibungen je Fachgruppe (sonst INFO). */
+const SUBJECT_DESC = {
+    deutsch: { text: 'Aufsatz, Analyse, Erörterung; mit Wortzähler.', gaps: 'Lücken füllen, z. B. Grammatik oder Rechtschreibung.' },
+    fremdsprache: { text: 'Aufsatz, Zusammenfassung, Mediation; mit Zeichenleiste und Wortzähler.', gaps: 'Lücken füllen, z. B. Vokabeln oder Zeitformen.', matching: 'Vokabeln oder Satzteile zuordnen.' },
+    latein: { text: 'Übersetzung oder Interpretation; mit Zeichenleiste (ā ē ī ō ū).', gaps: 'Formen bestimmen oder ergänzen.', matching: 'Vokabeln oder Formen zuordnen.' },
+    chemie: { text: 'Freie Antwort mit Hoch- und Tiefstellen (H₂O, SO₄²⁻, →).', gaps: 'Lücken füllen, z. B. Koeffizienten einer Reaktionsgleichung.', drawing: 'Versuchsaufbau oder Diagramm skizzieren.' },
+};
+
 /** Programmcode erscheint als drei Kacheln, je Sprache vorbelegt. */
 const CODE_TILES = [
     { label: 'Java', desc: 'Programm schreiben, kompilieren und ausführen.', config: { language: 'java', main_file: '' } },
@@ -39,9 +58,12 @@ const CODE_TILES = [
  * Baut die Kacheln aus den registrierten Typen (boot.types).
  *
  * @param {{name: string, label: string, group: string}[]} types
- * @returns {{group: string, tiles: {key: string, type: string, label: string, desc: string, icon: string, config?: object}[]}[]}
+ * @param {string} [subjectGroup] Fachgruppe der Klausur, Standard Informatik
+ * @returns {{group: string, collapsed?: boolean, tiles: {key: string, type: string, label: string, desc: string, icon: string, config?: object}[]}[]}
  */
-export function pickerGroups(types) {
+export function pickerGroups(types, subjectGroup = 'informatik') {
+    const computing = !subjectGroup || subjectGroup === 'informatik';
+    const descs = SUBJECT_DESC[subjectGroup] ?? {};
     const groups = new Map();
     const add = (group, tile) => {
         if (!groups.has(group)) {
@@ -50,14 +72,15 @@ export function pickerGroups(types) {
         groups.get(group).push(tile);
     };
     for (const t of types) {
+        const group = !computing && COMPUTING_TYPES.has(t.name) ? COMPUTING_GROUP : t.group;
         if (t.name === 'code') {
             for (const c of CODE_TILES) {
-                add(t.group, { key: `code-${c.config.language}`, type: 'code', label: c.label, desc: c.desc, icon: 'code-xml', config: c.config });
+                add(group, { key: `code-${c.config.language}`, type: 'code', label: c.label, desc: c.desc, icon: 'code-xml', config: c.config });
             }
             continue;
         }
         const [desc, ico] = INFO[t.name] ?? ['', 'file-pen-line'];
-        add(t.group, { key: t.name, type: t.name, label: t.label, desc, icon: ico });
+        add(group, { key: t.name, type: t.name, label: t.label, desc: descs[t.name] ?? desc, icon: ico });
     }
     add('Gliederung', {
         key: 'container', type: '', label: 'Überschrift mit Teilaufgaben',
@@ -65,13 +88,18 @@ export function pickerGroups(types) {
     });
 
     // Häufiges zuerst; unbekannte Gruppen behalten ihre Reihenfolge davor, Gliederung bleibt am Ende.
+    // Andere Fächer: Text & Auswahl vorne, Informatik-Typen ganz hinten und eingeklappt.
+    const order = computing ? GROUP_ORDER : ['Text & Auswahl', 'Diagramme', 'Gliederung', COMPUTING_GROUP];
     const rank = (g) => {
-        const i = GROUP_ORDER.indexOf(g);
-        return i < 0 ? GROUP_ORDER.length - 1 : i;
+        const i = order.indexOf(g);
+        if (i >= 0) {
+            return i;
+        }
+        return computing ? GROUP_ORDER.length - 1 : 1;
     };
     return [...groups].map(([group, tiles], i) => ({ group, tiles, i }))
         .sort((a, b) => rank(a.group) - rank(b.group) || a.i - b.i)
-        .map(({ group, tiles }) => ({ group, tiles }));
+        .map(({ group, tiles }) => (group === COMPUTING_GROUP && !computing ? { group, tiles, collapsed: true } : { group, tiles }));
 }
 
 /**
@@ -82,10 +110,10 @@ export function pickerGroups(types) {
  *   onCancel?: () => void,
  * }} opts
  */
-export function typePicker({ types, heading, onPick, onCancel }) {
+export function typePicker({ types, heading, onPick, onCancel, subjectGroup }) {
     const first = [];
-    const sections = pickerGroups(types).map(({ group, tiles }) => h('section', { class: 'te-pick-group' },
-        h('h3', {}, group),
+    const sections = pickerGroups(types, subjectGroup).map(({ group, tiles, collapsed }) => h(collapsed ? 'details' : 'section', { class: 'te-pick-group' },
+        collapsed ? h('summary', {}, `${group} (${tiles.length} weitere Typen)`) : h('h3', {}, group),
         h('div', { class: 'te-pick-grid' }, tiles.map((tile) => {
             const el = h('button', {
                 type: 'button', class: 'te-pick-tile', dataset: { type: tile.key },

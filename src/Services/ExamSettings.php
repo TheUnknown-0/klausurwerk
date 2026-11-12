@@ -15,8 +15,13 @@ final class ExamSettings
     public const JAVA_VERSIONS = ['21', '25'];
     public const PYTHON_PACKAGES = ['numpy', 'matplotlib'];
 
-    /** @return array<string, mixed> */
-    public static function defaults(string $mode = 'exam'): array
+    /**
+     * Standardwerte. Das Fach bestimmt nur die Hilfsmittel (Subjects::defaultAids); fehlende Werte
+     * bestehender Klausuren füllt normalize() mit den Informatik-Werten.
+     *
+     * @return array<string, mixed>
+     */
+    public static function defaults(string $mode = 'exam', string $subject = 'Informatik'): array
     {
         $practice = $mode === 'practice';
 
@@ -32,6 +37,8 @@ final class ExamSettings
             'allow_self_submit' => true,
             'shuffle_choices' => true,
             'show_points' => true,
+            'correction_marks' => 'auto',
+            'correction_marks_show_quotient' => false,
             'run_mode' => 'run',
             'java_version' => '21',
             'python_packages' => [],
@@ -41,13 +48,7 @@ final class ExamSettings
                 'close_brackets' => true,
                 'font_size' => 15,
             ],
-            'aids' => [
-                'java_api' => $practice,
-                'python_doc' => $practice,
-                'sql_cheatsheet' => $practice,
-                'operators' => true,
-                'calculator' => false,
-            ],
+            'aids' => Subjects::defaultAids($subject, $mode),
         ];
     }
 
@@ -74,6 +75,8 @@ final class ExamSettings
             'allow_self_submit' => $bool($input['allow_self_submit'] ?? null, $d['allow_self_submit']),
             'shuffle_choices' => $bool($input['shuffle_choices'] ?? null, $d['shuffle_choices']),
             'show_points' => $bool($input['show_points'] ?? null, $d['show_points']),
+            'correction_marks' => in_array($input['correction_marks'] ?? null, CorrectionMarks::CHOICES, true) ? $input['correction_marks'] : $d['correction_marks'],
+            'correction_marks_show_quotient' => $bool($input['correction_marks_show_quotient'] ?? null, $d['correction_marks_show_quotient']),
             'run_mode' => in_array($input['run_mode'] ?? null, self::RUN_MODES, true) ? $input['run_mode'] : $d['run_mode'],
             'java_version' => in_array((string) ($input['java_version'] ?? ''), self::JAVA_VERSIONS, true) ? (string) $input['java_version'] : $d['java_version'],
             'python_packages' => array_values(array_intersect(self::PYTHON_PACKAGES, is_array($input['python_packages'] ?? null) ? $input['python_packages'] : [])),
@@ -107,7 +110,8 @@ final class ExamSettings
     public static function forStudent(array $settings): array
     {
         $s = self::normalize($settings);
-        unset($s['require_access_code']);
+        // Korrekturzeichen betreffen nur die Korrektur; die Rückgabe bekommt sie gesondert.
+        unset($s['require_access_code'], $s['correction_marks'], $s['correction_marks_show_quotient']);
 
         return $s;
     }
@@ -121,7 +125,7 @@ final class ExamSettings
     public const PROFILES = [
         'streng' => [
             'label' => 'Klausur, streng',
-            'description' => 'Sperre bei Verstoß, Einfügen nur innerhalb der Klausur, Klausurcode, keine Editorhilfen, als Hilfsmittel nur die Operatorenliste.',
+            'description' => 'Sperre bei Verstoß, Einfügen nur innerhalb der Klausur, Klausurcode, keine Editorhilfen. In Informatik als Hilfsmittel nur die Operatorenliste, in anderen Fächern bleiben die fachüblichen (Periodensystem, Taschenrechner).',
         ],
         'seb' => [
             'label' => 'Klausur mit Safe Exam Browser',
@@ -129,13 +133,14 @@ final class ExamSettings
         ],
         'locker' => [
             'label' => 'Übung, locker',
-            'description' => 'Keine Sperre, Einfügen erlaubt (protokolliert), Autovervollständigung, Fehlermarkierung und alle Hilfsmittel.',
+            'description' => 'Keine Sperre, Einfügen erlaubt (protokolliert), Autovervollständigung, Fehlermarkierung und alle Hilfsmittel des Fachs.',
         ],
     ];
 
     /** @return array<string, mixed> */
-    private static function profileOverrides(string $key): array
+    private static function profileOverrides(string $key, string $subject = 'Informatik'): array
     {
+        $computing = Subjects::isComputing($subject);
         $strict = [
             'lock_on_violation' => true,
             'paste_policy' => 'internal',
@@ -143,8 +148,18 @@ final class ExamSettings
             'require_access_code' => true,
             'allow_self_submit' => true,
             'editor' => ['autocomplete' => false, 'lint' => false],
-            'aids' => ['java_api' => false, 'python_doc' => false, 'sql_cheatsheet' => false, 'operators' => true, 'calculator' => false],
+            // Andere Fächer: Programmier-Hilfen aus, fachübliche Hilfsmittel (Periodensystem, Rechner) bleiben.
+            'aids' => $computing
+                ? ['java_api' => false, 'python_doc' => false, 'sql_cheatsheet' => false, 'operators' => true, 'calculator' => false]
+                : ['java_api' => false, 'python_doc' => false, 'sql_cheatsheet' => false, 'operators' => true],
         ];
+        $allAids = ['java_api' => true, 'python_doc' => true, 'sql_cheatsheet' => true, 'operators' => true, 'calculator' => true];
+        if (!$computing) {
+            $allAids = [];
+            foreach (array_keys(self::defaults()['aids']) as $aid) {
+                $allAids[$aid] = in_array($aid, Subjects::relevantAids($subject), true);
+            }
+        }
 
         return match ($key) {
             'streng' => $strict,
@@ -156,7 +171,7 @@ final class ExamSettings
                 'require_access_code' => false,
                 'allow_self_submit' => true,
                 'editor' => ['autocomplete' => true, 'lint' => true, 'close_brackets' => true],
-                'aids' => ['java_api' => true, 'python_doc' => true, 'sql_cheatsheet' => true, 'operators' => true, 'calculator' => true],
+                'aids' => $allAids,
             ],
             default => throw new \InvalidArgumentException('Unbekanntes Profil.'),
         };
@@ -167,9 +182,9 @@ final class ExamSettings
      *
      * @return array<string, mixed>
      */
-    public static function profile(string $key, string $mode = 'exam'): array
+    public static function profile(string $key, string $mode = 'exam', string $subject = 'Informatik'): array
     {
-        return self::normalize(array_replace_recursive(self::defaults($mode), self::profileOverrides($key)), $mode);
+        return self::normalize(array_replace_recursive(self::defaults($mode, $subject), self::profileOverrides($key, $subject)), $mode);
     }
 
     /**
@@ -179,9 +194,9 @@ final class ExamSettings
      * @param array<string, mixed> $current
      * @return array<string, mixed>
      */
-    public static function applyProfile(array $current, string $key, string $mode = 'exam'): array
+    public static function applyProfile(array $current, string $key, string $mode = 'exam', string $subject = 'Informatik'): array
     {
-        return self::normalize(array_replace_recursive(self::normalize($current, $mode), self::profileOverrides($key)), $mode);
+        return self::normalize(array_replace_recursive(self::normalize($current, $mode), self::profileOverrides($key, $subject)), $mode);
     }
 
     /**
@@ -190,11 +205,11 @@ final class ExamSettings
      *
      * @param array<string, mixed> $settings
      */
-    public static function matchingProfile(array $settings, string $mode = 'exam'): ?string
+    public static function matchingProfile(array $settings, string $mode = 'exam', string $subject = 'Informatik'): ?string
     {
         $s = self::normalize($settings, $mode);
         foreach (array_keys(self::PROFILES) as $key) {
-            if (self::matches($s, self::profileOverrides($key))) {
+            if (self::matches($s, self::profileOverrides($key, $subject))) {
                 return $key;
             }
         }

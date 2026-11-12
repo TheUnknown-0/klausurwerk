@@ -208,6 +208,18 @@ Guards/Helfer aus `Controller`: `requireLogin()`, `requirePermission($p)`, `requ
 | Diagramme | `50` bis `59` | TaskTypes (Stufe 3) | `frontend/src/widgets/diagram-*` |
 | Mikrowelt, GUI, Replay | `60` bis `69` | TaskTypes `robo` | `frontend/src/widgets/robo*`, `replay.js` |
 
+## Fächer
+
+- `Services\Subjects`: bekannte Fächer, Fachgruppe, Sprache und Zeichenleiste je Fach, Standard-Hilfsmittel.
+  `exams.subject` ist Freitext; alles Fachabhängige läuft über `Subjects::group()`, nie über Namensvergleiche.
+- `Services\Operators`: Operatorenliste je Fach mit Rückfall „Allgemein“.
+- `ExamSettings::defaults/profile/applyProfile/matchingProfile` nehmen das Fach als letzten Parameter
+  (Standard Informatik, damit alte Aufrufe gleich bleiben).
+- Audio/Video: `Services\MediaPlays` (Abspielregel, Zähler, Einmal-Schlüssel); ausgeliefert nur über
+  `MaterialController`, gestartet über `POST /api/klausur/{id}/medien/{mid}/abspielen`.
+- Frontend: `lib/char-bar.js` (Zeichenleiste), `exam/highlighter.js` (Textmarker),
+  `exam/media-player.js`, `exam/periodic-table.js`, `pult/media-dock.js`.
+
 ## Versionen und Update-Prüfung
 
 - **Eine Quelle:** `CHANGELOG.md`. Die oberste Zeile `## X.Y.Z (JJJJ-MM-TT)` ist die installierte

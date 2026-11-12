@@ -8,6 +8,8 @@ use App\Core\HttpException;
 use App\Services\ExamAccess;
 use App\Services\ExamKit;
 use App\Services\ExamSettings;
+use App\Services\Operators;
+use App\Services\Subjects;
 use App\Services\TaskService;
 use App\Services\TaskTypes\TaskTypeRegistry;
 use App\Services\TaskValidationException;
@@ -41,7 +43,9 @@ final class TasksController extends Controller
                 'defaultSolution' => $type->defaultSolution() ?: new \stdClass(),
             ];
         }
-        $operators = $this->ctx->db->fetchAll('SELECT id, name, afb FROM operators ORDER BY sort_order, name');
+        $subject = (string) ($exam['subject'] ?? 'Informatik');
+        $operators = array_map(static fn (array $o): array => ['id' => (int) $o['id'], 'name' => $o['name'], 'afb' => $o['afb']],
+            Operators::forSubject($this->ctx->db, $subject, $id));
         $materials = array_map(static fn (array $m): array => [
             'id' => (int) $m['id'],
             'name' => $m['original_name'],
@@ -56,6 +60,10 @@ final class TasksController extends Controller
                 'status' => $exam['status'],
                 'locked' => TaskService::isLocked($exam),
                 'mode' => $exam['mode'],
+                'subject' => $subject,
+                'subject_group' => Subjects::group($subject),
+                'language' => Subjects::language($subject),
+                'charset' => Subjects::charset($subject),
             ],
             'settings' => ExamSettings::normalize(ExamAccess::settingsOf($exam), (string) $exam['mode']),
             'assets' => [

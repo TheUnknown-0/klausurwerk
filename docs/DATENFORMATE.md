@@ -30,6 +30,8 @@ Grundsätze:
   "allow_self_submit": true,
   "shuffle_choices": true,
   "show_points": true,
+  "correction_marks": "auto",
+  "correction_marks_show_quotient": false,
   "run_mode": "run",
   "java_version": "21",
   "python_packages": [],
@@ -44,7 +46,8 @@ Grundsätze:
     "python_doc": false,
     "sql_cheatsheet": false,
     "operators": true,
-    "calculator": false
+    "calculator": false,
+    "periodic_table": false
   }
 }
 ```
@@ -62,11 +65,13 @@ Grundsätze:
 | `allow_self_submit` | bool | Knopf „Abgeben“ (Lehrkraft muss bestätigen) |
 | `shuffle_choices` | bool | MC-Optionen/Zuordnungen je Person mischen |
 | `show_points` | bool | Punkte je Aufgabe in der Schüleransicht anzeigen |
+| `correction_marks` | `auto` / `deutsch` / `fremdsprache` / `latein` / `aus` | Korrekturzeichen am Rand von Freitext-Antworten; `auto` nach dem Fach der Klausur (Abschnitt 5). Einstellbar in der Korrektur |
+| `correction_marks_show_quotient` | bool (Standard `false`) | Fehlerquotient auch in Rückgabe und PDF zeigen (Abschnitt 5) |
 | `run_mode` | `run` / `syntax` / `none` | Standard für Code-Aufgaben |
 | `java_version` | `21` / `25` | Standard für Java-Aufgaben |
 | `python_packages` | Liste aus `numpy`, `matplotlib` | zusätzlich zu laden |
 | `editor.*` | bool / Zahl | Editor-Komfort |
-| `aids.*` | bool | Hilfsmittel-Seitenleiste; Materialien mit `is_aid = 1` erscheinen zusätzlich |
+| `aids.*` | bool | Hilfsmittel-Seitenleiste; Materialien mit `is_aid = 1` erscheinen zusätzlich (Audio/Video nie). Startwerte je Fach: `Services\Subjects::defaultAids` (Chemie: Periodensystem und Taschenrechner) |
 
 Modus `practice` (Übung): Überwachung aus, Uhr optional (`duration_minutes` NULL = ohne Limit),
 sichtbare Beispieltests mit sofortigem Ergebnis.
@@ -111,6 +116,7 @@ genau diese Seite. Teilaufgaben erben die Freigaben ihrer Überschrift. Höchste
 | `automaton` | 3 | Diagramme | ja (Testwörter) |
 | `er` | 3 | Diagramme | teilweise |
 | `relational` | 3 | Diagramme | teilweise |
+| `structure` | 3 | Diagramme | teilweise (Summenformel, Ladung, Bindungsgerüst) |
 | `robo` | 4 | Mikrowelt | ja (Testwelten im Runner) |
 
 ---
@@ -169,7 +175,11 @@ Dateien sind nicht enthalten; neue Dateien nur bei `allow_new_files`. Dateinamen
 - `sql_result`: Ergebnis der Schülerabfrage (letzte Anweisung) wird mit dem Ergebnis von `expected_query` auf frischer Datenbank verglichen.
 
 ### 2.2 `text`
-- config: `{ "min_words": null, "max_chars": 20000, "placeholder": "" }`
+- config: `{ "min_words": null, "max_chars": 20000, "placeholder": "", "lang": "", "chars": "" }`
+  - `lang`: Sprache der Antwort (`de`, `en`, `fr`, `es`, `it`, `pl`, `ru`, `la`, `grc`), `''` = wie das Fach der Klausur.
+  - `chars`: Zeichenleiste (`none`, `de`, `en`, `fr`, `es`, `it`, `pl`, `la`, `chem`, `math`), `''` = wie das Fach.
+    `chem` und `math` bieten Hoch-/Tiefstellen: Ziffern und Vorzeichen werden als Unicode-Zeichen getippt
+    (H₂O, Fe³⁺), die Antwort bleibt Klartext.
 - content: `{ "text": "…" }` (Klartext; Absätze mit Leerzeile)
 - solution: `{}`
 
@@ -196,6 +206,9 @@ Dateien sind nicht enthalten; neue Dateien nur bei `allow_new_files`. Dateinamen
     "template": "for (int i = 0; i {{g1}} 10; i++) {\n    summe {{g2}} i;\n}",
     "gaps": [ { "id": "g1", "width": 4, "options": null }, { "id": "g2", "width": 3, "options": ["+=", "-=", "="] } ] }
   ```
+  Bei `mode: "text"` zusätzlich `lang` und `chars` wie bei `text` (2.2). Beim Vergleich gelten
+  chemische Schreibweisen als gleich: Hoch-/Tiefzahlen wie Ziffern (H₂O = H2O, Fe³⁺ = Fe3+),
+  `→` = `->`, `⇌` = `<=>`, `−` = `-` (`GapsType::normalizeNotation`).
   `mode`: `text` | `code`. `{{id}}` markiert eine Lücke. `options` ≠ null = Auswahlliste.
 - content: `{ "values": { "g1": "<", "g2": "+=" } }`
 - solution: `{ "gaps": { "g1": { "accepted": ["<", "<= 9"], "case_sensitive": true, "trim": true, "regex": null } } }`
@@ -227,6 +240,33 @@ höchstens 2 MB) für Korrektur und PDF.
 - **`er`**: config `{ "notation": "chen" }`;
   content `{ "entities": [ { "id", "name", "x", "y", "weak": false } ], "attributes": [ { "id", "owner", "name", "key": false, "x", "y" } ], "relationships": [ { "id", "name", "x", "y", "ends": [ { "entity", "cardinality": "1|n|m|0..1|0..n|1..n" } ] } ] }`
 - **`relational`**: content `{ "tables": [ { "id", "name", "columns": [ { "name", "pk": false, "fk": null } ] } ] }` (`fk`: `"Tabelle.spalte"` oder null)
+
+### 2.15a `structure` (Strukturformel, Chemie)
+
+Lewis- und Strukturformeln. Atome sind Knoten, Bindungen verbinden zwei Atome; dazu freie Beschriftungen
+und Reaktionspfeile, damit eine Reaktion mehrerer Moleküle in einer Zeichnung Platz hat.
+
+- config: `{ "score_pairs": false, "start": null }`. `score_pairs`: Elektronenpaare, Radikale und Atomladungen
+  in der Vorbewertung berücksichtigen. `start`: optionale Vorgabe-Startzeichnung (gleiche Struktur wie `content`),
+  gilt nur, solange die Schüler:in noch nichts gespeichert hat.
+- content: `{ "atoms": [ { "id", "el", "x", "y", "charge": 0, "pairs": [], "radicals": 0 } ], "bonds": [ { "id", "a", "b", "order": 1, "stereo": "none" } ], "texts": [ { "id", "x", "y", "text" } ], "arrows": [ { "id", "x", "y", "len": 100, "kind": "forward" } ] }`
+  - `atoms[].el`: gültiges Elementsymbol (Ordnungszahl 1 bis 118, Schreibweise `Xy`); sonst wird das Atom verworfen.
+    `charge`: -2 bis 3. `pairs`: freie Elektronenpaare als Striche, Liste verschiedener Seiten aus `top|right|bottom|left` (also 0 bis 4).
+    `radicals`: einzelne Elektronen, 0 bis 4. `x`/`y` sind Mittelpunkte.
+  - `bonds[]`: `a`/`b` verweisen auf Atome (verschieden, je Atompaar höchstens eine Bindung). `order`: 1 bis 3.
+    `stereo`: `none|wedge|dash` (nur bei `order` 1, Keil oder gestrichelt in Richtung von `a` nach `b`, schmales Ende bei `a`).
+  - `texts[].text`: einzeilig, höchstens 80 Zeichen. `arrows[]`: waagerecht, `len` 40 bis 400, `kind`: `forward` (→) oder `equilibrium` (⇌).
+  - Höchstzahlen: 150 Atome, 200 Bindungen, 30 Beschriftungen, 20 Pfeile; Koordinaten -3000 bis 8000. Fremdwerte werden verworfen.
+  - Wasserstoffatome werden gezeichnet (keine impliziten H); die Summenformel zählt nur gezeichnete Atome.
+- solution: gleiche Struktur wie `content` (Musterzeichnung). Ohne Atome gibt es keine Vorbewertung.
+- Anzeige: Summenformel je zusammenhängendem Molekül in Hill-Reihenfolge (mit C zuerst C, H, dann alphabetisch; sonst
+  alphabetisch) mit Unicode-Tiefzahlen, z. B. `C₂H₆O`, dazu die Gesamtladung. Berechnet im Browser und in PHP (`StructureComparer`).
+- Vorbewertung (`StructureComparer`): Moleküle werden einander zugeordnet (Gerüst, Summenformel, Ladung, Elementüberlappung).
+  Je Molekül ein Eintrag für Summenformel, Gesamtladung (nur wenn die Musterlösung geladen ist) und Bindungsgerüst
+  (Graph-Isomorphie: Element = Knotenfarbe, Bindungsordnung = Kantenfarbe, Stereo wird nicht verglichen), mit `score_pairs`
+  zusätzlich Atomladung, Radikale und Anzahl der Elektronenpaare (nicht deren Seite). Reaktionspfeile zählen nach Art.
+  Die Hinweise stehen in den Beschriftungen der fehlenden Einträge, z. B. "Bindungsgerüst von C₂H₆O: Summenformel stimmt, aber Bindung C=O fehlt".
+  Überzählige Moleküle und Pfeile stehen in `extra`. Beschriftungen werden nicht verglichen.
 
 ### 2.16 `robo` (Stufe 4)
 - config:
@@ -315,8 +355,34 @@ beim Archivieren wird das Klausurverzeichnis gelöscht.
 ```json
 { "kind": "code", "file": "Main.java", "from_line": 12, "to_line": 14 }
 { "kind": "text", "from": 120, "to": 168, "quote": "…" }
+{ "kind": "text", "from": 120, "to": 128, "quote": "ging", "mark": "Gr" }
 { "kind": "task" }
 ```
+
+`from` und `to` zählen in UTF-16-Einheiten des Antworttextes (wie `String.length` in JavaScript).
+
+**Korrekturzeichen (`mark`, optional, nur bei `kind: "text"` an Aufgaben vom Typ `text`).** Das Kürzel muss zum aktiven
+Zeichensatz der Klausur gehören (sonst 422) und passt auf `^[A-Za-z!]{1,5}$`. Bei Kommentaren mit `mark` darf `body` leer
+sein (ein reines Zeichen am Rand), sonst nicht. Kommentare ohne `mark` bleiben unverändert.
+
+Zeichensätze (`src/Services/CorrectionMarks.php`), je Zeichen Kürzel, Name, zählt als Fehler, Gewicht:
+
+| Satz | Zeichen (Gewicht 1, wenn nicht genannt) |
+|---|---|
+| `deutsch` | R Rechtschreibung, Gr Grammatik, Z Zeichensetzung, A Ausdruck, W Wortwahl, Sb Satzbau, T Tempus, Bz Bezug, St Stil, Wdh Wiederholung |
+| `fremdsprache` | sp spelling, gr grammar, voc vocabulary, wo word order, t tense, prep preposition, st style, ex expression, ! omission (Auslassung) |
+| `latein` | Vok Vokabel, Gr Grammatik/Form, K Konstruktion, S Sinnfehler (Gewicht 2), Ausl Auslassung |
+| `aus` | keine |
+
+Der Satz kommt aus der Klausur-Einstellung `correction_marks` (Abschnitt 1): `auto` (Standard) wählt nach dem Fach
+(`setForSubject`: Deutsch, Fremdsprachen wie Englisch/Französisch/Spanisch/Italienisch/Russisch, Latein/Altgriechisch, sonst
+`aus`), oder ein fester Satz. `correction_marks_show_quotient` (Standard `false`) schaltet den Fehlerquotienten in Rückgabe
+und PDF frei. Beide Werte gehören nicht zu den Profilen und nicht zu "Erweitert"; die Einstellungsseite lässt sie unverändert.
+
+Zählung: je Kategorie die Anzahl; gewichtete Fehler = Summe der Gewichte aller Zeichen, die als Fehler zählen; Wörter =
+durch Leerraum getrennte Stücke des Antworttextes; **Fehlerquotient = gewichtete Fehler / Wörter × 100**, eine
+Nachkommastelle (ohne Wörter: keiner). Über mehrere Textaufgaben rechnet man aus den Summen, nicht aus dem Mittel der
+Quotienten. Zeichen außerhalb des aktiven Satzes zählen nicht. Der Quotient ist ein Hinweis und setzt keine Punkte.
 
 ## 6. Automatische Vorbewertung (`auto_gradings.details`)
 

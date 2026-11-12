@@ -3,7 +3,7 @@
  * Code und Freitext nutzen eigene Ansichten mit Kommentaren, alle anderen Typen das Antwort-Widget
  * des Typs (mode 'grading' bzw. 'review', readOnly).
  *
- *   const view = mountAnswer(container, { task, content, mode, comments, canComment, onComment, onBubble });
+ *   const view = mountAnswer(container, { task, content, mode, comments, canComment, marks, onComment, onSetMark, onBubble });
  *   view.setComments(list); view.focusComment(c); view.destroy();
  */
 import { answerWidget, FallbackWidget } from '../lib/widgets.js';
@@ -32,8 +32,8 @@ export function mountAnswer(container, options) {
     if (task.answer_type === 'text') {
         const view = mountTextView(host, {
             text: typeof content.text === 'string' ? content.text : '',
-            comments: options.comments, canComment: options.canComment,
-            onComment: options.onComment, onMark: options.onBubble,
+            comments: options.comments, canComment: options.canComment, marks: options.marks ?? [],
+            onComment: options.onComment, onSetMark: options.onSetMark, onMark: options.onBubble,
         });
         return { setComments: view.setComments, focusComment: view.focusComment, destroy: () => { view.destroy(); host.remove(); } };
     }

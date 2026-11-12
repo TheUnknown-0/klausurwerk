@@ -374,3 +374,15 @@ dialog.pult-wall-dialog { max-width: min(1400px, calc(100vw - 24px)); }
   .pult-wall { padding: 10px; }
   .pult-wall-focus-cols { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- Aufnahmen zum Abspielen im Raum ---------- */
+.media-dock {
+    position: fixed; right: 16px; bottom: 16px; z-index: 40; width: min(460px, calc(100vw - 32px)); max-height: 60vh; overflow: auto;
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 12px 14px;
+}
+.media-dock[hidden] { display: none; }
+.media-dock-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.media-dock-list { display: grid; gap: 12px; }
+.media-dock-name { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+.media-dock-el { width: 100%; }
+video.media-dock-el { max-height: 240px; background: #000; border-radius: var(--radius-sm); }

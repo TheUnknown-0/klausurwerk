@@ -55,6 +55,7 @@ export const EVENT_LABELS = {
     screen_share_stopped: 'hat die Bildschirmfreigabe beendet',
     screen_share_denied: 'hat die Bildschirmfreigabe nicht erteilt',
     screen_share_wrong_surface: 'gibt nicht den ganzen Bildschirm frei',
+    media_play: 'spielt eine Aufnahme ab',
 };
 
 /** Bildschirmfläche der Freigabe in Worten. */
@@ -118,6 +119,8 @@ export function describeEvent(event) {
             return `${EVENT_LABELS[event.type]} (${SURFACE_LABELS[d.surface] ?? 'Fläche unbekannt'})`;
         case 'screen_share_wrong_surface':
             return `${EVENT_LABELS[event.type]} (${SURFACE_LABELS[d.surface] ?? 'Fläche unbekannt'})`;
+        case 'media_play':
+            return `Aufnahme „${String(d.name ?? '').slice(0, 60)}“ gestartet${d.limit ? ` (${d.plays} von ${d.limit})` : ''}`;
         case 'screen_share_denied':
             return d.reason ? `${EVENT_LABELS[event.type]} (${d.reason})` : EVENT_LABELS[event.type];
         default:

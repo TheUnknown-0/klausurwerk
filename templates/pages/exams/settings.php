@@ -98,13 +98,28 @@ $toggle = static function (array $path, string $label, string $help) use ($setti
     <section class="card card-pad settings-card">
         <h2 class="card-title">Editor-Hilfen und Hilfsmittel</h2>
         <p class="card-lead">Was den Schüler:innen beim Schreiben hilft. Hilfsmittel erscheinen in einer Seitenleiste; hochgeladene Materialien mit "als Hilfsmittel" kommen dazu.</p>
-        <?= $toggle(['editor', 'autocomplete'], 'Autovervollständigung', 'Der Code-Editor schlägt Wörter und Schlüsselwörter vor. Für Klausuren meist aus, für Übungen an.') ?>
-        <?= $toggle(['editor', 'lint'], 'Fehlermarkierung im Editor', 'Syntaxfehler werden schon beim Tippen markiert.') ?>
-        <?= $toggle(['aids', 'java_api'], 'Java-API-Referenz', 'Kurzreferenz der häufigsten Java-Klassen.') ?>
-        <?= $toggle(['aids', 'python_doc'], 'Python-Kurzreferenz', 'Eingebaute Funktionen und gängige Methoden.') ?>
-        <?= $toggle(['aids', 'sql_cheatsheet'], 'SQL-Spickzettel', 'SELECT, JOIN, GROUP BY und weitere Grundlagen.') ?>
-        <?= $toggle(['aids', 'operators'], 'Operatorenliste', 'Die Operatoren (nennen, beschreiben, erläutern ...) mit Bedeutung.') ?>
+        <?php
+        $computing = \App\Services\Subjects::isComputing((string) ($exam['subject'] ?? 'Informatik'));
+        $codeToggles = static function () use ($toggle): string {
+            return $toggle(['editor', 'autocomplete'], 'Autovervollständigung', 'Der Code-Editor schlägt Wörter und Schlüsselwörter vor. Für Klausuren meist aus, für Übungen an.')
+                . $toggle(['editor', 'lint'], 'Fehlermarkierung im Editor', 'Syntaxfehler werden schon beim Tippen markiert.')
+                . $toggle(['aids', 'java_api'], 'Java-API-Referenz', 'Kurzreferenz der häufigsten Java-Klassen.')
+                . $toggle(['aids', 'python_doc'], 'Python-Kurzreferenz', 'Eingebaute Funktionen und gängige Methoden.')
+                . $toggle(['aids', 'sql_cheatsheet'], 'SQL-Spickzettel', 'SELECT, JOIN, GROUP BY und weitere Grundlagen.');
+        };
+        ?>
+        <?php if ($computing): ?>
+            <?= $codeToggles() ?>
+        <?php endif; ?>
+        <?= $toggle(['aids', 'operators'], 'Operatorenliste', 'Die Operatoren des Fachs (nennen, beschreiben, erläutern ...) mit Bedeutung.') ?>
         <?= $toggle(['aids', 'calculator'], 'Taschenrechner', 'Einfacher Taschenrechner in der Seitenleiste.') ?>
+        <?= $toggle(['aids', 'periodic_table'], 'Periodensystem', 'Periodensystem der Elemente mit Atommassen, Elektronegativität und Molmassen-Rechner.') ?>
+        <?php if (!$computing): ?>
+            <details class="form-more">
+                <summary>Hilfen fürs Programmieren (Informatik)</summary>
+                <?= $codeToggles() ?>
+            </details>
+        <?php endif; ?>
     </section>
 
     <details class="card card-pad settings-card settings-advanced"<?= $advancedOpen ? ' open' : '' ?>>

@@ -152,7 +152,7 @@ final class CodeTextGapsTest extends TestCase
     public function testTextConfigGrenzen(): void
     {
         $type = new TextType();
-        self::assertSame(['min_words' => null, 'max_chars' => 20000, 'placeholder' => ''], $type->normalizeConfig([]));
+        self::assertSame(['min_words' => null, 'max_chars' => 20000, 'placeholder' => '', 'lang' => '', 'chars' => ''], $type->normalizeConfig([]));
         self::assertSame(50, $type->normalizeConfig(['min_words' => '50'])['min_words']);
         foreach ([['max_chars' => 5], ['max_chars' => 100001], ['min_words' => -3], ['min_words' => 20000]] as $bad) {
             try {
@@ -162,6 +162,18 @@ final class CodeTextGapsTest extends TestCase
                 self::assertTrue(true);
             }
         }
+    }
+
+    public function testTextSpracheUndZeichenleiste(): void
+    {
+        $type = new TextType();
+        $config = $type->normalizeConfig(['lang' => 'fr', 'chars' => 'chem']);
+        self::assertSame('fr', $config['lang']);
+        self::assertSame('chem', $config['chars']);
+        // Unbekanntes wird zu "wie das Fach"
+        $config = $type->normalizeConfig(['lang' => 'xx', 'chars' => '<script>']);
+        self::assertSame('', $config['lang']);
+        self::assertSame('', $config['chars']);
     }
 
     public function testTextContentWirdAufMaxCharsGekuerzt(): void
@@ -268,6 +280,25 @@ final class CodeTextGapsTest extends TestCase
         ]], $config);
         self::assertSame(1.0, $type->autoCheck($config, $solution, ['values' => ['a' => 'hALLO', 'b' => '42']])['ratio']);
         self::assertSame(0.0, $type->autoCheck($config, $solution, ['values' => ['a' => 'x', 'b' => '4']])['ratio']);
+    }
+
+    public function testGapsChemischeSchreibweiseGiltAlsGleich(): void
+    {
+        $type = new GapsType();
+        $config = $type->normalizeConfig(['template' => '{{a}} {{b}} {{c}}', 'chars' => 'chem', 'lang' => 'de']);
+        self::assertSame('chem', $config['chars']);
+        $solution = $type->normalizeSolution(['gaps' => [
+            'a' => ['accepted' => ['H2O']],
+            'b' => ['accepted' => ['Fe³⁺']],
+            'c' => ['accepted' => ['2 H2 + O2 -> 2 H2O']],
+        ]], $config);
+        $ok = $type->autoCheck($config, $solution, ['values' => ['a' => 'H₂O', 'b' => 'Fe3+', 'c' => '2 H₂ + O₂ → 2 H₂O']]);
+        self::assertSame(1.0, $ok['ratio']);
+        self::assertSame('SO4 2-', GapsType::normalizeNotation('SO₄ ²⁻'));
+        self::assertSame('A <=> B', GapsType::normalizeNotation('A ⇌ B'));
+        // Lückencode: keine Sprache und keine Zeichenleiste
+        $code = $type->normalizeConfig(['mode' => 'code', 'language' => 'java', 'template' => '{{x}}', 'chars' => 'fr']);
+        self::assertSame('', $code['chars']);
     }
 
     public function testGapsContentUndToText(): void

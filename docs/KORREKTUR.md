@@ -105,6 +105,20 @@ Tastatur:
   sind gelb hinterlegt und tragen eine Sprechblase in der Randspalte; ein Klick darauf springt zum Kommentar.
 - **Freitext:** Textstelle mit der Maus markieren, dann „Auswahl kommentieren“. Die Stelle wird hervorgehoben.
 - **Ganze Aufgabe:** „Kommentar zur ganzen Aufgabe“.
+- **Korrekturzeichen (Freitext):** Textstelle markieren und ein Zeichen setzen, wie am Rand einer Klassenarbeit. Das Zeichen
+  steht als Kürzel in der Randspalte neben der Zeile, die Stelle ist im Text unterstrichen. Gesetzt wird per Knopf, mit
+  **Alt+Ziffer** (1 bis 9, 0 für das zehnte Zeichen, Reihenfolge wie die Knöpfe) oder mit der Ziffer allein, solange der
+  Text den Fokus hat. Das Feld „Kommentar zum Zeichen“ ist optional; ohne Text entsteht ein reines Zeichen. Ein Klick auf das
+  Kürzel springt zum Eintrag in der Kommentarliste, dort lässt sich das Zeichen löschen.
+  - **Zeichensätze:** Deutsch (R, Gr, Z, A, W, Sb, T, Bz, St, Wdh), Fremdsprache (sp, gr, voc, wo, t, prep, st, ex, !) und Latein
+    (Vok, Gr, K, S, Ausl; ein Sinnfehler S zählt doppelt). „Automatisch“ wählt nach dem Fach der Klausur, sonst stellst du den
+    Satz im Auswahlfeld „Korrekturzeichen“ unter den Punkten ein (gilt für die ganze Klausur, nur in der Phase „In Korrektur“).
+  - **Zählung:** unter den Punkten steht je Aufgabe und über alle Textaufgaben der Person die Anzahl je Kategorie, die
+    gewichteten Fehler, die Wörter und der **Fehlerquotient = gewichtete Fehler / Wörter × 100** (eine Nachkommastelle). Das ist
+    nur ein Hinweis: Die Punkte setzt du selbst.
+  - **Rückgabe:** Schüler:innen sehen die Zeichen im Text und am Rand samt Legende der verwendeten Kürzel, im PDF stehen die
+    Kürzel in eckigen Klammern hinter der Stelle. Den Fehlerquotienten zeigt die Rückgabe nur, wenn du „Fehlerquotient in
+    Rückgabe und PDF zeigen“ anhakst (Standard: aus).
 
 Eigene Kommentare lassen sich bearbeiten und löschen; die Hauptlehrkraft darf alle löschen.
 
@@ -151,7 +165,9 @@ Abschluss.
 1. Unter „Ergebnisse“ (Menü) oder „Meine Klausuren“ steht deine Klausur, sobald sie zurückgegeben ist.
 2. „Ergebnis ansehen“ zeigt oben Note, Punkte und Prozent, darunter die Rückmeldung deiner Lehrkraft.
 3. Darunter stehen alle Aufgaben mit deiner Antwort, den erreichten Punkten und den Anmerkungen. Bei Code sind kommentierte
-   Zeilen gelb markiert, bei Texten die kommentierten Stellen; ein Klick darauf zeigt den Kommentar.
+   Zeilen gelb markiert, bei Texten die kommentierten Stellen; ein Klick darauf zeigt den Kommentar. Hat deine Lehrkraft
+   Korrekturzeichen gesetzt (z. B. Gr für Grammatik), stehen sie als Kürzel am Rand neben der Zeile; darunter erklärt eine
+   Legende, was die Kürzel bedeuten.
 4. „Als PDF speichern“ erzeugt ein PDF deiner Klausur mit Bewertung.
 5. Siehst du „noch nicht freigegeben“ oder „deine Korrektur ist noch nicht abgeschlossen“, ist das Ergebnis noch nicht bereit.
    Schau später noch einmal vorbei.
@@ -195,10 +211,11 @@ JSON (Fehler wie in `docs/API.md`; Pfade ohne Anwendungsbasis):
 
 | Route | Anfrage | Antwort |
 |---|---|---|
-| `GET /api/korrektur/{id}/zelle/{pid}/{tid}?fremde=1` | | `participation`, `answer` (`content`, `version`, `has_overtime`), `pastes`, `auto` (`suggested_points`, `details`), `own_points`, `final` (`points`, `source`, `differs`), `others`, `comments`, `max_points` |
+| `GET /api/korrektur/{id}/zelle/{pid}/{tid}?fremde=1` | | `participation`, `answer` (`content`, `version`, `has_overtime`), `pastes`, `auto` (`suggested_points`, `details`), `own_points`, `final` (`points`, `source`, `differs`), `others`, `comments`, `marks_others` (Zählung der übrigen Textaufgaben), `max_points` |
 | `POST /api/korrektur/{id}/bewertung` | `{participation_id, task_id, points}` (leer oder null löscht) | `points`, `final`, `totals`, `unfinalized`; 422 bei ungültigen Punkten, 409 außerhalb der Korrekturphase |
 | `POST /api/korrektur/{id}/kommentar` | `{participation_id, task_id, id?, anchor, body}` | `comment` |
 | `POST /api/korrektur/{id}/kommentar/{cid}/loeschen` | | `success` |
+| `POST /api/korrektur/{id}/korrekturzeichen` | `{choice: "auto"\|"deutsch"\|"fremdsprache"\|"latein"\|"aus", show_quotient}` | `marks` (`set`, `choice`, `marks`, `show_quotient`); 422 bei unbekanntem Satz, 409 außerhalb der Korrekturphase (Recht grade, CSRF) |
 | `POST /api/korrektur/{id}/vorschlaege` | `{scope: "auto"\|"all", participation_id?, task_id?}` | `applied` |
 | `POST /api/korrektur/{id}/vorbewertung` | `{reset?: "all"\|"errors", limit?: 1..25}` | `processed`, `errors`, `remaining`, `total`, `aborted`, `message` |
 | `POST /api/korrektur/{id}/neu-testen` | `{participation_id, task_id}` | `auto` |
@@ -224,6 +241,7 @@ Genutzt aus dem Grundschema: `grading_entries` (ein Eintrag je Teilnahme, Aufgab
 | Datei | Aufgabe |
 |---|---|
 | `src/Services/GradingService.php` | Punkte, Endwert, Summen, Noten, Kommentare, Abschluss, Statusfluss, Matrix |
+| `src/Services/CorrectionMarks.php` | Korrekturzeichen: Zeichensätze, Satz je Fach, Zählung, Fehlerquotient (rein; Gegenstück `summarizeMarks` in `frontend/src/grading/logic.js`) |
 | `src/Services/AutoGrader.php` | Vorbewertung im Stapel, Runner-Anbindung (`codeScore` ist rein) |
 | `src/Services/ExamStatistics.php` | Klausurspiegel (`compute` ist rein) |
 | `src/Services/ResultReport.php` | Bericht einer Teilnahme für Rückgabe und PDF (liest nie Lösungsdaten) |

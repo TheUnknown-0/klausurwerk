@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\TaskTypes;
 
+use App\Services\Subjects;
+
 /** Antworttyp "text" (Freitext). Format: docs/DATENFORMATE.md, 2.2. */
 final class TextType extends BaseTaskType
 {
@@ -24,7 +26,8 @@ final class TextType extends BaseTaskType
 
     public function defaultConfig(): array
     {
-        return ['min_words' => null, 'max_chars' => 20000, 'placeholder' => ''];
+        // lang und chars: '' = wie das Fach der Klausur (Services\Subjects).
+        return ['min_words' => null, 'max_chars' => 20000, 'placeholder' => '', 'lang' => '', 'chars' => ''];
     }
 
     public function normalizeConfig(array $config): array
@@ -48,6 +51,8 @@ final class TextType extends BaseTaskType
             'min_words' => $minWords,
             'max_chars' => $maxChars,
             'placeholder' => self::str($config['placeholder'] ?? '', 300),
+            'lang' => Subjects::cleanLanguage($config['lang'] ?? ''),
+            'chars' => Subjects::cleanCharset($config['chars'] ?? ''),
         ];
     }
 

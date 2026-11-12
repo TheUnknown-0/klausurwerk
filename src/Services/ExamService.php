@@ -50,7 +50,7 @@ final class ExamService
      * Prüft und normalisiert die Stammdaten aus einem Formular.
      *
      * @param array<string, mixed> $in
-     * @return array{title: string, description: ?string, mode: string, course_id: ?int, room_id: ?int, duration_minutes: ?int, scheduled_at: ?string}
+     * @return array{title: string, description: ?string, mode: string, subject: string, course_id: ?int, room_id: ?int, duration_minutes: ?int, scheduled_at: ?string}
      */
     public function normalizeMeta(array $in): array
     {
@@ -99,10 +99,17 @@ final class ExamService
 
         $description = trim((string) ($in['description'] ?? ''));
 
+        // Fach: Eingabe, sonst das des Kurses, sonst Informatik.
+        $subject = Subjects::clean($in['subject'] ?? null);
+        if ($subject === null && $courseId !== null) {
+            $subject = Subjects::clean($this->db->fetchValue('SELECT subject FROM courses WHERE id = ?', [$courseId]));
+        }
+
         return [
             'title' => $title,
             'description' => $description === '' ? null : mb_substr($description, 0, 5000),
             'mode' => $mode,
+            'subject' => $subject ?? 'Informatik',
             'course_id' => $courseId,
             'room_id' => $roomId,
             'duration_minutes' => $durationMinutes,
@@ -119,12 +126,12 @@ final class ExamService
     public function create(array $in, int $ownerId, ?array $settings = null): int
     {
         $meta = $this->normalizeMeta($in);
-        $settings = ExamSettings::normalize($settings ?? ExamSettings::defaults($meta['mode']), $meta['mode']);
+        $settings = ExamSettings::normalize($settings ?? ExamSettings::defaults($meta['mode'], $meta['subject']), $meta['mode']);
         $this->db->run(
-            'INSERT INTO exams (title, description, course_id, owner_id, room_id, mode, status, duration_minutes, scheduled_at, settings, access_code)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO exams (title, description, course_id, subject, owner_id, room_id, mode, status, duration_minutes, scheduled_at, settings, access_code)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
-                $meta['title'], $meta['description'], $meta['course_id'], $ownerId, $meta['room_id'], $meta['mode'],
+                $meta['title'], $meta['description'], $meta['course_id'], $meta['subject'], $ownerId, $meta['room_id'], $meta['mode'],
                 'draft', $meta['duration_minutes'], $meta['scheduled_at'],
                 json_encode($settings, JSON_UNESCAPED_UNICODE),
                 $settings['require_access_code'] ? $this->generateAccessCode() : null,
@@ -145,8 +152,8 @@ final class ExamService
         $this->assertEditable($exam);
         $meta = $this->normalizeMeta($in);
         $this->db->run(
-            'UPDATE exams SET title = ?, description = ?, course_id = ?, room_id = ?, mode = ?, duration_minutes = ?, scheduled_at = ? WHERE id = ?',
-            [$meta['title'], $meta['description'], $meta['course_id'], $meta['room_id'], $meta['mode'], $meta['duration_minutes'], $meta['scheduled_at'], (int) $exam['id']],
+            'UPDATE exams SET title = ?, description = ?, course_id = ?, subject = ?, room_id = ?, mode = ?, duration_minutes = ?, scheduled_at = ? WHERE id = ?',
+            [$meta['title'], $meta['description'], $meta['course_id'], $meta['subject'], $meta['room_id'], $meta['mode'], $meta['duration_minutes'], $meta['scheduled_at'], (int) $exam['id']],
         );
     }
 
@@ -159,7 +166,7 @@ final class ExamService
     {
         $this->assertEditable($exam);
         $mode = (string) $exam['mode'];
-        $settings = ExamSettings::applyProfile(ExamAccess::settingsOf($exam), $profile, $mode);
+        $settings = ExamSettings::applyProfile(ExamAccess::settingsOf($exam), $profile, $mode, (string) ($exam['subject'] ?? 'Informatik'));
         $code = $exam['access_code'] !== null ? (string) $exam['access_code'] : null;
         if ($settings['require_access_code']) {
             $code = $code ?: $this->generateAccessCode();
@@ -179,7 +186,15 @@ final class ExamService
     {
         $this->assertEditable($exam);
         $meta = $this->normalizeMeta($in);
-        $settings = ExamSettings::normalize(is_array($in['settings'] ?? null) ? $in['settings'] : [], $meta['mode']);
+        $posted = is_array($in['settings'] ?? null) ? $in['settings'] : [];
+        // Korrekturzeichen stellt man in der Korrektur ein, nicht hier: bestehende Werte bleiben.
+        $existing = ExamAccess::settingsOf($exam);
+        foreach (['correction_marks', 'correction_marks_show_quotient'] as $key) {
+            if (!array_key_exists($key, $posted) && array_key_exists($key, $existing)) {
+                $posted[$key] = $existing[$key];
+            }
+        }
+        $settings = ExamSettings::normalize($posted, $meta['mode']);
 
         $code = $exam['access_code'] !== null ? (string) $exam['access_code'] : null;
         if ($settings['require_access_code']) {
@@ -187,10 +202,10 @@ final class ExamService
         }
 
         $this->db->run(
-            'UPDATE exams SET title = ?, description = ?, course_id = ?, room_id = ?, mode = ?, duration_minutes = ?, scheduled_at = ?,
+            'UPDATE exams SET title = ?, description = ?, course_id = ?, subject = ?, room_id = ?, mode = ?, duration_minutes = ?, scheduled_at = ?,
                 settings = ?, access_code = ?, shared_in_archive = ? WHERE id = ?',
             [
-                $meta['title'], $meta['description'], $meta['course_id'], $meta['room_id'], $meta['mode'], $meta['duration_minutes'], $meta['scheduled_at'],
+                $meta['title'], $meta['description'], $meta['course_id'], $meta['subject'], $meta['room_id'], $meta['mode'], $meta['duration_minutes'], $meta['scheduled_at'],
                 json_encode($settings, JSON_UNESCAPED_UNICODE), $code,
                 !empty($in['shared_in_archive']) && filter_var($in['shared_in_archive'], FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
                 (int) $exam['id'],
@@ -291,10 +306,10 @@ final class ExamService
             // "Klausurcode verlangen" ohne Code, und der Beitritt ginge ohne).
             $settings = ExamSettings::normalize(ExamAccess::settingsOf($exam), (string) $exam['mode']);
             $this->db->run(
-                'INSERT INTO exams (title, description, course_id, owner_id, room_id, mode, status, duration_minutes, settings, copied_from_exam_id, access_code)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                'INSERT INTO exams (title, description, course_id, subject, owner_id, room_id, mode, status, duration_minutes, settings, copied_from_exam_id, access_code)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
-                    mb_substr($title ?? ((string) $exam['title'] . ' (Kopie)'), 0, 200), $exam['description'], $exam['course_id'], $ownerId,
+                    mb_substr($title ?? ((string) $exam['title'] . ' (Kopie)'), 0, 200), $exam['description'], $exam['course_id'], $exam['subject'] ?? 'Informatik', $ownerId,
                     $exam['room_id'], $exam['mode'], 'draft', $exam['duration_minutes'], $exam['settings'], $sourceId,
                     $settings['require_access_code'] ? $this->generateAccessCode() : null,
                 ],
@@ -445,11 +460,11 @@ final class ExamService
     public function courseOptions(int $userId, bool $all): array
     {
         if ($all) {
-            return $this->db->fetchAll('SELECT id, name, school_year, grade_level FROM courses WHERE is_archived = 0 ORDER BY grade_level, name');
+            return $this->db->fetchAll('SELECT id, name, school_year, grade_level, subject FROM courses WHERE is_archived = 0 ORDER BY grade_level, name');
         }
 
         return $this->db->fetchAll(
-            'SELECT id, name, school_year, grade_level FROM courses WHERE is_archived = 0 AND owner_id = ? ORDER BY grade_level, name',
+            'SELECT id, name, school_year, grade_level, subject FROM courses WHERE is_archived = 0 AND owner_id = ? ORDER BY grade_level, name',
             [$userId],
         );
     }

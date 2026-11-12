@@ -478,6 +478,7 @@ export function createQuickList({ host, boot, locked, getTasks, setTasks, call, 
             }
             const picker = typePicker({
                 types: boot.types,
+                subjectGroup: boot.exam?.subject_group,
                 heading: 'Erste Frage: Welcher Antworttyp?',
                 onPick: (tile) => create({ parent_id: null, answer_type: tile.type || null }, tile.config?.language && tile.config.language !== 'java' ? tile.config : null),
             });

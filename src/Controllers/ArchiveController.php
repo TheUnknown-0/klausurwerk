@@ -104,7 +104,7 @@ final class ArchiveController extends Controller
             'pages' => max(1, (int) ceil($total / self::PAGE_SIZE)),
             'total' => $total,
             'types' => TaskTypeRegistry::grouped(),
-            'operators' => $this->ctx->db->fetchAll('SELECT id, name FROM operators ORDER BY sort_order, name'),
+            'operators' => $this->ctx->db->fetchAll("SELECT id, CONCAT(name, ' (', subject, ')') AS name FROM operators ORDER BY subject = 'Informatik' DESC, subject, sort_order, name"),
             'grades' => $this->ctx->db->fetchAll('SELECT DISTINCT grade_level FROM courses ORDER BY grade_level'),
             'targets' => $targets,
             'pageStyles' => ['exams.css'],

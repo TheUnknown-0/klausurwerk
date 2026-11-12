@@ -11,4 +11,5 @@ import './logic.js';
 import './truth-table.js';
 import './automaton.js';
 import './er.js';
+import './structure.js';
 import './relational.js';

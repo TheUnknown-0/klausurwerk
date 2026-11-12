@@ -15,7 +15,7 @@ foreach ($tasks as $t) {
     <div class="page-title-group">
         <div class="page-eyebrow"><a href="<?= e($ctx->url('/klausuren/' . $id)) ?>">← <?= e($exam['title']) ?></a></div>
         <h1 class="page-title">Material</h1>
-        <p class="page-sub">Bilder (PNG, JPG, GIF, WebP) und PDF-Dateien, höchstens 20 MB je Datei. Im Aufgabentext einbinden mit <code class="mono">![Beschriftung](material:ID)</code>.</p>
+        <p class="page-sub">Bilder (PNG, JPG, GIF, WebP) und PDF bis 20 MB, Audio (MP3, M4A, OGG, WAV) und Video (MP4, WebM) bis 190 MB je Datei. Im Aufgabentext einbinden mit <code class="mono">![Beschriftung](material:ID)</code>; Audio und Video erscheinen auch ohne Verweis unter der zugeordneten Aufgabe.</p>
     </div>
 </div>
 
@@ -28,7 +28,7 @@ foreach ($tasks as $t) {
         <div class="form-grid">
             <div class="field">
                 <label for="datei">Datei *</label>
-                <input class="input" type="file" id="datei" name="datei" required accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,image/png,image/jpeg,image/gif,image/webp,application/pdf">
+                <input class="input" type="file" id="datei" name="datei" required accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.mp3,.m4a,.ogg,.wav,.mp4,.webm,image/*,application/pdf,audio/*,video/*">
             </div>
             <div class="field">
                 <label for="task_id">Gehört zu Aufgabe</label>
@@ -39,6 +39,7 @@ foreach ($tasks as $t) {
             </div>
         </div>
         <label class="checkbox-row"><input type="checkbox" name="is_aid" value="1"> Als Hilfsmittel anbieten (Seitenleiste, z. B. Formelsammlung)</label>
+        <p class="hint">Audio und Video spielt zunächst nur die Lehrkraft im Pult ab. Ob Schüler:innen selbst abspielen dürfen (beliebig oft oder begrenzt), stellst du nach dem Hochladen in der Tabelle ein.</p>
         <button class="btn btn-primary" type="submit"><?= icon('upload') ?>Hochladen</button>
     </form>
 <?php endif; ?>
@@ -48,7 +49,7 @@ foreach ($tasks as $t) {
 <?php else: ?>
     <div class="card table-wrap">
         <table class="data-table">
-            <thead><tr><th>Datei</th><th>ID</th><th>Größe</th><th>Aufgabe</th><th>Hilfsmittel</th><th>Im Text</th><th></th></tr></thead>
+            <thead><tr><th>Datei</th><th>ID</th><th>Größe</th><th>Aufgabe</th><th>Hilfsmittel / Abspielen</th><th>Im Text</th><th></th></tr></thead>
             <tbody>
             <?php foreach ($materials as $m): ?>
                 <tr>
@@ -73,7 +74,26 @@ foreach ($tasks as $t) {
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if ($editable): ?>
+                        <?php if (\App\Services\MediaPlays::isMedia((string) $m['mime'])): ?>
+                            <?php $policy = \App\Services\MediaPlays::cleanPolicy($m['play_policy'] ?? 'teacher'); ?>
+                            <?php if ($editable): ?>
+                                <form class="cluster" method="post" action="<?= e($base . '/' . (int) $m['id'] . '/abspielregel') ?>">
+                                    <?= $csrf->field() ?>
+                                    <label class="sr-only" for="pp-<?= e($m['id']) ?>">Wer spielt <?= e($m['original_name']) ?> ab?</label>
+                                    <select id="pp-<?= e($m['id']) ?>" name="play_policy">
+                                        <?php foreach (\App\Services\MediaPlays::POLICY_LABELS as $key => $label): ?>
+                                            <option value="<?= e($key) ?>" <?= $policy === $key ? 'selected' : '' ?>><?= e($label) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <label class="text-sm" for="pl-<?= e($m['id']) ?>">höchstens</label>
+                                    <input class="input input-xs" type="number" id="pl-<?= e($m['id']) ?>" name="play_limit" min="1" max="<?= e((string) \App\Services\MediaPlays::MAX_LIMIT) ?>" value="<?= e((string) (int) ($m['play_limit'] ?? 2)) ?>" aria-label="Höchstzahl der Starts">
+                                    <span class="text-sm">mal</span>
+                                    <button class="btn btn-sm" type="submit">OK</button>
+                                </form>
+                            <?php else: ?>
+                                <?= e(\App\Services\MediaPlays::POLICY_LABELS[$policy] . ($policy === 'limited' ? ' (' . (int) $m['play_limit'] . '-mal)' : '')) ?>
+                            <?php endif; ?>
+                        <?php elseif ($editable): ?>
                             <form method="post" action="<?= e($base . '/' . (int) $m['id'] . '/hilfsmittel') ?>">
                                 <?= $csrf->field() ?>
                                 <button class="btn btn-sm <?= (int) $m['is_aid'] === 1 ? 'btn-primary' : '' ?>" type="submit" aria-pressed="<?= (int) $m['is_aid'] === 1 ? 'true' : 'false' ?>">

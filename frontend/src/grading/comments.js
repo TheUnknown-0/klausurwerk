@@ -8,6 +8,7 @@
  *       onDelete(id) → Promise<boolean>,
  *       onFocus(comment),                    // Klick auf die Stellenangabe
  *       showAuthor: false,
+ *       marks: [{code, name}],               // Korrekturzeichen des Satzes (für Namen in der Liste)
  *   });
  *   panel.setComments(list); panel.compose(anchor); panel.destroy();
  */
@@ -18,6 +19,7 @@ export function mountComments(container, options) {
     let comments = options.comments ?? [];
     let editing = null; // { id|null, anchor, body }
     let busy = false;
+    const markNames = new Map((options.marks ?? []).map((m) => [m.code, m.name]));
 
     const list = h('ul', { class: 'g-comments', 'aria-label': 'Kommentare' });
     const composerHost = h('div', { class: 'g-composer-host' });
@@ -41,9 +43,12 @@ export function mountComments(container, options) {
                 onclick: () => options.onFocus?.(c),
             }, anchorLabel(c.anchor));
             const item = h('li', { class: `g-comment g-kind-${c.anchor?.kind ?? 'task'}`, dataset: { id: c.id } },
-                h('div', { class: 'g-comment-head' }, label,
+                h('div', { class: 'g-comment-head' },
+                    c.anchor?.mark ? h('span', { class: 'badge g-mark-badge', title: markNames.get(c.anchor.mark) ?? 'Korrekturzeichen' }, c.anchor.mark) : null,
+                    label,
+                    c.anchor?.mark && markNames.has(c.anchor.mark) ? h('span', { class: 'text-sm text-soft' }, markNames.get(c.anchor.mark)) : null,
                     options.showAuthor && c.grader_name ? h('span', { class: 'text-faint text-sm' }, c.mine ? 'von dir' : `von ${c.grader_name}`) : null),
-                h('p', { class: 'g-comment-body' }, c.body),
+                c.body !== '' ? h('p', { class: 'g-comment-body' }, c.body) : null,
                 canEdit ? h('div', { class: 'g-comment-tools' },
                     c.mine ? h('button', { type: 'button', class: 'btn btn-sm btn-ghost', onclick: () => startEdit(c) }, 'Bearbeiten') : null,
                     h('button', { type: 'button', class: 'btn btn-sm btn-danger-ghost', onclick: () => remove(c) }, 'Löschen')) : null);
@@ -75,7 +80,7 @@ export function mountComments(container, options) {
         form.addEventListener('submit', async (ev) => {
             ev.preventDefault();
             const body = area.value.trim();
-            if (body === '') {
+            if (body === '' && !editing.anchor?.mark) {
                 error.textContent = 'Der Kommentar ist leer.';
                 area.focus();
                 return;

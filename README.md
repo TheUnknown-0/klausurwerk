@@ -1,8 +1,11 @@
 # Klausurwerk
 
-Webanwendung für Informatik-Klausuren in den Klassen 10 bis 12: Programmieren in **Java**,
-**Python** und **SQL**, dazu Freitext-, Auswahl-, Lücken- und Zeichenaufgaben (UML,
+Webanwendung für Klausuren in den Klassen 10 bis 12, entstanden für Informatik: Programmieren in
+**Java**, **Python** und **SQL**, dazu Freitext-, Auswahl-, Lücken- und Zeichenaufgaben (UML,
 Struktogramm, Logikschaltungen, Automaten, ER-Modelle) und eine eigene Gitterwelt mit „Robo“.
+Auch für **Sprachen** (Deutsch, Englisch, Französisch, Spanisch, Latein u. a.) und
+**Naturwissenschaften** (Chemie mit Strukturformeln und Periodensystem): Zeichenleiste je Sprache,
+Ausgangstexte mit Zeilennummern, Hörverstehen, Korrekturzeichen mit Fehlerquotient.
 Lehrkräfte überwachen die Klausur live im **Pult**, Schüler:innen arbeiten im Vollbild.
 
 ## Funktionen
@@ -10,13 +13,14 @@ Lehrkräfte überwachen die Klausur live im **Pult**, Schüler:innen arbeiten im
 | Bereich | Funktion |
 |---|---|
 | **Klausuren** | Modi Klausur, Übung und Probe (Technik-Check); Aufgaben mit Teilaufgaben, Punkten, Operatoren (AFB I bis III), Markdown mit Formeln, Bildern und Code; Material und Hilfsmittel; eingebauter Browser mit freigegebenen Webseiten je Aufgabe (alles andere gesperrt); Archivsuche und Kopieren früherer Aufgaben; Export/Import |
-| **Umgebung** | pro Klausur und Aufgabe: Sprache und Java-Version, Ausführen / nur Syntaxprüfung / nur Schreiben, Editor-Komfort, Hilfsmittel (Java-API, Python-Doku, SQL-Spickzettel, Operatoren, Taschenrechner), vorgegebene Dateien, numpy/matplotlib zuschaltbar |
+| **Fächer** | Fach je Klausur (aus dem Kurs); danach richten sich Operatorenliste, Antworttypen, Standard-Hilfsmittel und Zeichenleiste. Sprachen: Sonderzeichen (é, ñ, ā …), Ausgangstexte mit Zeilennummern, Textmarker im Aufgabentext, Audio/Video mit Abspielregel (nur Pult, frei oder begrenzt). Chemie: Reaktionsgleichungen `\ce{…}`, Hoch-/Tiefstellen (H₂O, SO₄²⁻), Strukturformel-Editor mit Vergleich, Periodensystem mit Molmassen-Rechner |
+| **Umgebung** | pro Klausur und Aufgabe: Sprache und Java-Version, Ausführen / nur Syntaxprüfung / nur Schreiben, Editor-Komfort, Hilfsmittel (Java-API, Python-Doku, SQL-Spickzettel, Operatoren, Taschenrechner, Periodensystem), vorgegebene Dateien, numpy/matplotlib zuschaltbar |
 | **Ausführung** | Python (Pyodide, interaktives `input()`, Turtle) und SQL (SQLite) im Browser; Java 21/25 abgeschottet im Runner-Container |
 | **Überwachung** | Vollbild, Fokus, Tabwechsel, Einfügen von außen, zweiter Tab, Verbindungsabbruch; Alarm mit Ton bei Schüler:in und im Pult, Sperre bis zur Freigabe; Safe Exam Browser optional mit Config-Key-Prüfung und erzeugter `.seb`-Datei |
 | **Pult** | Kacheln als Sitzplan, Zustände live, Mitlesen, Replay, Zeit verlängern, Pause, Toilette, Durchsagen, Hand heben, Abgabe bestätigen, Gerätewechsel freigeben |
 | **Zeit** | Start durch die Lehrkraft, Nachteilsausgleich je Person, Zeitende nur als Signal: abgegeben wird erst, wenn die Lehrkraft es bestätigt |
 | **Ausfallsicherheit** | Autosave mit lokaler Sicherung (IndexedDB), Nachsenden nach Verbindungsabbruch, Anzeige im Pult, ob der letzte Stand vollständig angekommen ist |
-| **Korrektur** | Erwartungshorizont daneben, Zeilenkommentare, Punktvorschläge aus Tests und Auswahlaufgaben, Zweitkorrektur, Notenschlüssel je Klassenstufe (Noten 1 bis 6 bzw. Punkte 0 bis 15), Klausurspiegel, PDF, digitale Rückgabe |
+| **Korrektur** | Erwartungshorizont daneben, Zeilenkommentare, Korrekturzeichen am Rand (R, Gr, Z … bzw. sp, gr, voc …) mit Fehlerquotient, Punktvorschläge aus Tests und Auswahlaufgaben, Zweitkorrektur, Notenschlüssel je Klassenstufe (Noten 1 bis 6 bzw. Punkte 0 bis 15), Klausurspiegel, PDF, digitale Rückgabe |
 | **Verwaltung** | Lehrkräfte, Kurse, Schüler:innen (CSV-Import), Zugangskarten als PDF mit QR-Code, Räume, Operatorenliste, Rechte und Gruppen, Aufbewahrungsfristen, Audit-Log |
 | **Anmeldung** | Schüler:innen mit fester Zugangskarte; Lehrkräfte mit Passwort und Code per E-Mail |
 

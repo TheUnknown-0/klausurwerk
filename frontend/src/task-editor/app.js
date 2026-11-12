@@ -291,6 +291,7 @@ export function initTaskEditor() {
         const parent = parentId !== null ? byId(parentId) : null;
         const picker = typePicker({
             types: boot.types,
+            subjectGroup: boot.exam?.subject_group,
             heading: parent ? `Neue Teilaufgabe zu ${parent.number}: Welcher Antworttyp?` : (tasks.length === 0 ? 'Erste Aufgabe: Welcher Antworttyp?' : 'Neue Aufgabe: Welcher Antworttyp?'),
             onPick: (tile) => createTask(parentId, tile),
             onCancel: tasks.length > 0 ? () => { picking = false; renderTree(); renderForm(); } : null,

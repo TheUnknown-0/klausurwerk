@@ -694,3 +694,18 @@ dialog.modal .modal-footer { padding: 14px 24px; border-top: 1px solid var(--bor
 /* Marke im Minimal-Layout (Anmeldung) */
 .brand-logo-lg { width: 40px; height: 40px; }
 .brand-name { font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; display: block; line-height: 1.1; }
+
+/* ---------- Ausgangstexte mit Zeilennummern (```zeilen im Markdown) ---------- */
+.md-lines {
+  margin: 0 0 1em; padding: 12px 16px 12px 0; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); font-family: var(--font-serif, Georgia, serif); line-height: 1.7;
+  counter-reset: none;
+}
+.md-line { display: block; position: relative; padding-left: 4.2em; white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.7em; }
+.md-line::before {
+  content: attr(data-n); position: absolute; left: 0; width: 3.2em; text-align: right;
+  font-family: var(--font-mono); font-size: .72em; line-height: 2.36; color: transparent; user-select: none;
+}
+.md-line.is-marked::before { color: var(--ink-faint); }
+.md-line.is-blank { min-height: .9em; }
+.md-line:hover::before { color: var(--ink-soft); }

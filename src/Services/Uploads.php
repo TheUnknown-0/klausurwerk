@@ -26,6 +26,13 @@ final class Uploads
         'gif' => ['image/gif'],
         'webp' => ['image/webp'],
         'svg' => ['image/svg+xml'],
+        // Audio und Video (Hörverstehen); finfo meldet je nach Datei unterschiedliche Typen.
+        'mp3' => ['audio/mpeg', 'audio/mp3', 'audio/x-mpeg'],
+        'm4a' => ['audio/mp4', 'audio/x-m4a', 'video/mp4', 'audio/aac'],
+        'ogg' => ['audio/ogg', 'application/ogg', 'video/ogg'],
+        'wav' => ['audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave'],
+        'mp4' => ['video/mp4', 'audio/mp4'],
+        'webm' => ['video/webm', 'audio/webm'],
     ];
 
     private const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];

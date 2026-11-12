@@ -26,7 +26,7 @@ final class GapsType extends BaseTaskType
 
     public function defaultConfig(): array
     {
-        return ['mode' => 'text', 'language' => null, 'template' => '', 'gaps' => []];
+        return ['mode' => 'text', 'language' => null, 'template' => '', 'gaps' => [], 'lang' => '', 'chars' => ''];
     }
 
     public function defaultSolution(): array
@@ -97,7 +97,11 @@ final class GapsType extends BaseTaskType
             ];
         }
 
-        return ['mode' => $mode, 'language' => $language, 'template' => $template, 'gaps' => $gaps];
+        return [
+            'mode' => $mode, 'language' => $language, 'template' => $template, 'gaps' => $gaps,
+            'lang' => $mode === 'text' ? \App\Services\Subjects::cleanLanguage($config['lang'] ?? '') : '',
+            'chars' => $mode === 'text' ? \App\Services\Subjects::cleanCharset($config['chars'] ?? '') : '',
+        ];
     }
 
     public function normalizeSolution(array $solution, array $config): array
@@ -182,11 +186,29 @@ final class GapsType extends BaseTaskType
         return ['ratio' => $ratio, 'details' => ['source' => 'gaps', 'ratio' => $ratio, 'items' => $items]];
     }
 
+    /**
+     * Schreibweisen, die als gleich gelten: Hoch-/Tiefzeichen wie Ziffern und Vorzeichen
+     * (H₂O = H2O, Fe³⁺ = Fe3+), Pfeile (→ = ->, ⇌ = <=>), Minuszeichen (− = -).
+     */
+    public static function normalizeNotation(string $value): string
+    {
+        static $map = null;
+        $map ??= [
+            '₀' => '0', '₁' => '1', '₂' => '2', '₃' => '3', '₄' => '4', '₅' => '5', '₆' => '6', '₇' => '7', '₈' => '8', '₉' => '9',
+            '⁰' => '0', '¹' => '1', '²' => '2', '³' => '3', '⁴' => '4', '⁵' => '5', '⁶' => '6', '⁷' => '7', '⁸' => '8', '⁹' => '9',
+            '⁺' => '+', '₊' => '+', '⁻' => '-', '₋' => '-', '−' => '-', '–' => '-',
+            '⟶' => '->', '→' => '->', '⇌' => '<=>', '⇄' => '<=>', '⟷' => '<->', '↔' => '<->', '⟵' => '<-', '←' => '<-',
+        ];
+
+        return strtr($value, $map);
+    }
+
     /** @param array<string, mixed> $rule */
     private static function matches(string $value, array $rule): bool
     {
         $trim = ($rule['trim'] ?? true) !== false;
         $caseSensitive = ($rule['case_sensitive'] ?? true) !== false;
+        $value = self::normalizeNotation($value);
         if ($trim) {
             $value = trim($value);
         }
@@ -194,7 +216,7 @@ final class GapsType extends BaseTaskType
             return false;
         }
         foreach ($rule['accepted'] ?? [] as $accepted) {
-            $accepted = (string) $accepted;
+            $accepted = self::normalizeNotation((string) $accepted);
             if ($trim) {
                 $accepted = trim($accepted);
             }

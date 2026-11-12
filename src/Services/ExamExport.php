@@ -93,6 +93,8 @@ final class ExamExport
                 'size_bytes' => (int) $m['size_bytes'],
                 'is_aid' => (int) $m['is_aid'] === 1,
                 'task_key' => $m['task_id'] !== null ? (string) $m['task_id'] : null,
+                'play_policy' => (string) ($m['play_policy'] ?? 'teacher'),
+                'play_limit' => (int) ($m['play_limit'] ?? 2),
             ];
         }
 
@@ -104,6 +106,7 @@ final class ExamExport
                 'title' => $exam['title'],
                 'description' => $exam['description'],
                 'mode' => $exam['mode'],
+                'subject' => $exam['subject'] ?? 'Informatik',
                 'duration_minutes' => $exam['duration_minutes'] !== null ? (int) $exam['duration_minutes'] : null,
             ],
             'settings' => ExamAccess::settingsOf($exam),
@@ -217,21 +220,22 @@ final class ExamExport
         }
 
         // Alles vorab prüfen und normalisieren, bevor etwas geschrieben wird.
-        $operators = [];
-        foreach ($this->db->fetchAll('SELECT id, name FROM operators') as $op) {
-            $operators[mb_strtolower((string) $op['name'])] = (int) $op['id'];
-        }
+        // Ältere Exporte haben kein Fach: dann das des Zielkurses, sonst Informatik.
+        $subject = Subjects::clean(mb_substr((string) ($examIn['subject'] ?? ''), 0, 60))
+            ?? ($courseId !== null ? (string) $this->db->fetchValue('SELECT subject FROM courses WHERE id = ?', [$courseId]) : null)
+            ?? 'Informatik';
+        $operators = Operators::nameMap($this->db, $subject);
         $prepared = $this->prepareTasks(is_array($doc['tasks'] ?? null) ? $doc['tasks'] : [], $operators, 0);
         $materialsIn = $this->prepareMaterials(is_array($doc['materials'] ?? null) ? $doc['materials'] : [], $zip);
 
-        return (int) $this->db->transaction(function () use ($title, $examIn, $courseId, $ownerId, $mode, $duration, $settings, $prepared, $materialsIn, $zip): int {
+        return (int) $this->db->transaction(function () use ($title, $examIn, $courseId, $ownerId, $mode, $duration, $settings, $prepared, $materialsIn, $zip, $subject): int {
             $this->db->run(
-                'INSERT INTO exams (title, description, course_id, owner_id, mode, status, duration_minutes, settings)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                'INSERT INTO exams (title, description, course_id, subject, owner_id, mode, status, duration_minutes, settings)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     $title,
                     ($d = trim(mb_substr((string) ($examIn['description'] ?? ''), 0, 5000))) === '' ? null : $d,
-                    $courseId, $ownerId, $mode, 'draft', $duration,
+                    $courseId, $subject, $ownerId, $mode, 'draft', $duration,
                     json_encode($settings, JSON_UNESCAPED_UNICODE),
                 ],
             );
@@ -245,7 +249,7 @@ final class ExamExport
                     $tmp = tempnam(sys_get_temp_dir(), 'kwm');
                     $tmpFiles[] = $tmp;
                     file_put_contents($tmp, $zip->getFromName($m['file']));
-                    $row = $this->materials->storeLocal($examId, $tmp, $m['original_name'], null, $m['is_aid']);
+                    $row = $this->materials->storeLocal($examId, $tmp, $m['original_name'], null, $m['is_aid'], $m['play_policy'], $m['play_limit']);
                     $materialMap[$m['key']] = (int) $row['id'];
                 }
             } catch (\Throwable $e) {
@@ -387,6 +391,8 @@ final class ExamExport
                 'file' => $file,
                 'is_aid' => !empty($m['is_aid']),
                 'task_key' => isset($m['task_key']) && $m['task_key'] !== null ? (string) $m['task_key'] : null,
+                'play_policy' => MediaPlays::cleanPolicy($m['play_policy'] ?? 'teacher'),
+                'play_limit' => MediaPlays::cleanLimit($m['play_limit'] ?? 2),
             ];
         }
 

@@ -7,10 +7,34 @@ import { h, setTrustedHtml } from '../lib/dom.js';
 import { enhanceRichText } from '../lib/rich-text.js';
 import { mountAnswer } from './answer-view.js';
 import { mountComments } from './comments.js';
-import { formatPoints } from './logic.js';
+import { combineMarks, countWords, formatPoints, formatQuotient, markCodes, summarizeMarks } from './logic.js';
+
+/** Legende der verwendeten Korrekturzeichen, bei Freigabe mit Fehlerquotient. */
+function marksNote(summary, defs, showQuotient, label) {
+    const used = defs.filter((d) => summary.counts[d.code]);
+    if (used.length === 0) {
+        return null;
+    }
+    return h('div', { class: 'g-marks-legend text-sm', 'aria-label': 'Korrekturzeichen' },
+        h('strong', {}, `${label}: `),
+        used.map((d, i) => [i > 0 ? ', ' : '', h('span', { class: 'badge g-mark-badge' }, d.code), ` ${d.name} (${summary.counts[d.code]}x)`]),
+        showQuotient && summary.quotient !== null
+            ? h('div', {}, `Fehlerquotient: ${formatQuotient(summary.quotient)} (${formatPoints(summary.weighted)} gewichtete Fehler auf ${summary.words} ${summary.words === 1 ? 'Wort' : 'Wörter'})`)
+            : null);
+}
 
 export function mountReview(root, boot) {
     root.replaceChildren();
+    const defs = boot.grading_marks?.marks ?? [];
+    const showQuotient = boot.grading_marks?.show_quotient === true;
+    const textSummary = (task) => summarizeMarks(markCodes(task.comments), countWords(task.answer?.text ?? ''), defs);
+    if (showQuotient && defs.length > 0) {
+        const parts = boot.tasks.filter((t) => t.answer_type === 'text').map(textSummary);
+        const total = combineMarks(parts);
+        if (parts.length > 1 && total.quotient !== null && total.errors > 0) {
+            root.append(h('p', { class: 'g-marks-legend text-sm' }, `Fehlerquotient aller Textaufgaben: ${formatQuotient(total.quotient)}`));
+        }
+    }
     const richBlock = (html, className) => {
         const el = h('div', { class: `rich-text ${className ?? ''}`.trim() });
         setTrustedHtml(el, html);
@@ -49,7 +73,7 @@ export function mountReview(root, boot) {
         const panel = comments.length > 0 ? (() => {
             commentHost.append(h('h3', { class: 'g-h3' }, 'Anmerkungen deiner Lehrkraft'));
             return mountComments(commentHost, {
-                comments, canWrite: false, showAuthor: false,
+                comments, canWrite: false, showAuthor: false, marks: defs,
                 onFocus: (c) => view?.focusComment(c),
             });
         })() : null;
@@ -61,6 +85,7 @@ export function mountReview(root, boot) {
             examId: boot.exam_id,
             comments,
             canComment: false,
+            marks: defs,
             onBubble: (ids) => {
                 for (const id of ids) {
                     const li = commentHost.querySelector(`[data-id="${id}"]`);
@@ -72,6 +97,12 @@ export function mountReview(root, boot) {
                 }
             },
         });
+        if (task.answer_type === 'text' && defs.length > 0) {
+            const note = marksNote(textSummary(task), defs, showQuotient, 'Korrekturzeichen');
+            if (note) {
+                answerHost.after(note);
+            }
+        }
         card.append(commentHost);
 
         if (task.expectation_html) {

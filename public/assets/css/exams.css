@@ -263,6 +263,7 @@ fieldset.field { border: 0; padding: 0; margin-left: 0; margin-right: 0; min-wid
 .te-picker-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .te-picker-head h2 { margin: 0; font-size: 1.25rem; }
 .te-pick-group { margin-top: 18px; }
+details.te-pick-group > summary { cursor: pointer; font-size: .85rem; color: var(--ink-soft); font-weight: 600; margin-bottom: 8px; }
 .te-pick-group h3 { margin: 0 0 8px; font-size: .78rem; font-family: var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
 .te-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
 .te-pick-tile {
@@ -299,3 +300,4 @@ fieldset.field { border: 0; padding: 0; margin-left: 0; margin-right: 0; min-wid
 .te-web-row .input:first-child { font-family: var(--font-mono); font-size: .9rem; }
 .te-web-exact { white-space: nowrap; font-size: .88rem; }
 @media (max-width: 760px) { .te-web-row { grid-template-columns: 1fr auto; } }
+.input-xs { width: 4.5em; }

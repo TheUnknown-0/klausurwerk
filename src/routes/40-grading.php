@@ -15,6 +15,7 @@ return static function (Router $r): void {
     $r->post('/api/korrektur/{id}/bewertung', [GradingController::class, 'saveEntry']);
     $r->post('/api/korrektur/{id}/kommentar', [GradingController::class, 'saveComment']);
     $r->post('/api/korrektur/{id}/kommentar/{cid}/loeschen', [GradingController::class, 'deleteComment']);
+    $r->post('/api/korrektur/{id}/korrekturzeichen', [GradingController::class, 'saveMarkSettings']);
     $r->post('/api/korrektur/{id}/vorschlaege', [GradingController::class, 'applySuggestions']);
     $r->post('/api/korrektur/{id}/vorbewertung', [GradingController::class, 'autoStep']);
     $r->post('/api/korrektur/{id}/neu-testen', [GradingController::class, 'retest']);

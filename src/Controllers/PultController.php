@@ -53,6 +53,17 @@ final class PultController extends Controller
                 'answer_file' => $base . '/klausur/' . (int) $exam['id'] . '/antwortdatei/',
             ],
             'can' => $this->ctx->exams->capabilities((int) $exam['id']),
+            // Audio/Video der Klausur zum zentralen Abspielen im Raum.
+            'media' => array_values(array_map(static fn (array $m): array => [
+                'id' => (int) $m['id'],
+                'name' => (string) $m['original_name'],
+                'mime' => (string) $m['mime'],
+                'url' => $base . '/klausur/' . (int) $exam['id'] . '/material/' . (int) $m['id'],
+                'policy' => (string) $m['play_policy'],
+            ], array_filter(
+                $this->ctx->db->fetchAll('SELECT id, original_name, mime, play_policy FROM exam_materials WHERE exam_id = ? ORDER BY id', [(int) $exam['id']]),
+                static fn (array $m): bool => str_starts_with((string) $m['mime'], 'audio/') || str_starts_with((string) $m['mime'], 'video/'),
+            ))),
         ];
 
         return $this->render('pages/pult/index', [

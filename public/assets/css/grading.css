@@ -124,7 +124,25 @@
 }
 .g-textwrap > .text-faint { padding: 6px 16px 10px; }
 .g-mark { background: var(--danger-soft); color: inherit; text-decoration: underline wavy var(--danger); text-decoration-thickness: 1px; text-underline-offset: 3px; border-radius: 2px; cursor: pointer; padding: 0 1px; }
-.g-mark.is-flash, .g-comment.is-flash { outline: 2px solid var(--danger); outline-offset: 1px; }
+.g-mark.is-flash, .g-comment.is-flash, .g-margin-mark.is-flash { outline: 2px solid var(--danger); outline-offset: 1px; }
+
+/* Korrekturzeichen: Unterstreichung im Text, Kürzel in der Randspalte neben der Zeile */
+.g-line { display: grid; grid-template-columns: minmax(0, 1fr) minmax(2.5rem, auto); column-gap: 10px; align-items: start; }
+.g-line-text { min-height: 1.6em; }
+.g-margin { display: flex; flex-wrap: wrap; gap: 2px 4px; justify-content: flex-end; align-content: flex-start; user-select: none; border-left: 1px solid var(--danger-soft); padding-left: 6px; }
+.g-margin-mark { border: 0; background: none; padding: 0 2px; font-family: var(--font-mono); font-size: .8rem; font-weight: 600; line-height: 1.6; color: var(--danger); cursor: pointer; border-radius: 2px; }
+.g-margin-mark:hover, .g-margin-mark:focus-visible { background: var(--danger-soft); }
+.g-mark.g-mark-sign { background: transparent; text-decoration: underline solid var(--danger); text-decoration-thickness: 1.5px; }
+.g-markbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 16px; border-bottom: 1px solid var(--border); }
+.g-markbtn { font-family: var(--font-mono); min-width: 2.4rem; }
+.g-marknote { flex: 1 1 14rem; min-width: 10rem; max-width: 24rem; }
+.g-textview .g-line:last-child .g-margin { border-left-color: var(--danger-soft); }
+.g-mark-badge { font-family: var(--font-mono); font-weight: 600; color: var(--danger); }
+.g-marks-box { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: grid; gap: 6px; }
+.g-marks-row { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.g-marks-quotient { display: inline-flex; gap: 6px; align-items: center; }
+.g-marks-summary { display: grid; gap: 2px; }
+.g-marks-legend { margin: 8px 0 0; display: grid; gap: 2px; }
 
 /* Kommentare: Anmerkungen der Lehrkraft am Rand, im Rotstift */
 .g-comments-card { padding: 14px 16px; }

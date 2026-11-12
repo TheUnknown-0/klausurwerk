@@ -180,8 +180,16 @@ final class GradingService
                 throw new \InvalidArgumentException('Ungültige Textstelle im Kommentar.');
             }
             $quote = mb_substr((string) ($anchor['quote'] ?? ''), 0, 300);
+            $out = ['kind' => 'text', 'from' => $from, 'to' => $to, 'quote' => $quote];
+            if (isset($anchor['mark']) && $anchor['mark'] !== '') {
+                $mark = $anchor['mark'];
+                if (!is_string($mark) || preg_match('/^[A-Za-z!]{1,5}$/', $mark) !== 1) {
+                    throw new \InvalidArgumentException('Ungültiges Korrekturzeichen.');
+                }
+                $out['mark'] = $mark;
+            }
 
-            return ['kind' => 'text', 'from' => $from, 'to' => $to, 'quote' => $quote];
+            return $out;
         }
 
         throw new \InvalidArgumentException('Unbekannte Art von Kommentar.');
@@ -590,9 +598,6 @@ final class GradingService
         $this->leafTask((int) $exam['id'], $taskId);
         $this->requireParticipation((int) $exam['id'], $participationId);
         $body = trim($body);
-        if ($body === '') {
-            throw new HttpException(422, 'Der Kommentar ist leer.');
-        }
         if (mb_strlen($body) > self::MAX_COMMENT_CHARS) {
             throw new HttpException(422, 'Der Kommentar ist zu lang (höchstens ' . self::MAX_COMMENT_CHARS . ' Zeichen).');
         }
@@ -600,6 +605,17 @@ final class GradingService
             $anchor = self::normalizeAnchor($anchor);
         } catch (\InvalidArgumentException $e) {
             throw new HttpException(422, $e->getMessage());
+        }
+        if (isset($anchor['mark'])) {
+            // Korrekturzeichen nur aus dem Satz dieser Klausur und nur an Freitext-Aufgaben.
+            if (CorrectionMarks::find(CorrectionMarks::activeSet($exam), $anchor['mark']) === null) {
+                throw new HttpException(422, 'Dieses Korrekturzeichen gibt es in dieser Klausur nicht.');
+            }
+            if ($this->db->fetchValue('SELECT answer_type FROM tasks WHERE id = ? AND exam_id = ?', [$taskId, (int) $exam['id']]) !== 'text') {
+                throw new HttpException(422, 'Korrekturzeichen gibt es nur bei Freitext-Aufgaben.');
+            }
+        } elseif ($body === '') {
+            throw new HttpException(422, 'Der Kommentar ist leer.');
         }
         $json = json_encode($anchor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
@@ -630,6 +646,58 @@ final class GradingService
         }
 
         return [];
+    }
+
+    /**
+     * Stellt die Korrekturzeichen der Klausur ein (Satz und Anzeige des Fehlerquotienten in der Rückgabe).
+     *
+     * @param array<string, mixed> $exam
+     * @return array{set: string, choice: string, marks: list<array<string, mixed>>, show_quotient: bool}
+     */
+    public function saveMarkSettings(array $exam, mixed $choice, mixed $showQuotient): array
+    {
+        $this->assertGrading($exam);
+        if (!is_string($choice) || !in_array($choice, CorrectionMarks::CHOICES, true)) {
+            throw new HttpException(422, 'Unbekannter Satz von Korrekturzeichen.');
+        }
+        $settings = ExamAccess::settingsOf($exam);
+        $settings['correction_marks'] = $choice;
+        $settings['correction_marks_show_quotient'] = filter_var($showQuotient, FILTER_VALIDATE_BOOLEAN);
+        $json = json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        $this->db->run('UPDATE exams SET settings = ? WHERE id = ?', [$json, (int) $exam['id']]);
+        $exam['settings'] = $json;
+
+        return CorrectionMarks::forExam($exam);
+    }
+
+    /**
+     * Zählung der Korrekturzeichen je Freitext-Aufgabe einer Teilnahme (nur Kommentare, die der Betrachter sieht).
+     *
+     * @param array<string, mixed> $exam
+     * @return array<int, array{counts: array<string, int>, errors: int, weighted: float, words: int, quotient: ?float}> Aufgabe => Zählung
+     */
+    public function markSummaries(array $exam, int $participationId, int $viewerId, bool $seeOthers): array
+    {
+        $defs = CorrectionMarks::definitions(CorrectionMarks::activeSet($exam));
+        if ($defs === []) {
+            return [];
+        }
+        $texts = [];
+        foreach ($this->db->fetchAll(
+            "SELECT t.id, a.content FROM tasks t LEFT JOIN answers a ON a.task_id = t.id AND a.participation_id = ?
+             WHERE t.exam_id = ? AND t.answer_type = 'text'",
+            [$participationId, (int) $exam['id']],
+        ) as $row) {
+            $content = json_decode((string) ($row['content'] ?? ''), true);
+            $texts[(int) $row['id']] = is_array($content) && is_string($content['text'] ?? null) ? $content['text'] : '';
+        }
+        $out = [];
+        foreach ($texts as $taskId => $text) {
+            $codes = CorrectionMarks::codesOf($this->comments($participationId, $taskId, $viewerId, $seeOthers));
+            $out[$taskId] = CorrectionMarks::summarize($codes, CorrectionMarks::countWords($text), $defs);
+        }
+
+        return $out;
     }
 
     /** Löscht einen Kommentar (eigene; die Hauptlehrkraft darf alle löschen). */

@@ -107,6 +107,23 @@ final class ExamMaterialsController extends Controller
         $this->back($id);
     }
 
+    /** POST /klausuren/{id}/material/{mid}/abspielregel (Audio/Video) */
+    public function playPolicy(array $params): never
+    {
+        $this->requireStaff();
+        $this->requireCsrf();
+        $id = (int) $params['id'];
+        $exam = $this->ctx->exams->require($id, ExamAccess::CAP_EDIT);
+        $this->assertEditable($exam, $id);
+        $row = $this->materialOf($id, (int) $params['mid']);
+        if (!\App\Services\MediaPlays::isMedia((string) $row['mime'])) {
+            throw new HttpException(422, 'Eine Abspielregel gibt es nur für Audio und Video.');
+        }
+        ExamKit::materials($this->ctx)->setPlayPolicy($row, (string) ($_POST['play_policy'] ?? 'teacher'), (int) ($_POST['play_limit'] ?? 2));
+        $this->flash('success', 'Die Abspielregel für "' . $row['original_name'] . '" wurde gespeichert.');
+        $this->back($id);
+    }
+
     /** POST /klausuren/{id}/material/{mid}/zuordnung */
     public function assign(array $params): never
     {

@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\HttpException;
 use App\Services\AccessCards;
+use App\Services\CorrectionMarks;
 use App\Services\GradingScales;
 use App\Services\GradingService;
 use App\Services\Markdown;
@@ -99,6 +100,7 @@ final class StudentResultsController extends Controller
                 'title' => (string) $exam['title'],
                 'summary' => $report['summary'],
                 'tasks' => $tasks,
+                'grading_marks' => array_diff_key(CorrectionMarks::forExam($exam), ['choice' => true]),
                 'show_expectation' => $expectations !== [],
             ],
             'bundles' => ['grading.js'],

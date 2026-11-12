@@ -625,3 +625,45 @@ Serverzeit und Runner-Isolation sind konsequent. Behoben und entschieden wurde:
   die Anmeldung wartet nie auf GitHub). `raw.githubusercontent.com` statt REST-API (60 Anfragen
   je Stunde ohne Anmeldung). Keine Versionsnummer auf der Anmeldeseite (verrät Unbekannten nichts).
   Kein Update-Knopf in der Weboberfläche: Einspielen bleibt `./update.sh` auf dem Server (Abschnitt 23).
+
+## 28. Andere Fächer: Sprachen und Naturwissenschaften (10. November 2026)
+
+- **Wunsch des Nutzers:** Klausuren auch in Deutsch, Englisch, Französisch, Spanisch, Latein, Chemie
+  „und so“. Entscheidungen aus der Rückfrage: Audio/Video mit wählbarer Abspielregel (meist zentral
+  durch die Lehrkraft), eigener Strukturformel-Editor, Korrekturzeichen mit Fehlerquotient,
+  Operatorenlisten als Startbestand (Entwurf nach KMK, von Admins zu prüfen).
+- **Fach als Grundbegriff:** `exams.subject` (Migration 200, aus dem Kurs übernommen, im Formular
+  änderbar). `Services\Subjects` ordnet freie Bezeichnungen („Englisch LK“, „En“) einer Fachgruppe zu
+  (informatik, deutsch, fremdsprache, latein, chemie, naturwissenschaft, mathematik, gesellschaft,
+  allgemein). Daraus folgen Typ-Kacheln (Informatik-Typen bei anderen Fächern eingeklappt am Ende),
+  Standard-Hilfsmittel und Profile (Programmier-Hilfen nur in Informatik, fachübliche wie das
+  Periodensystem bleiben auch im strengen Profil), Sprache und Zeichenleiste der Antworten und die
+  Korrekturzeichen.
+- **Operatoren je Fach:** `operators.subject`, eindeutig je Fach und Name; Verwaltung mit Reitern je
+  Fach. Eine Klausur sieht die Liste ihres Fachs, sonst „Allgemein“; bereits zugeordnete Operatoren
+  bleiben wählbar. Import ordnet Namen zuerst dem Fach der Klausur zu.
+- **Sprachen:** Zeichenleiste über Freitext und Lückentext (`config.chars`, Sätze in
+  `frontend/src/lib/char-bar.js`), `config.lang` als `lang`-Attribut. Keine Rechtschreibprüfung
+  in Klausuren (bewusst, wie bisher `spellcheck="false"`). Ausgangstexte mit Zeilennummern über
+  ```` ```zeilen ```` (Start mit ```` ```zeilen-12 ````, Leerzeilen ohne Nummer, Nummer an jeder 5. Zeile,
+  beim Überfahren an jeder). Textmarker im Aufgabentext (CSS Custom Highlight API, nur im Browser
+  gespeichert, keine Antwort, geht beim Gerätewechsel nicht mit).
+- **Hörverstehen:** Audio (MP3, M4A, OGG, WAV) und Video (MP4, WebM) bis 190 MB als Material.
+  Abspielregel je Datei (`exam_materials.play_policy`, Migration 205): `teacher` (Standard, Leiste
+  „Aufnahmen“ im Pult zum Abspielen im Raum), `free`, `limited` (höchstens 1 bis 9 Starts, Zähler in
+  `material_plays`, Einmal-Schlüssel je Start, Datei wird ganz geladen und ohne Vorspulen
+  abgespielt). Jeder Start erscheint im Pult (`media_play`). Grenze: Wer die Datei im normalen Browser
+  abfängt, kann sie behalten; im Safe Exam Browser nicht.
+- **Chemie:** `\ce{…}` und `\pu{…}` (KaTeX-Erweiterung mhchem) im Aufgabentext, auch ohne `$`.
+  Hoch-/Tiefstellen in der Zeichenleiste (Knöpfe x² / x₂, Strg+. und Strg+,). Lückentext vergleicht
+  H2O = H₂O, -> = →. Antworttyp `structure` (Strukturformel: Atome, Bindungen 1 bis 3, freie
+  Elektronenpaare, Ladungen, Vorlagen, Reaktionspfeile; Vorbewertung über Summenformel und
+  Graph-Isomorphie als Vorschlag). Hilfsmittel Periodensystem (Daten aus PubChem, gemeinfrei, mit
+  konventionellen IUPAC-Massen, Generator `tools/periodensystem.py`) mit Molmassen-Rechner.
+- **Korrektur:** Korrekturzeichen am Rand je Zeichensatz (`Services\CorrectionMarks`: Deutsch,
+  Fremdsprache, Latein; automatisch nach Fach), Zählung je Kategorie und Fehlerquotient (gewichtete
+  Fehler je 100 Wörter) als Hinweis; in Rückgabe und PDF nur auf Wunsch der Lehrkraft.
+- **Bewusst weggelassen:** Wörterbücher (Lizenz; Papierwörterbuch oder freigegebene Seiten im
+  eingebauten Browser), Rechtschreibprüfung, Diktat/Sprachaufnahme, Diagramme aus Messwerten.
+  Das Ergebnis-PDF nutzt weiter Windows-1252: Latein-Längen (ā) und Hoch-/Tiefzahlen erscheinen dort
+  vereinfacht (a, 2). Handbuch und Screenshots sind noch auf Informatik zugeschnitten.

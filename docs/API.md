@@ -194,6 +194,20 @@ Auslieferung: `GET /klausur/{id}/antwortdatei/{fid}`.
 
 ---
 
+### 1.9 `POST /api/klausur/{id}/medien/{mid}/abspielen` (Audio/Video)
+
+Start einer Aufnahme. Antwort `{ "success": true, "url": "…", "plays": 1, "limit": 2 }`.
+Lehrkräfte (Vorschau) bekommen immer die Adresse. Schüler:innen nur in `running` und im Zustand
+`active`/`submit_requested`, nach Abspielregel des Materials (`exam_materials.play_policy`):
+`teacher` = 409, `free` = Adresse ohne Schlüssel, `limited` = zählt den Start (409 ab `play_limit`)
+und hängt einen Einmal-Schlüssel `?t=…` an (10 Minuten, einmal einlösbar). Jeder Start schreibt das
+Ereignis `media_play` (Pult). `GET /klausur/{id}/material/{mid}` liefert Audio/Video an
+Schüler:innen nur nach dieser Regel; für Lehrkräfte mit Range-Anfragen (Vorspulen im Pult).
+
+Die Inhaltsantwort (1.3) enthält je Material `task_id` und bei Audio/Video
+`media: { policy, limit, play_url }`, dazu `media_plays: { "<material_id>": <Starts> }`.
+Der Startblock enthält `subject: { name, group, language, charset }` (Fach der Klausur).
+
 ## 2. Code-Ausführung (Java im Runner)
 
 Python und SQL laufen im Browser. Java läuft auf dem Server; die App leitet an den

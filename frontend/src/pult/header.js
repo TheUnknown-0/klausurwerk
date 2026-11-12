@@ -3,6 +3,7 @@
  */
 import { h, icon } from '../lib/dom.js';
 import { EXAM_STATUS_LABELS, plural, remaining } from './util.js';
+import { createMediaDock } from './media-dock.js';
 
 const STATUS_BADGE = {
     draft: 'badge',
@@ -25,7 +26,9 @@ export function createHeader(store, actions, sound) {
     clock.append(clockLabel, clockValue);
     const controls = h('div', { class: 'pult-controls' });
     const muteBtn = h('button', { type: 'button', class: 'btn btn-sm', 'aria-pressed': 'false', onclick: () => sound.setMuted(!sound.muted) });
+    const dock = createMediaDock(boot.media ?? []);
     const links = h('div', { class: 'pult-links' },
+        dock ? dock.button : null,
         h('a', { class: 'btn btn-sm btn-ghost', href: boot.urls.preview, target: '_blank', rel: 'noopener' }, icon('eye'), ' Vorschau'),
         h('a', { class: 'btn btn-sm btn-ghost', href: boot.urls.exam }, icon('settings'), ' Klausur'),
     );
